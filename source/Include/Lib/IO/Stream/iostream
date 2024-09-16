@@ -1,0 +1,206 @@
+#pragma once
+extern "C" {
+void *__dso_handle = 0;
+void *__cxa_atexit = 0;
+}
+#include <Lib/IO/Base/base_print.hpp>
+#include <Lib/STL/string>
+#include <Lib/Types/Uefi.hpp>
+#include <Lib/Types/type_base.hpp>
+#include <Lib/Types/type_bool.hpp>
+#include <Lib/Types/type_char.hpp>
+#include <Lib/Types/type_double.hpp>
+#include <type_traits>
+PUBLIC namespace QuantumNEC::Lib::IO {
+    PUBLIC struct Display
+    {
+        DisplayColor FColor { };
+        DisplayColor BColor { };
+    };
+    PUBLIC template < typename _TChar >
+        requires std::is_same_v< _TChar, Lib::Types::char_t > || std::is_same_v< _TChar, Lib::Types::WCHAR > || std::is_same_v< _TChar, Lib::Types::uchar_t >
+    class basic_ostream;     // 共用
+    struct ios
+    {
+        enum ios_base : char {
+            dec = 0,     // 十进制
+            oct = 1,     // 八进制
+            hex = 2,     // 十六进制
+            uppercase = 3,
+            showbase = 4,
+            showpos = 5
+        };
+        template < typename _CharT >
+        struct s_stream
+        {
+            _CharT _s_w[ 0x1000 ] { };
+        };
+    };
+
+    PUBLIC template <>
+    class basic_ostream< Lib::Types::char_t > : public BasePrint
+    {
+    public:
+        using C = Lib::Types::char_t;
+
+    public:
+        enum class HeadLevel {
+            INFO = 0,       // indigo
+            DEBUG = 1,      // gray
+            ERROR = 2,      // red
+            SYSTEM = 3,     // gray blue
+            USER = 4,       // white
+            OK = 5,         // green
+            START = 6,      // yellow
+            WARNING = 7     // orange
+        };
+
+    public:
+        explicit( TRUE ) basic_ostream( VOID );
+        explicit( TRUE ) basic_ostream( IN Lib::Types::R_Ref< basic_ostream< Lib::Types::char_t > > ) noexcept;
+
+    private:
+        explicit( TRUE ) basic_ostream( IN Lib::Types::L_Ref< CONST basic_ostream< Lib::Types::char_t > > ) noexcept = delete;
+
+    public:
+        virtual ~basic_ostream( VOID ) noexcept = default;
+
+    private:
+        auto operator=( IN Lib::Types::L_Ref< CONST basic_ostream< Lib::Types::char_t > > )
+            -> Lib::Types::L_Ref< basic_ostream< Lib::Types::char_t > > = delete;
+
+    public:
+        auto operator=( IN Lib::Types::R_Ref< basic_ostream< Lib::Types::char_t > > )
+            -> Lib::Types::L_Ref< basic_ostream< Lib::Types::char_t > >;
+
+    public:
+        auto put( IN Lib::Types::char_t )
+            -> Lib::Types::L_Ref< basic_ostream< Lib::Types::char_t > >;
+        auto write( IN Lib::Types::Ptr< Lib::Types::char_t >, IN Lib::Types::size_t )
+            -> Lib::Types::L_Ref< basic_ostream< Lib::Types::char_t > >;
+
+    public:
+        template < typename T >
+        auto operator<<( IN T ) -> Lib::Types::L_Ref< basic_ostream< Lib::Types::char_t > >;
+
+    public:
+        auto
+        operator[]( IN Lib::Types::R_Ref< HeadLevel > )
+            -> Lib::Types::L_Ref< basic_ostream< Lib::Types::char_t > >;
+        auto operator( )(
+            IN Lib::Types::R_Ref< DisplayColor >,
+            IN Lib::Types::R_Ref< DisplayColor > ) -> Lib::Types::L_Ref< basic_ostream< Lib::Types::char_t > >;
+
+    private:
+        Display display { };
+    };
+    template <>
+    auto basic_ostream< Lib::Types::char_t >::operator<< < Types::int16_t >(
+        IN Types::int16_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Lib::Types::char_t >::operator<< < Types::int32_t >(
+        IN Types::int32_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::int64_t >(
+        IN Types::int64_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::int128_t >(
+        IN Types::int128_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::uint16_t >(
+        IN Types::uint16_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::uint32_t >(
+        IN Types::uint32_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::uint64_t >(
+        IN Types::uint64_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::uint128_t >(
+        IN Types::uint128_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::uint8_t >(
+        IN Types::uint8_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::char_t >(
+        IN Types::char_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::Ptr< Types::char_t > >(
+        IN Types::Ptr< Types::char_t > __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::Ptr< CONST Types::char_t > >(
+        IN Types::Ptr< CONST Types::char_t > __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::double32_t >(
+        IN Types::double32_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::double64_t >(
+        IN Types::double64_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::double128_t >(
+        IN Types::double128_t __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < long >( IN long __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < unsigned long >( IN unsigned long __val )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::FuncPtr< VOID, Types::L_Ref< basic_ostream< Lib::Types::char_t > > > >(
+        IN Types::FuncPtr< VOID, Types::L_Ref< basic_ostream< Lib::Types::char_t > > > __func )
+        ->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::R_Ref< ios::ios_base > >( IN Lib::Types::R_Ref< ios::ios_base > )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::uint16_t > >( IN Lib::Types::Ptr< Lib::Types::uint16_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::uint32_t > >( IN Lib::Types::Ptr< Lib::Types::uint32_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< unsigned long > >( IN Lib::Types::Ptr< unsigned long > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::uint64_t > >( IN Lib::Types::Ptr< Lib::Types::uint64_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::uint128_t > >( IN Lib::Types::Ptr< Lib::Types::uint128_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Types::FuncPtr< VOID, Types::L_Ref< basic_ostream< Lib::Types::char_t > > > >( IN Types::FuncPtr< VOID, Types::L_Ref< basic_ostream< Lib::Types::char_t > > > )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::int16_t > >( IN Lib::Types::Ptr< Lib::Types::int16_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::int32_t > >( IN Lib::Types::Ptr< Lib::Types::int32_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< long > >( IN Lib::Types::Ptr< long > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::int64_t > >( IN Lib::Types::Ptr< Lib::Types::int64_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< Lib::Types::int128_t > >( IN Lib::Types::Ptr< Lib::Types::int128_t > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::Ptr< VOID > >( IN Lib::Types::Ptr< VOID > __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    template <>
+    auto basic_ostream< Types::char_t >::operator<< < Lib::Types::BOOL >( IN Lib::Types::BOOL __val )->Types::L_Ref< basic_ostream< Types::char_t > >;
+    PUBLIC using ostream = basic_ostream< Lib::Types::char_t >;
+    auto endl( Types::L_Ref< ostream > __self )->VOID {
+        __self << "\n\r";
+    }
+    auto setw( Lib::Types::size_t )->ios::s_stream< typename ostream::C > {
+        //
+        // return Lib::STL::string{"str"};
+        return { };
+    }
+    PUBLIC ostream sout;
+}
+// https://blog.csdn.net/xelloq/article/details/117515199

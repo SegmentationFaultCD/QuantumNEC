@@ -1,0 +1,145 @@
+#pragma once
+#include <Lib/STL/cstring>
+#include <Lib/Types/Uefi.hpp>
+#include <Lib/Types/type_bool.hpp>
+PUBLIC namespace QuantumNEC::Lib::STL {
+    template < typename _CharT,
+               typename _Traits = char,
+               typename _Alloc = char >
+    class basic_string;
+    using string = basic_string< Lib::Types::char_t >;
+    template <>
+    class basic_string< Lib::Types::char_t >
+    {
+    public:
+        constexpr explicit basic_string( IN Lib::Types::R_Ref< basic_string< Lib::Types::char_t > > _string ) noexcept {
+            // 移动就把他所属权转移
+            this->__str__length = _string.__str__length;
+            this->__str = _string.__str;
+            _string.__str = NULL;
+        }
+        explicit basic_string( VOID ) noexcept {
+        }
+        explicit basic_string( IN Lib::Types::Ptr< CONST Lib::Types::char_t > _string ) noexcept {
+            this->__str__length = Lib::STL::strlen( _string ) + 1;
+            this->__str = new Lib::Types::char_t[ this->__str__length ];
+            Lib::STL::strncpy( this->__str, _string, this->__str__length );
+        }
+        explicit basic_string( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string ) noexcept {
+            // 不是移动就复制
+            this->__str__length = _string.__str__length;
+            this->__str = new Lib::Types::char_t[ this->__str__length ];
+            Lib::STL::strncpy( this->__str, _string.__str, this->__str__length );
+        }
+
+        virtual ~basic_string( VOID ) noexcept {
+            if ( this->__str ) {
+                // 析构str
+                delete[] this->__str;
+                this->__str = NULL;
+            }
+        }
+
+        auto operator=( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string ) -> Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > {
+            this->__str__length = _string.__str__length;
+            this->__str = new Lib::Types::char_t[ this->__str__length ];
+            Lib::STL::strncpy( this->__str, _string.__str, this->__str__length );
+            return *this;
+        }
+
+    public:
+        friend auto operator+( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > >, IN Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > > ) -> basic_string< Lib::Types::char_t >;
+        friend auto operator+( IN Lib::Types::Ptr< CONST Lib::Types::char_t >, IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > ) -> basic_string< Lib::Types::char_t >;
+        friend auto operator+( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > >, IN Lib::Types::Ptr< CONST Lib::Types::char_t > ) -> basic_string< Lib::Types::char_t >;
+        friend auto operator+( IN CONST Lib::Types::char_t, IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > ) -> basic_string< Lib::Types::char_t >;
+        friend auto operator+( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > >, IN CONST Lib::Types::char_t ) -> basic_string< Lib::Types::char_t >;
+
+        friend auto operator+=( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > >, IN Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > > ) -> Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > >;
+        friend auto operator+=( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > >, IN Lib::Types::Ptr< CONST Lib::Types::char_t > ) -> Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > >;
+        friend auto operator+=( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > >, IN CONST Lib::Types::char_t ) -> Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > >;
+
+    public:
+        constexpr auto operator=( IN Lib::Types::R_Ref< basic_string< Lib::Types::char_t > > _string ) -> Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > {
+            // 移动就把他所属权转移
+            this->__str__length = _string.__str__length;
+            this->__str = _string.__str;
+            _string.__str = NULL;
+            return *this;
+        }
+
+        constexpr auto operator==( IN Lib::Types::Ptr< CONST Lib::Types::char_t > _string ) -> Lib::Types::BOOL {
+            return !Lib::STL::strcmp( _string, this->__str ) ? TRUE : FALSE;
+        }
+        constexpr auto operator==( IN IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string ) -> Lib::Types::BOOL {
+            return _string == *this;
+        }
+
+    public:
+        constexpr auto size( VOID ) CONST {
+            return __str__length;
+        }
+        constexpr auto length( VOID ) CONST {
+            return __str__length;
+        }
+        constexpr auto c_str( VOID ) -> Lib::Types::Ptr< CONST Lib::Types::char_t > {
+            return this->__str;
+        }
+        constexpr auto operator[]( Lib::Types::size_t size ) CONST->Lib::Types::L_Ref< CONST Lib::Types::char_t > {
+            if ( size > this->__str__length )
+                return this->__str[ this->__str__length ];
+            return this->__str[ size ];
+        }
+
+    private:
+        // 字符串
+        Lib::Types::Ptr< Lib::Types::char_t > __str { };
+        // 字符串长度
+        Lib::Types::size_t __str__length { };
+    };
+
+    auto operator+( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string1, IN Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > > _string2 )->basic_string< Lib::Types::char_t > {
+        auto frame = new Lib::Types::char_t[ _string1.__str__length - 1 + _string2.__str__length ];
+        Lib::STL::strncat( frame, _string1.__str, _string1.__str__length - 1 );
+        Lib::STL::strncat( _string1.__str, _string2.__str, _string2.__str__length );
+        return basic_string< Lib::Types::char_t > { frame };
+    }
+
+    auto operator+( IN Lib::Types::Ptr< CONST Lib::Types::char_t > _string1, IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string2 )->basic_string< Lib::Types::char_t > {
+        auto frame = new Lib::Types::char_t[ Lib::STL::strlen( _string1 ) + _string2.__str__length ];
+        Lib::STL::strncat( frame, _string1, Lib::STL::strlen( _string1 ) );
+        Lib::STL::strncat( frame, _string2.__str, _string2.__str__length );
+        return basic_string< Lib::Types::char_t > { frame };
+    }
+    auto operator+( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string1, IN Lib::Types::Ptr< CONST Lib::Types::char_t > _string2 )->basic_string< Lib::Types::char_t > {
+        auto frame = new Lib::Types::char_t[ _string1.__str__length - 1 + Lib::STL::strlen( _string2 ) + 1 ];
+        Lib::STL::strncat( frame, _string1.__str, _string1.__str__length - 1 );
+        Lib::STL::strncat( frame, _string2, Lib::STL::strlen( _string2 ) + 1 );
+        return basic_string< Lib::Types::char_t > { frame };
+    }
+    auto operator+( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string, IN CONST Lib::Types::char_t ch )->basic_string< Lib::Types::char_t > {
+        Lib::Types::char_t buf[] { ch, '\0' };
+        auto frame = new Lib::Types::char_t[ _string.__str__length + 1 ];
+        Lib::STL::strncat( frame, _string.__str, _string.__str__length - 1 );
+        Lib::STL::strncat( frame, buf, 2 );
+        return basic_string< Lib::Types::char_t > { frame };
+    }
+    auto operator+( IN CONST Lib::Types::char_t ch, IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string )->basic_string< Lib::Types::char_t > {
+        Lib::Types::char_t buf[] { ch };
+        auto frame = new Lib::Types::char_t[ 1 + _string.__str__length ];
+        Lib::STL::strncat( frame, buf, 1 );
+        Lib::STL::strncat( frame, _string.__str, _string.__str__length );
+        return basic_string< Lib::Types::char_t > { frame };
+    }
+    auto operator+=( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string1, IN Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > > _string2 )->Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > > {
+        _string1 = _string1 + _string2;
+        return _string1;
+    }
+    auto operator+=( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string1, IN Lib::Types::Ptr< CONST Lib::Types::char_t > _string2 )->Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > > {
+        _string1 = _string1 + _string2;
+        return _string1;
+    }
+    auto operator+=( IN Lib::Types::L_Ref< basic_string< Lib::Types::char_t > > _string, IN CONST Lib::Types::char_t ch )->Lib::Types::L_Ref< CONST basic_string< Lib::Types::char_t > > {
+        _string = _string + ch;
+        return _string;
+    }
+}

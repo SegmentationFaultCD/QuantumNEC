@@ -1,0 +1,7 @@
+ACTIVE_PLATFORM       = QuantumNECPkg/Boot/Info/QuantumNECPkg.dsc
+# ACTIVE_PLATFORM       = MdeModulePkg/MdeModulePkg.dsc
+TARGET                = DEBUG
+TARGET_ARCH           = X64
+TOOL_CHAIN_CONF       = Conf/tools_def.txt
+TOOL_CHAIN_TAG        = GCC5
+BUILD_RULE_CONF       = Conf/build_rule.txt
