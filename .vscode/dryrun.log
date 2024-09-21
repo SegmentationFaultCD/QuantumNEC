@@ -1,0 +1,6 @@
+make.exe --dry-run --keep-going --print-directory
+make.exe: Entering directory 'd:/QuantumNECԴ�뱸��/BIOS/QuantumNEC 2023-6-14'
+make.exe: Leaving directory 'd:/QuantumNECԴ�뱸��/BIOS/QuantumNEC 2023-6-14'
+ 
+make.exe: *** No targets specified and no makefile found.  Stop.
+

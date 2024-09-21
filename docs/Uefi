@@ -1,0 +1,210 @@
+ #include <defs>
+
+#define OPTIONAL
+#define IN
+#define OUT
+
+#if defined(_MSC_VER)
+  #define HAVE_USE_MS_ABI 1
+#endif
+
+#ifdef _MSC_EXTENSIONS
+  #define EFIAPI __cdecl
+#else
+  #define EFIAPI
+#endif
+
+extern "C" uint64_t efi_call0(void *func);
+extern "C" uint64_t efi_call1(void *func, uint64_t arg1);
+extern "C" uint64_t efi_call2(void *func, uint64_t arg1, uint64_t arg2);
+extern "C" uint64_t efi_call3(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3);
+extern "C" uint64_t efi_call4(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                 uint64_t arg4);
+extern "C" uint64_t efi_call5(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                 uint64_t arg4, uint64_t arg5);
+extern "C" uint64_t efi_call6(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                 uint64_t arg4, uint64_t arg5, uint64_t arg6);
+extern "C" uint64_t efi_call7(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                 uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7);
+extern "C" uint64_t efi_call8(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                 uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7,
+                 uint64_t arg8);
+extern "C" uint64_t efi_call9(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                 uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7,
+                 uint64_t arg8, uint64_t arg9);
+extern "C" uint64_t efi_call10(void *func, uint64_t arg1, uint64_t arg2, uint64_t arg3,
+                  uint64_t arg4, uint64_t arg5, uint64_t arg6, uint64_t arg7,
+                  uint64_t arg8, uint64_t arg9, uint64_t arg10);
+
+#define __VA_ARGC_(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _n, X...) _n
+#define __VA_ARGC(X...) __VA_ARGC_(,## X, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+
+#define __VA_ARG_NSUFFIX__(prefix,...) __VA_ARG_NSUFFIX_N(prefix, __VA_ARGC(__VA_ARGS__))
+#define __VA_ARG_NSUFFIX_N(prefix,nargs) __VA_ARG_NSUFFIX_N_(prefix, nargs)
+#define __VA_ARG_NSUFFIX_N_(prefix,nargs) prefix ## nargs
+
+#define _cast64_efi_call0(f) \
+  efi_call0(f)
+#define _cast64_efi_call1(f,a1) \
+  efi_call1(f, (UINT64)(a1))
+#define _cast64_efi_call2(f,a1,a2) \
+  efi_call2(f, (UINT64)(a1), (UINT64)(a2))
+#define _cast64_efi_call3(f,a1,a2,a3) \
+  efi_call3(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3))
+#define _cast64_efi_call4(f,a1,a2,a3,a4) \
+  efi_call4(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3), (UINT64)(a4))
+#define _cast64_efi_call5(f,a1,a2,a3,a4,a5) \
+  efi_call5(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3), (UINT64)(a4), \
+            (UINT64)(a5))
+#define _cast64_efi_call6(f,a1,a2,a3,a4,a5,a6) \
+  efi_call6(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3), (UINT64)(a4), \
+            (UINT64)(a5), (UINT64)(a6))
+#define _cast64_efi_call7(f,a1,a2,a3,a4,a5,a6,a7) \
+  efi_call7(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3), (UINT64)(a4), \
+            (UINT64)(a5), (UINT64)(a6), (UINT64)(a7))
+#define _cast64_efi_call8(f,a1,a2,a3,a4,a5,a6,a7,a8) \
+  efi_call8(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3), (UINT64)(a4), \
+            (UINT64)(a5), (UINT64)(a6), (UINT64)(a7), (UINT64)(a8))
+#define _cast64_efi_call9(f,a1,a2,a3,a4,a5,a6,a7,a8,a9) \
+  efi_call9(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3), (UINT64)(a4), \
+            (UINT64)(a5), (UINT64)(a6), (UINT64)(a7), (UINT64)(a8), \
+            (UINT64)(a9))
+#define _cast64_efi_call10(f,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) \
+  efi_call10(f, (UINT64)(a1), (UINT64)(a2), (UINT64)(a3), (UINT64)(a4), \
+             (UINT64)(a5), (UINT64)(a6), (UINT64)(a7), (UINT64)(a8), \
+             (UINT64)(a9), (UINT64)(a10))
+
+#define eficall(func, ...) __VA_ARG_NSUFFIX__(_cast64_efi_call, __VA_ARGS__) ((void*)func , ##__VA_ARGS__)
+
+// possible caching types for the memory range
+#define EFI_MEMORY_UC           0x0000000000000001
+#define EFI_MEMORY_WC           0x0000000000000002
+#define EFI_MEMORY_WT           0x0000000000000004
+#define EFI_MEMORY_WB           0x0000000000000008
+#define EFI_MEMORY_UCE          0x0000000000000010  
+
+// physical memory protection on range 
+#define EFI_MEMORY_WP           0x0000000000001000
+#define EFI_MEMORY_RP           0x0000000000002000
+#define EFI_MEMORY_XP           0x0000000000004000
+
+// range requires a runtime mapping
+#define EFI_MEMORY_RUNTIME      0x8000000000000000
+
+#define EFI_MAXIMUM_VARIABLE_SIZE           1024
+
+#define CAPSULE_FLAGS_PERSIST_ACROSS_RESET    0x00010000
+#define CAPSULE_FLAGS_POPULATE_SYSTEM_TABLE   0x00020000
+#define CAPSULE_FLAGS_INITIATE_RESET          0x00040000
+
+namespace EXOS::Uefi {
+  typedef uint64_t EFI_STATUS;
+
+  typedef uint8_t UINT8;
+  typedef uint16_t UINT16;
+  typedef uint32_t UINT32;
+  typedef uint64_t UINT64;
+  typedef uint64_t UINTN;
+  typedef int8_t INT8;
+  typedef int16_t INT16;
+  typedef int32_t INT32;
+  typedef int64_t INT64;
+  typedef int64_t INTN;
+  typedef uint16_t CHAR16;
+  typedef uintptr_t EFI_PHYSICAL_ADDRESS;
+  typedef uintptr_t EFI_VIRTUAL_ADDRESS;
+  typedef bool BOOLEAN;
+  typedef void VOID;
+
+  typedef struct {
+    UINT64                      Signature;
+    UINT32                      Revision;
+    UINT32                      HeaderSize;
+    UINT32                      CRC32;
+    UINT32                      Reserved;
+  } EFI_TABLE_HEADER;
+
+  typedef struct {          
+    UINT16      Year;       // 1998 - 20XX
+    UINT8       Month;      // 1 - 12
+    UINT8       Day;        // 1 - 31
+    UINT8       Hour;       // 0 - 23
+    UINT8       Minute;     // 0 - 59
+    UINT8       Second;     // 0 - 59
+    UINT8       Pad1;
+    UINT32      Nanosecond; // 0 - 999,999,999
+    INT16       TimeZone;   // -1440 to 1440 or 2047
+    UINT8       Daylight;
+    UINT8       Pad2;
+  } EFI_TIME;
+
+  typedef struct {
+    UINT32                      Resolution;     // 1e-6 parts per million
+    UINT32                      Accuracy;       // hertz
+    BOOLEAN                     SetsToZero;     // Set clears sub-second time
+  } EFI_TIME_CAPABILITIES;
+
+  typedef enum {
+    EfiReservedMemoryType,
+    EfiLoaderCode,
+    EfiLoaderData,
+    EfiBootServicesCode,
+    EfiBootServicesData,
+    EfiRuntimeServicesCode,
+    EfiRuntimeServicesData,
+    EfiConventionalMemory,
+    EfiUnusableMemory,
+    EfiACPIReclaimMemory,
+    EfiACPIMemoryNVS,
+    EfiMemoryMappedIO,
+    EfiMemoryMappedIOPortSpace,
+    EfiPalCode,
+    EfiMaxMemoryType
+  } EFI_MEMORY_TYPE;
+
+  typedef struct {
+      UINT32                          Type;           // Field size is 32 bits followed by 32 bit pad
+      UINT32                          Pad;
+      EFI_PHYSICAL_ADDRESS            PhysicalStart;  // Field size is 64 bits
+      EFI_VIRTUAL_ADDRESS             VirtualStart;   // Field size is 64 bits
+      UINT64                          NumberOfPages;  // Field size is 64 bits
+      UINT64                          Attribute;      // Field size is 64 bits
+  } EFI_MEMORY_DESCRIPTOR;
+
+  typedef struct {          
+    UINT32  Data1;
+    UINT16  Data2;
+    UINT16  Data3;
+    UINT8   Data4[8]; 
+  } EFI_GUID;
+
+  typedef enum {
+    EfiResetCold,
+    EfiResetWarm,
+    EfiResetShutdown
+  } EFI_RESET_TYPE;
+
+  typedef struct {
+    EFI_GUID                    CapsuleGuid;
+    UINT32                      HeaderSize;
+    UINT32                      Flags;
+    UINT32                      CapsuleImageSize;
+  } EFI_CAPSULE_HEADER;
+
+
+  void initRuntimeService();
+  EFI_STATUS getTime(EFI_TIME *time, EFI_TIME_CAPABILITIES *capabilities);
+  EFI_STATUS setTime(EFI_TIME *time);
+  EFI_STATUS getWakeupTime(bool *isEnabled, bool *isPending, EFI_TIME *time);
+  EFI_STATUS setWakeupTime(bool isEnable, EFI_TIME *time);
+  EFI_STATUS setVirtualAddressMap(uint64_t memoryMapSize, uint64_t descriptorSize, uint32_t descriptorVersion, EFI_MEMORY_DESCRIPTOR *map);
+  EFI_STATUS convertPointer(uint64_t debugDisposition, void **address);
+  EFI_STATUS getVariable(CHAR16 *variableName, EFI_GUID *vendorGuid, uint32_t *attributes, uint64_t *dataSize, void *data);
+  EFI_STATUS getNextVariableName(uint64_t *variableNameSize, CHAR16 *variableName, EFI_GUID *vendorGuid);
+  EFI_STATUS setVariable(CHAR16 *variableName, EFI_GUID *vendorGuid, uint32_t attributes, uint64_t dataSize, void *data);
+  EFI_STATUS getNextHighMonotonicCount(uint32_t *highCount);
+  EFI_STATUS resetSystem(EFI_RESET_TYPE type, EFI_STATUS status, uint64_t dataSize, CHAR16 *data);
+  EFI_STATUS updateCapsule(EFI_CAPSULE_HEADER **headerArray, uint64_t arraySize, EFI_PHYSICAL_ADDRESS scatterGatherList);
+  EFI_STATUS queryCapsuleCapabilities(EFI_CAPSULE_HEADER **headerArray, uint64_t arrayCount, uint64_t *maximumCapsuleSize, EFI_RESET_TYPE *resetType);
+  EFI_STATUS queryVariableInfo(uint32_t attributes, uint64_t *maximumVariableStorageSize, uint64_t *remainingVariableStorageSize, uint64_t *maximumVariableSize);
+}

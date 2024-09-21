@@ -1,0 +1,10 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "qemu",
+            "type": "shell",
+            "command": "qemu-system-x86_64 -nographic"
+        }
+    ]
+}

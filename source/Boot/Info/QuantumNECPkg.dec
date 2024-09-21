@@ -1,7 +1,0 @@
-[Defines]
-    DEC_SPECIFICATION = 0x00010006
-    PACKAGE_NAME = QuantumNECPkg
-    PACKAGE_GUID = fc54961b-f74c-4700-a8ca-204cea150681
-    PACKAGE_VERSION =  0.2
-[Includes]
-    ../../Include/
