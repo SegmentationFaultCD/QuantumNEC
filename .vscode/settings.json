@@ -159,5 +159,5 @@
     "clangd.onConfigChanged": "restart",
     "clangd.serverCompletionRanking": true,
     "clangd.detectExtensionConflicts": true,
-    "editor.suggest.snippetsPreventQuickSuggestions": true
+    "editor.suggest.snippetsPreventQuickSuggestions": true,
 }

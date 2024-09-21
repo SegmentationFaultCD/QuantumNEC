@@ -35,25 +35,26 @@ PUBLIC namespace QuantumNEC::Architecture {
             }
             return !sum;
         };
-        STATIC consteval inline auto SIGN_16( auto A, auto B ) {
+        STATIC consteval auto SIGN_16( auto A, auto B ) -> uint16_t {
             return ( A ) | ( B << 8u );
         }
-        STATIC consteval inline auto SIGN_32( auto A, auto B, auto C, auto D ) {
+        STATIC consteval auto SIGN_32( auto A, auto B, auto C, auto D ) -> uint32_t {
             return SIGN_16( A, B ) | ( SIGN_16( C, D ) << 16u );
         }
-        STATIC consteval inline auto SIGN_64( auto A, auto B, auto C, auto D, auto E, auto F, auto G, auto H ) {
-            return SIGN_32( A, B, C, D ) | ( (uint64_t)SIGN_32( E, F, G, H ) << 32u );
+        STATIC consteval auto SIGN_64( auto A, auto B, auto C, auto D, auto E, auto F, auto G, auto H ) -> uint64_t {
+            return (uint64_t)SIGN_32( A, B, C, D ) | ( (uint64_t)SIGN_32( E, F, G, H ) << 32u );
         }
 
         auto get_rsdp( VOID ) -> XSDP * {
             if ( this->xsdp ) {
                 return this->xsdp;
             }
+
             return NULL;
         }
 
     public:
-        inline STATIC constexpr auto signature { SIGN_64( 'R', 'S', 'D', ' ', 'P', 'T', 'R', ' ' ) };
+        uint64_t signature { SIGN_64( 'R', 'S', 'D', ' ', 'P', 'T', 'R', ' ' ) };
 
     private:
         inline STATIC XSDP *xsdp;

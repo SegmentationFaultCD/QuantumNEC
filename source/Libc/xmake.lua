@@ -1,4 +1,4 @@
-add_rules("mode.debug", "mode.release")
+add_rules("mode.release", "mode.debug")
 add_cxxflags(" -m64 \
                -fno-builtin \
                -mcmodel=large \

@@ -39,6 +39,12 @@ PUBLIC namespace std {
             operator bool( ) const {
                 return this->bit_[ pos_ / 64 ] & ( 1ul << this->pos_ % 64 );
             }
+
+            // ~00001000
+            // 11110111 & 00001000 = 00000000
+            // ~00000000
+            // 11111111 & 00001000 = 00001000
+
             auto operator~( ) const {
                 return this->bit_[ pos_ / 64 ] & ~( 1ul << this->pos_ % 64 );
             }
@@ -105,8 +111,9 @@ PUBLIC namespace std {
         auto size( ) {
             return N;
         }
-        auto set( std::size_t pos, bool value = true ) -> bitset & {
-            if ( value ) {
+        template < bool value = true >
+        auto set( std::size_t pos ) -> bitset & {
+            if constexpr ( value ) {
                 this->bitmap[ pos / 64 ] |= ( 1ul << pos % 64 );
             }
             else {
@@ -257,7 +264,7 @@ PUBLIC namespace std {
             }
             return std::unexpected { bitset_error_code::NotFound };
         }
-        auto free( std::size_t pos, std::size_t size ) {
+        auto free( std::size_t pos, std::size_t size = 1 ) {
             this->set< false >( pos, size );
         }
 

@@ -17,48 +17,6 @@ PUBLIC namespace QuantumNEC::Architecture {
         NO_SOURCE,
     };
 
-    struct message_t
-    {
-        union {
-            struct MSG1
-            {
-                uint32_t i1;
-                uint32_t i2;
-                uint32_t i3;
-                uint32_t i4;
-                explicit MSG1( VOID ) noexcept = default;
-            } volatile msg1;
-            struct MSG2
-            {
-                VOID *p1;
-                VOID *p2;
-                VOID *p3;
-                VOID *p4;
-                explicit MSG2( VOID ) noexcept = default;
-            } volatile msg2;
-            struct MSG3
-            {
-                uint32_t i1;
-                uint32_t i2;
-                uint32_t i3;
-                uint32_t i4;
-                uint64_t l1;
-                uint64_t l2;
-                VOID *p1;
-                VOID *p2;
-                explicit MSG3( VOID ) noexcept = default;
-
-            } volatile msg3;
-        } message;
-        uint64_t source;                /* 发出这个消息的进程pid */
-        uint32_t type;                  /* 消息类型 */
-        uint64_t send_to;               /* 记录进程想要向谁发送消息 */
-        uint64_t receive_from;          /* 记录进程想要从谁获取消息 */
-        uint64_t has_int_message;       /* 有来自中断的消息,这个结构被中断处理程序置为1 */
-        Lib::ListTable sender_list { }; /* 如果有进程向这个进程发送消息, 但本进程没有要接收消息,那么发送信息的进程将自己的通任务队列加入这个队列 */
-
-        explicit message_t( VOID ) noexcept = default;
-    };
     PUBLIC constexpr uint32_t ELF_MAGIC = 0x464C457F;     // 0x7f454c46; // ELF Magic as one unit
     PUBLIC constexpr uint16_t ELF_ET_NONE = 0x0000;
     PUBLIC constexpr uint16_t ELF_ET_REL = 0x0001;
@@ -443,6 +401,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         - 154	LINT0
         - 155	LINT1
         - 156	Error
+        - 200 ~ 255 SMP
 
      * ------------------------------------------------------------------------------------ */
 
@@ -469,6 +428,10 @@ PUBLIC namespace QuantumNEC::Architecture {
     PUBLIC constexpr CONST auto IRQ_CASCADE_TIMER { IDT_ENTRY_IRQ_0 + 0x02 };
     PUBLIC constexpr CONST auto IRQ_CMOS_RTC { IDT_ENTRY_IRQ_0 + 0x08 };
     PUBLIC constexpr CONST auto IRQ_APIC_LVT_ERROR { IDT_ENTRY_IRQ_0 + 124 };
+    PUBLIC constexpr CONST auto IRQ_APIC_LVT_CMCI { IDT_ENTRY_IRQ_0 + 118 };
+    PUBLIC constexpr CONST auto IRQ_APIC_LVT_TIMER { IDT_ENTRY_IRQ_0 + 119 };
+    PUBLIC constexpr CONST auto IRQ_APIC_LVT_THERMAL_MONITOR { IDT_ENTRY_IRQ_0 + 120 };
+    PUBLIC constexpr CONST auto IRQ_APIC_LVT_PERFORMANCE_COUNTER { IDT_ENTRY_IRQ_0 + 121 };
     PUBLIC constexpr CONST auto IRQ_SYSTEM_CALL { IDT_ENTRY_IRQ_0 + 0x60 };
     PUBLIC constexpr CONST auto IDT_IRQ_SMP_INTERRUPT_0 { 0xc8 };
 

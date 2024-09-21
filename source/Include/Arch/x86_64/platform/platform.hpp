@@ -1,4 +1,5 @@
 #pragma once
+#include "Arch/x86_64/cpu/idt.hpp"
 #include <Arch/x86_64/abi/builtins.hpp>
 #include <Arch/x86_64/cpu/cpu.hpp>
 #include <Arch/x86_64/smp/smp.hpp>
@@ -15,6 +16,9 @@ PUBLIC namespace QuantumNEC::Architecture {
         public Syscall,
         public SymmetricMultiprocessing
     {
+    public:
+        using InterruptFrame = InterruptDescriptorTable::InterruptFrame;
+
     public:
         explicit x86_64Architecture( VOID ) noexcept;
         virtual ~x86_64Architecture( VOID ) noexcept = default;

@@ -30,7 +30,7 @@ PUBLIC namespace QuantumNEC::Lib {
         ListNode head { }; /* 链表头 */
         ListNode end { };  /* 链表尾 */
     public:
-        constexpr explicit ListTable( VOID ) noexcept {
+        ListTable( VOID ) noexcept {
             this->head.prev = NULL;
             this->head.next = &this->end;
             this->end.prev = &this->head;
@@ -131,5 +131,9 @@ PUBLIC namespace QuantumNEC::Lib {
             node->next = in_before;
             in_before->prev = node;
         };
+        auto back( VOID ) {
+            auto node { this->end.prev };
+            return node;
+        }
     };
 }

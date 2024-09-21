@@ -13,7 +13,7 @@ PUBLIC namespace QuantumNEC::Lib {
      *
      */
     PUBLIC auto skip_atoi( IN CONST char_t * *str )
-        ->size_t;
+        -> size_t;
     /**
      *
      */
@@ -23,14 +23,14 @@ PUBLIC namespace QuantumNEC::Lib {
         IN int32_t size,
         IN int32_t precision,
         IN int32_t type )
-        ->char_t *;
+        -> char_t *;
     /**
      *
      */
     PUBLIC auto vsprintf( IN char_t * buf,
                           IN CONST char_t * fmt,
                           va_list args )
-        ->int32_t;
+        -> int32_t;
     /**
      * @brief 得到颜色
      * @param r 红

@@ -2,7 +2,7 @@
 #include <Kernel/print.hpp>
 #include <Kernel/kernel.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
-    using namespace Lib;
+    using namespace std;
     Hpet ::Hpet( VOID ) noexcept {
         // 开启HPET
         auto info { reinterpret_cast< HpetInfo * >( Kernel::physical_to_virtual( Device::hpet->hpet_address.address ) ) };

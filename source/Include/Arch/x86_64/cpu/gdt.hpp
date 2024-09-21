@@ -58,9 +58,8 @@ PUBLIC namespace QuantumNEC::Architecture {
         auto get( VOID ) noexcept -> CONST TaskStateSegmentDescriptor64 & {
             return *this;
         }
-        template < uint64_t task_stack_size >
-        auto set_rsp0( VOID *pcb ) noexcept {
-            this->rsp[ 0 ] = reinterpret_cast< uint64_t >( pcb ) + task_stack_size;
+        auto set_rsp0( uint64_t stack_top ) noexcept {
+            this->rsp[ 0 ] = stack_top;
         }
         auto set_io_map_base_address( IN uint16_t io_map_base_address ) noexcept {
             this->io_map_base_address = io_map_base_address;

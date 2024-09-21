@@ -1,4 +1,4 @@
-add_rules("mode.debug", "mode.release")
+add_rules("mode.release", "mode.debug")
 add_cxxflags(" -m64 \
                -fno-builtin \
                -mcmodel=large \
@@ -27,7 +27,7 @@ set_languages("c17", "c++23")
 target("cxx")
     set_kind("static")
     add_files("./*.cpp" )
-    add_links(""..run_dir.."/libc.a")
+    add_files("../Libc/*.cpp" )
     before_build(function (target) 
         print("开始编译库文件")
         end)

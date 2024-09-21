@@ -76,7 +76,7 @@ PUBLIC namespace QuantumNEC::Architecture {
 
     private:
         // 每个月开始时的已经过去天数
-        inline STATIC int32_t month[ 13 ] {
+        constexpr static int32_t month[ 13 ] {
             0,     // 这里占位，没有 0 月，从 1 月开始
             0,
             ( 31 ),
@@ -91,10 +91,10 @@ PUBLIC namespace QuantumNEC::Architecture {
             ( 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 ),
             ( 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30 )
         };
-        inline STATIC time_t startup_time { };     // 一开始的时间
-        inline STATIC int32_t century { };         // 当前世纪值
+        inline static time_t startup_time { };     // 一开始的时间
+        inline static int32_t century { };         // 当前世纪值
     private:
-        inline STATIC auto get_yday = []( IN Time &time ) {
+        inline static auto get_yday = []( IN Time &time ) {
             int32_t res { month[ time.mon ] };     // 已经过去的月的天数
             res += time.mday;                      // 这个月过去的天数
             int32_t year { };

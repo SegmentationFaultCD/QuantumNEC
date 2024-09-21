@@ -6,7 +6,7 @@ PUBLIC namespace QuantumNEC::Architecture {
     public:
         struct alignas( 16 ) SSE
         {
-            uint8_t reserved5[ 512 ];
+            uint8_t fxsave_region[ 512 ] { };
             explicit SSE( VOID ) noexcept = default;
             /**
              * @brief 检查fpu是否完好
@@ -24,6 +24,9 @@ PUBLIC namespace QuantumNEC::Architecture {
              */
             auto load_sse( VOID ) -> VOID;
         };
+
+    public:
+        auto activate_sse( VOID ) noexcept -> VOID;
 
     public:
         explicit Sse( VOID ) noexcept;

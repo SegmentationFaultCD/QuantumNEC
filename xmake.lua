@@ -1,4 +1,4 @@
--- add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release")
 -- add_cxxflags(" -m64 \
 --                -fno-builtin \
 --                -mcmodel=large \
@@ -23,7 +23,8 @@
 -- add_includedirs("../Include", "../Boot/limine/")
 -- set_optimize("none")
 -- set_languages("c17", "c++23")
-
+target("cxx")
+    set_kind("static")
 -- target("cxx")
 --     set_kind("static")
 --     add_files("./*.cpp" )

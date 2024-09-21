@@ -1,5 +1,4 @@
 #include <Lib/spin_lock.hpp>
-#include <Arch/Arch.hpp>
 
 using namespace QuantumNEC::Lib;
 

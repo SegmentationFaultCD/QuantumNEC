@@ -2,7 +2,7 @@
 #include <Lib/Uefi.hpp>
 #include <Arch/x86_64/device/acpi/xsdp.hpp>
 #include <concepts>
-#include <Kernel/memory/ptv.hpp>
+#include <Kernel/memory/paging_map/ptv.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     class Xsdt
     {

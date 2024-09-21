@@ -1,6 +1,6 @@
 #include <Lib/utils.hpp>
 PUBLIC namespace QuantumNEC::Lib {
-    PUBLIC auto vsprintf( IN char_t * buf, IN CONST char_t * fmt, IN va_list args )->int32_t {
+    PUBLIC auto vsprintf( IN char_t * buf, IN CONST char_t * fmt, IN va_list args ) -> int32_t {
         char_t *str1 { }, *str2 { };
         int32_t flags { };
         int32_t field_width { }, precision { }, len { }, i { }, qualifier { };
@@ -89,8 +89,7 @@ PUBLIC namespace QuantumNEC::Lib {
                 if ( !str2 ) {
                     str2 = 0;
                 }
-                for ( auto str_c = str2; *str_c; ++str_c, len++ )
-                    ;
+                for ( auto str_c = str2; *str_c; ++str_c, len++ );
 
                 if ( precision < 0 ) {
                     precision = len;
@@ -203,7 +202,7 @@ PUBLIC namespace QuantumNEC::Lib {
         *str1 = '\0';
         return str1 - buf;
     }
-    PUBLIC auto skip_atoi( IN CONST char_t * *str )->size_t {
+    PUBLIC auto skip_atoi( IN CONST char_t * *str ) -> size_t {
         int32_t i { };
         while ( IS_DIGIT( **str ) ) {
             i = i * 10 + *( ( *str )++ ) - '0';
@@ -217,7 +216,7 @@ PUBLIC namespace QuantumNEC::Lib {
         IN int32_t size,
         IN int32_t precision,
         IN int32_t type )
-        ->char_t * {
+        -> char_t * {
         char_t ch { }, sign { }, tmp[ 50 ] { };
         auto digits { "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" };
         int32_t i;

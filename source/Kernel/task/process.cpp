@@ -11,7 +11,7 @@ PUBLIC namespace {
     PRIVATE SpinLock lock { };
 }
 PUBLIC namespace QuantumNEC::Kernel {
-    auto ProcessFrame::make( IN TaskFunction entry, IN CONST TaskArg arg, IN int64_t _flags )->BOOL {
+    auto ProcessFrame::make( IN TaskFunction entry, IN CONST TaskArg arg, IN int64_t _flags ) -> BOOL {
         lock.acquire( );
 
         if ( _flags & TASK_FLAG_KERNEL_PROCESS ) {
@@ -60,21 +60,16 @@ PUBLIC namespace QuantumNEC::Kernel {
         this->iframe.regs.rbp = 0;
         // rip存进程入口
         this->iframe.rip = reinterpret_cast< decltype( this->iframe.rip ) >( entry );
-
         // 进程自己本身持有一个线程
         // 所以必须有一个线程栈
         // 所以在任务栈末尾先放线程栈，再放进程栈
         this->iframe.rsp = reinterpret_cast< decltype( this->iframe.rsp ) >( this - 1 );
-        this->tframe = reinterpret_cast< ThreadFrame * >( this ) - 1;
-        // this->tframe->make( Architecture::to_process, (uint64_t)( &this->iframe ), TASK_FLAG_THREAD );
-
         lock.release( );
         return TRUE;
     }
-    auto Process::schedule( VOID )->VOID {
+    auto Process::schedule( VOID ) -> VOID {
         if ( ( this->all_task_queue.container != this || this->general_task_queue.container != this || this->stack_magic != TASK_STACK_MAGIC ) ) {
-            while ( TRUE )
-                ;
+            while ( TRUE );
         }
         if ( this->status == TaskStatus::RUNNING ) {
             ready_task_group.append( this->general_task_queue );
@@ -95,13 +90,12 @@ PUBLIC namespace QuantumNEC::Kernel {
             Architecture::switch_to( &( (ProcessFrame *)this->context )->tframe, &next->context );
         }
         else {
-            
             next->activate( );     // 激活页表
             Task::ready_task = next;
         }
         return;
     }
-    auto Process::block( IN TaskStatus state )->VOID {
+    auto Process::block( IN TaskStatus state ) -> VOID {
         auto interrupt_status { Architecture::ArchitectureManager< TARGET_ARCH >::disable_interrupt( ) };
         this->status = state;
         this->schedule( );
@@ -109,7 +103,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         Architecture::ArchitectureManager< TARGET_ARCH >::set_interrupt( interrupt_status );
         return;
     }
-    auto Process::unblock( VOID )->VOID {
+    auto Process::unblock( VOID ) -> VOID {
         auto interrupt_status { Architecture::ArchitectureManager< TARGET_ARCH >::disable_interrupt( ) };
         if ( this->status != TaskStatus::READY ) {
             // 放到队列的最前面，使其尽快得到调度

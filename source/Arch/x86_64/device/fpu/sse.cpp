@@ -22,14 +22,16 @@ auto Architecture::Sse::SSE::read_sse( VOID ) -> VOID {
     ASM( "FXRSTOR %0" ::"m"( *this ) );
 }
 Architecture::Sse::Sse( VOID ) noexcept {
-    ASM(
-        "MOVQ %%CR0,%%RAX \n\t"
-        "ANDW $0xfffb,%%AX \n\t"
-        "ORW $0x2,%%AX \n\t"
-        "MOVQ %%RAX,%%CR0 \n\t"
-        "MOVQ %%CR4,%%RAX \n\t"
-        "ORW $(3 << 9),%%AX \n\t"
-        "MOVQ %%RAX,%%CR4 \n\t" ::
-            : );
+    this->activate_sse( );
     println< ostream::HeadLevel::OK >( "Initialize the Streaming SIMD Extensions(SSE)" );
+}
+
+auto Architecture::Sse::activate_sse( VOID ) noexcept -> VOID {
+    ASM( "MOVQ %%CR0,%%RAX \n\t"
+         "ANDW $0xfffb,%%AX \n\t"
+         "ORW $0x2,%%AX \n\t"
+         "MOVQ %%RAX,%%CR0 \n\t"
+         "MOVQ %%CR4,%%RAX \n\t"
+         "ORW $(3 << 9),%%AX \n\t"
+         "MOVQ %%RAX,%%CR4 \n\t" ::: );
 }

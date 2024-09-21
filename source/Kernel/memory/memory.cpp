@@ -6,7 +6,7 @@ using namespace QuantumNEC::Kernel;
 PUBLIC namespace QuantumNEC::Kernel {
     Memory::Memory( VOID ) noexcept {
         STATIC byte_t buffer[ sizeof( Page ) + sizeof( PagingMap ) + sizeof( Heap ) ];
-        byte_t *ptr { buffer };
+        auto ptr { buffer };
         this->page = new ( ptr ) Page { };
         ptr += sizeof( Page );
         this->memory_paging_map = new ( ptr ) PagingMap { };

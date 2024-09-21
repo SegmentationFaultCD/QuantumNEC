@@ -18,15 +18,11 @@ PUBLIC namespace QuantumNEC::Architecture {
             }
         }
         else {
-            Apic::InterruptCommandRegister icr { };
-            icr.deliver_mode = ICR_START_UP;
-            icr.dest_mode = ICR_IOAPIC_DELV_PHYSICAL;
-            icr.deliver_status = APIC_ICR_IOAPIC_IDLE;
-            icr.level = ICR_LEVEL_DE_ASSERT;
-            icr.trigger = APIC_ICR_IOAPIC_EDGE;
-            icr.dest_shorthand = ICR_ALL_EXCLUDE_SELF;
-            icr.destination.x2apic_destination = 0x00;
-            CPUs::wrmsr( LOCAL_APIC_MSR_ICRLO, icr );
+            InterruptDescriptorTable::InterruptFunctionTable *irq { &InterruptDescriptorTable::interrupt_function_table[ frame->vector - IDT_ENTRY_IRQ_0 ] };
+            if ( irq->handler && irq->controller.ack ) {
+                _frame = irq->handler( frame, irq->parameter );
+                irq->controller.ack( frame->vector );
+            }
         }
 
         return _frame;

@@ -7,5 +7,8 @@ PUBLIC namespace QuantumNEC::Architecture {
     public:
         explicit SymmetricMultiprocessing( VOID ) noexcept;
         virtual ~SymmetricMultiprocessing( VOID ) noexcept = default;
+
+    public:
+        STATIC auto send_IPI( IN Apic::InterruptCommandRegister icr ) -> VOID;
     };
 }
