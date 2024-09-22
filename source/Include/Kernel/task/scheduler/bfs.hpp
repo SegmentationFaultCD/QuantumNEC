@@ -217,6 +217,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             return result;
         }
         virtual auto schedule( VOID ) -> std::expected< PCB *, ErrorCode > override {
+            
         }
         //     auto current = get_current( );
         //     if ( !current->jiffies ) {     // 时间片耗尽

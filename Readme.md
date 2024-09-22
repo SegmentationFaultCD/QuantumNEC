@@ -9,15 +9,50 @@
  弄这个东西还是为了学习底层知识，__*炫技（划掉）*__<br>
 # 安装与使用说明
  首先，你需要自己安装了GNU系列编译工具链（GCC & G++, AR, NM, OBJCOPY等）<br>
- 其次，你需要安装QEMU与Xmake(arch linux直接pacman即可，windows用户请自查)<br>
- 然后，首先进入QuantumNEC文件夹，执行以下命令
+ 其次，你需要安装QEMU，Git以及Xmake(arch linux直接pacman即可，windows用户请自查)<br>
+ 想要编译OS，你需要安装**Limine**<br>
+ 如果您想要安装**limine**，请按照如下方法:
 ```bash
-xmake -F source/Libc
-xmake -F source/Libc
+git submodule update --init
 ```
+ 并且，编写**limine.conf**，或者就用我写的
+ 然后，进入QuantumNEC文件夹，编译静态库
+```bash
+xmake -F source/Libc/xmake.lua        # 编译C库
+xmake -F source/Libcxx/xmake.lua      # 编译C++库
+xmake -F source/Lib/xmake.lua         # 编译系统库
+```
+ 等待编译完成后，开始编译链接内核
+```bash
+xmake build_kernel # 编译内核文件
+```
+ 然后，开始编译链接模块驱动
+```bash
+xmake -F source/Modules/xmake.lua # 编译模块驱动文件
+```
+ 等待所有文件编译链接完成后，在主文件夹下得到vm文件，目录如下
+- EFI
+  - boot
+    - BootX64.efi 此为limine引导文件
+    - limine.conf  此为limine引导配置文件
+- QuantumNEC
+    - micro_kernel.elf 此为内核文件
+    - SYSTEM64
+      - Unicode.bin
+      - switch.elf
+      - servicer.elf
+      - to_process.elf
+      - ...所有模块文件
+## 虚拟平台启动
+### qemu（你想要别的虚拟机也行，自己弄）
+ - 安装Qemu(已经安装的可以跳过)
+ - 在主文件夹下运行如下命令以启动
+```bash
+xmake run # 运行
+```
+## 物理平台启动
  
-
-
+ - 将vm的内容全部复制到u盘或者硬盘中，在此之前记得格式化为fat32格式
 
 # 依赖
 
