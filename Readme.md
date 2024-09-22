@@ -1,5 +1,5 @@
 # 简介
- 一个自制的操作系统，最现代，最快速，最安全，最轻量级（The most modern, The Fastest, The safest and the most miniature(MFSS)）<br>
+ 一个自制的操作系统，最现代，最快速，最安全，最轻量级（The most modern, the fastest, the safest and the most miniature(MFSS)）<br>
  它由一个**初一学生**从2023-1-1日开始开发
 # 由来
  这个OS，怎么说呢，是我看了别人视频，突发奇想开发的<br>
