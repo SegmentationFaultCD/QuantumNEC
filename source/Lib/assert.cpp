@@ -2,11 +2,11 @@
 
 PUBLIC namespace QuantumNEC::Lib {
     PUBLIC auto assert(
-        IN CONST char_t * filename,
-        IN CONST int32_t line,
-        IN CONST char_t * func,
-        IN CONST char_t * cmd )
-        ->VOID {
+        [[maybe_unused]] IN CONST char_t * filename,
+        [[maybe_unused]] IN CONST int32_t line,
+        [[maybe_unused]] IN CONST char_t * func,
+        [[maybe_unused]] IN CONST char_t * cmd )
+        -> VOID {
         // sout[ ostream::HeadLevel::DEBUG ] << "!!! Assert !!!" << endl;
         // sout[ ostream::HeadLevel::DEBUG ] << "File Name -> " << filename << endl;
         // sout[ ostream::HeadLevel::DEBUG ] << "Assert Line -> " << line << endl;

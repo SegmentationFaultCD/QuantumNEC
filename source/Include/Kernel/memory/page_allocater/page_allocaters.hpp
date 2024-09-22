@@ -54,15 +54,17 @@ PUBLIC namespace QuantumNEC::Kernel {
     {
     public:
         constexpr static auto PAGE_INFORMATION_HEADER_SIZE { 128 };
-        constexpr static auto MEMORY_PAGE_DESCRIPTOR { ( PAGE_INFORMATION_HEADER_SIZE ) / 8 * 64 };
-
+        constexpr static auto PAGE_BITMAP_SIZE { 128 };
+        constexpr static auto MEMORY_PAGE_DESCRIPTOR { PAGE_INFORMATION_HEADER_SIZE / 8 * 64 };
+        constexpr static auto MEMORY_PAGE_HEADER_COUNT { InfoAllocater::page_size / ( PAGE_INFORMATION_HEADER_SIZE + PAGE_BITMAP_SIZE ) };
+        // 一个PageHeader所指向的内存根数量便是MEMORY_PAGE_DESCRIPTOR*MEMORY_PAGE_HEADER_COUNT
     public:
         enum PageState : uint64_t {
             ALL_FULL = 0,
             ALL_FREE = 1,
             NORMAL = 2
         };
-        struct alignas( 128 ) PageInformation
+        struct alignas( PAGE_INFORMATION_HEADER_SIZE ) PageInformation
         {
             Lib::ListNode group_node;     // 连接每个页头
             struct PageFlags
@@ -81,23 +83,54 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             std::bitset< MEMORY_PAGE_DESCRIPTOR > *bitmap_;
 
+            PageInformation *next;
+            PageInformation *prev;
+
             explicit PageInformation( VOID ) = default;
         };
         using header_t = std::pair< PageInformation, std::bitset< MEMORY_PAGE_DESCRIPTOR > >;
 
     public:
-        PageHeader( IN Allocater &pallocater, IN InfoAllocater &iallocater, IN uint64_t page_type ) :
-            page_header { (header_t *)iallocater.allocate( 1 ) },
-            type { page_type } {
-            auto &[ info, bitmap ] = *this->page_header;
-            info.bitmap_ = &bitmap;
-            info.flags.state = PageState::ALL_FREE;
-            info.flags.type = this->type;
-            info.flags.physical_base = virtual_to_physical( this->page_header );
-            info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-            info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-            info.group_node.container = &info;
-            pallocater->page_header_group_list.append( info.group_node );
+        // 这里group_count 必须是有多少个iallocater分配的块
+        PageHeader( IN Allocater &pallocater, IN InfoAllocater &iallocater, IN uint64_t page_type, IN uint64_t group_count ) :
+            page_header { (header_t *)iallocater.allocate( group_count ) },
+            type { page_type },
+            group_count { group_count } {
+            if ( group_count ) {
+                for ( auto i = 0ul; i < group_count; ++i ) {
+                    auto &[ head_info, head_bitmap ] = this->page_header[ i ];
+                    pallocater->page_header_group_list.append( head_info.group_node );
+                    head_info.group_node.container = &head_info;
+                    head_info.flags.state = PageState::ALL_FREE;
+                    head_info.flags.type = this->type;
+                    head_info.flags.physical_base = virtual_to_physical( this->page_header );
+                    head_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    head_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    head_info.bitmap_ = &head_bitmap;
+                    head_info.next = reinterpret_cast< header_t * >( &head_info ) + 1;
+                    head_info.prev = nullptr;
+                    for ( auto j = 1ul; j < MEMORY_PAGE_HEADER_COUNT - 1; ++j ) {
+                        auto &[ mid_info, mid_bitmap ] = this->page_header[ j + i * MEMORY_PAGE_HEADER_COUNT ];
+                        mid_info.flags.state = PageState::ALL_FREE;
+                        mid_info.flags.type = this->type;
+                        mid_info.flags.physical_base = virtual_to_physical( this->page_header );
+                        mid_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                        mid_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                        mid_info.bitmap_ = &mid_bitmap;
+                        mid_info.next = reinterpret_cast< header_t * >( &mid_info ) + 1;
+                        mid_info.prev = reinterpret_cast< header_t * >( &mid_info ) - 1;
+                    }
+                    auto &[ end_info, end_bitmap ] = this->page_header[ i * MEMORY_PAGE_HEADER_COUNT - 1 ];
+                    end_info.flags.state = PageState::ALL_FREE;
+                    end_info.flags.type = this->type;
+                    end_info.flags.physical_base = virtual_to_physical( this->page_header );
+                    end_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    end_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    end_info.bitmap_ = &end_bitmap;
+                    end_info.next = nullptr;
+                    end_info.prev = reinterpret_cast< header_t * >( &end_info ) - 1;
+                }
+            }
         };
         // 第一次分配专用
         PageHeader( IN Allocater &pallocater, IN VOID *address, IN uint64_t page_type, uint64_t base_address ) :
@@ -116,23 +149,54 @@ PUBLIC namespace QuantumNEC::Kernel {
         }
         template < typename AdvancedAllocater >
             requires( !std::is_same_v< AdvancedAllocater, Allocater > )
-        auto allocate( IN AdvancedAllocater &allocater ) {
+        auto allocate( IN AdvancedAllocater &allocater, IN uint64_t size ) {
+            auto base_map_address = (uint64_t)allocater.allocate( ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size / allocater.page_size ) * this->count * this->MEMORY_PAGE_HEADER_COUNT );
+            this->allocate( size, base_map_address );
+        }
+
+        auto allocate( IN uint64_t size, IN uint64_t base_map_address ) {
             // 拿来取得mapbase的
             // 比如我现在是2M分配器， 有512个根
             // 那么则需要1g分配器分配一个1g来给这512个2m
             // AdvancedAllocater 便是这个1g分配器
-            std::get< PageInformation >( *this->page_header ).map_base_adderess = (uint64_t)allocater.allocate( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size / allocater.page_size );
+            if ( this->group_count ) {
+                // 设置每个base_map_address
+                // 一共有this->group_count*this->MEMORY_PAGE_HEADER_COUNT个base_map_address要设置
+
+                for ( auto i = 0ul; i < this->group_count * this->MEMORY_PAGE_HEADER_COUNT; ++i ) {
+                    std::get< PageInformation >( this->page_header[ i ] ).map_base_adderess = base_map_address + ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size ) * i;
+                    // 取得base_map_address的计算公式为 分配起始地址 + 内存描述符数量 * 内存页大小 * 所处页头index（这里的计算公式为组index * 内存描述符数量 + 所处组里的index）
+                }
+                auto remainder = size % this->MEMORY_PAGE_DESCRIPTOR;
+                auto end = remainder ? size / this->MEMORY_PAGE_DESCRIPTOR + 1 : size / this->MEMORY_PAGE_DESCRIPTOR;
+                for ( auto i = 0ul; i < end - 1; ++i ) {
+                    auto &info = std::get< PageInformation >( this->page_header[ i ] );
+                    info.flags.state = PageState::ALL_FULL;
+                    info.free_memory_page_count = 0;
+                    info.bitmap_->set( 0, this->MEMORY_PAGE_DESCRIPTOR );
+                }
+                auto &info = std::get< PageInformation >( this->page_header[ end - 1 ] );
+                info.flags.state = PageState::NORMAL;
+                info.free_memory_page_count -= remainder;
+                info.bitmap_->set( 0, remainder );
+            }
         }
 
-        auto set_range_bit( uint64_t size = MEMORY_PAGE_DESCRIPTOR ) -> VOID {
-            std::get< PageInformation >( *this->page_header ).bitmap_->allocate( size );
+        auto set_range_bit( IN uint64_t index, uint64_t size = MEMORY_PAGE_DESCRIPTOR ) -> VOID {
+            std::get< PageInformation >( this->page_header[ index ] ).bitmap_->allocate( size );
         }
-        auto get( VOID ) const & -> header_t & {
-            return this->page_header[ 0 ];
+        auto set_range_bit( VOID ) -> VOID {
+            for ( auto i = 0ul; i < this->count * this->page_header; ++i )
+                for ( auto j = 0ul; j < this->MEMORY_PAGE_HEADER_COUNT; ++j )
+                    std::get< PageInformation >( this->page_header[ i * this->MEMORY_PAGE_HEADER_COUNT + j ] ).bitmap_->allocate( this->MEMORY_PAGE_DESCRIPTOR );
+        }
+        auto get( IN uint64_t index ) const & -> header_t & {
+            return this->page_header[ index ];
         }
 
     private:
         header_t *page_header;
         uint64_t type;
+        uint64_t group_count;
     };
 }
