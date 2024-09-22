@@ -43,6 +43,7 @@ xmake -F source/Modules/xmake.lua # 编译模块驱动文件
       - servicer.elf
       - to_process.elf
       - ...所有模块文件
+ 注：有时可能会编译错误，那是作者代码没写好😋
 ## 虚拟平台启动
 ### qemu（你想要别的虚拟机也行，自己弄）
  - 安装Qemu(已经安装的可以跳过)
