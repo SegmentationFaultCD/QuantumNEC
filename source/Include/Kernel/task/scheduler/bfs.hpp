@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Arch/Arch.hpp"
+#include "Kernel/task/pcb/pcb.hpp"
+#include "Libcxx/expected.hpp"
 #include <Lib/Uefi.hpp>
 #include <Lib/list.hpp>
-#include <Libcxx/bitset.hpp>
 #include <Lib/spin_lock.hpp>
 #include <Kernel/task/scheduler/sche_src.hpp>
 
@@ -22,8 +22,9 @@ PUBLIC namespace QuantumNEC::Kernel {
          * 吞吐量，但超过这个间隔后，来自其他地方的调度噪声会阻碍吞吐量的进一步提高。
          */
         constexpr static auto rr_interval = 6;
+        constexpr static auto total_priority = 103;
         // 每个优先级对应的prio_ratios
-        constexpr static uint64_t prio_ratios[ 103 ] {
+        constexpr static uint64_t prio_ratios[ total_priority ] {
             128,
             141,
             155,
@@ -128,6 +129,11 @@ PUBLIC namespace QuantumNEC::Kernel {
             1952774,
             2148051,
         };     // 每个优先级对应的偏移量
+
+        /**
+         * virtual deadline计算方法 global_jiffies + prio_ratios[priority] * rr_interval
+         */
+
     public:
         enum Priority {
             // 0 ~ 99 为实时任务
@@ -142,77 +148,99 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual ~BrainFuckScheduler( VOID ) = default;
 
     public:
-        // 任务插入
-        virtual auto insert( IN PCB *pcb ) -> PCB * override {
+        virtual auto pick_next( VOID ) -> std::expected< PCB *, ErrorCode > override {
             auto index = 0;
-            for ( ; index < 102; ++index ) {
+            for ( ; index < 103; ++index ) {
                 if ( this->bitmap[ index ] ) {
                     break;
                 }
             }
             if ( index < 100 ) {
-                return (PCB *)this->running_queue[ index ].head.next->container;
+                // 实时任务，直接弹出首位
+                return (PCB *)this->running_queue[ index ].begin( )->container;
             }
             else {
-                for ( auto i = index; i <= 102; ++i ) {
+                // EEVDF算法
+                for ( auto i = index; i < 103; ++i ) {
                     if ( this->running_queue[ i ].is_empty( ) ) {
                         continue;
                     }
                     auto head = this->running_queue[ i ].begin( );
-                    auto isChange = true;
+                    auto is_change = true;
                     Lib::ListNode *p = NULL, *tmp { }, *q;
-                    while ( p != head->next && isChange ) {
+                    this->global_lock.acquire( );
+                    // 冒泡排序按照vd从小到大排列
+                    while ( p != head->next && is_change ) {
                         q = head;
-                        isChange = false;
+                        is_change = false;
                         for ( ; q->next && q->next != p; q = q->next ) {
                             if ( ( (PCB *)q->container )->virtual_deadline < Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies ) {
-                                this->running_queue[ i ].remove( ( (PCB *)q->container )->general_task_node );
-                                if ( this->running_queue[ i ].is_empty( ) ) {
-                                    this->bitmap[ i ] = 0;
-                                }
+                                this->global_lock.release( );
                                 return (PCB *)q->container;
                             }
                             if ( ( (PCB *)q->container )->virtual_deadline > ( (PCB *)q->next->container )->virtual_deadline ) {
                                 tmp = q;
                                 q = q->next;
                                 q->next = tmp;
-                                isChange = true;
+                                is_change = true;
                             }
                         }
                         p = q;
                     }
-                    this->running_queue[ i ].remove( ( (PCB *)head->container )->general_task_node );
-                    if ( this->running_queue[ i ].is_empty( ) ) {
-                        this->bitmap[ i ] = 0;
-                    }
+                    this->global_lock.release( );
                     return (PCB *)head->container;
                 }
             }
+            return std::unexpected { ErrorCode::ALL_QUEUE_ARE_EMPTY };
         }
         // 任务唤醒
-        virtual auto wake_up( PCB * ) -> PCB * override {
-            return NULL;
-        }
-        // 任务睡眠
-        virtual auto sleep( ) -> PCB * override {
-            return NULL;
-        }
-        virtual auto schedule( ) -> PCB * override {
+        virtual auto wake_up( PCB *pcb ) -> std::expected< PCB *, ErrorCode > override {
             auto current = get_current( );
-            if ( !current->jiffies ) {     // 时间片耗尽
-                current->jiffies = rr_interval;
-                current->virtual_deadline = Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies + prio_ratios[ current->priority ] * rr_interval;
-                return this->insert( current );
+            if ( pcb->virtual_deadline < current->virtual_deadline ) {
+                this->running_queue[ pcb->priority ].push( pcb->general_task_node );
+                // TODO: 循环抢占CPU
+                return pcb;
             }
             else {
-                current->jiffies--;
+                this->running_queue[ pcb->priority ].append( pcb->general_task_node );
                 return current;
             }
         }
+        // 任务睡眠
+        virtual auto sleep( VOID ) -> std::expected< PCB *, ErrorCode > override {
+            auto current = get_current( );
+            this->running_queue[ current->priority ].remove( current->general_task_node );
+            auto result = this->pick_next( );
+            if ( result.has_value( ) ) {
+                return result.value( );
+            }
+            return result;
+        }
+        virtual auto schedule( VOID ) -> std::expected< PCB *, ErrorCode > override {
+        }
+        //     auto current = get_current( );
+        //     if ( !current->jiffies ) {     // 时间片耗尽
+        //         current->jiffies = rr_interval;
+        //         current->virtual_deadline = Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies + prio_ratios[ current->priority ] * rr_interval;
+        //         const auto then = this->insert( current );
+        //         if ( !then.has_value( ) ) {
+        //             if ( then.error( ) == ErrorCode::ALL_QUEUE_ARE_EMPTY ) {
+        //                 // TODO
+        //                 // 错误处理
+        //             }
+        //             return current;
+        //         }
+        //         return then;
+        //     }
+        //     else {
+        //         current->jiffies--;
+        //         return current;
+        //     }
+        // }
 
     private:
-        Lib::ListTable running_queue[ 103 ] { };     // 存放除了running状态下的其他所有任务
-        BOOL bitmap[ 103 ] { };                      // 每个队列对应的位图
-        Lib::SpinLock global_lock { };               // 全局锁
+        Lib::ListTable running_queue[ total_priority ] { };     // 存放除了running状态下的其他所有任务
+        BOOL bitmap[ total_priority ] { };                      // 每个队列对应的位图
+        Lib::SpinLock global_lock { };                          // 全局锁
     };
 }

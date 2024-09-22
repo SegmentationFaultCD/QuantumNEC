@@ -1,17 +1,23 @@
 #pragma once
+#include "Libcxx/expected.hpp"
 #include <Lib/Uefi.hpp>
 #include <Kernel/task/pcb/pcb.hpp>
+#include <Libcxx/expected.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     class ScheduleSource
     {
     public:
+        enum class ErrorCode {
+            ALL_QUEUE_ARE_EMPTY,
+            CAN_NOT_INSERT_TASK,
+        };
         ScheduleSource( ) = default;
         virtual ~ScheduleSource( ) = default;
 
     public:
-        virtual auto insert( IN PCB *pcb ) -> PCB * = 0;
-        virtual auto sleep( ) -> PCB * = 0;
-        virtual auto wake_up( PCB * ) -> PCB * = 0;
-        virtual auto schedule( ) -> PCB * = 0;
+        virtual auto sleep( ) -> std::expected< PCB *, ErrorCode > = 0;
+        virtual auto wake_up( PCB * ) -> std::expected< PCB *, ErrorCode > = 0;
+        virtual auto pick_next( ) -> std::expected< PCB *, ErrorCode > = 0;
+        virtual auto schedule( ) -> std::expected< PCB *, ErrorCode > = 0;
     };
 }

@@ -94,16 +94,16 @@ PUBLIC namespace std {
         constexpr const T &&value( ) const && {
             return this->val;
         }
-        constexpr T &error( ) & {
+        constexpr E &error( ) & {
             return this->unex;
         }
-        constexpr const T &error( ) const & {
+        constexpr const E &error( ) const & {
             return this->unex;
         }
-        constexpr T &&error( ) && {
+        constexpr E &&error( ) && {
             return this->unex;
         }
-        constexpr const T &&error( ) const && {
+        constexpr const E &&error( ) const && {
             return this->unex;
         }
 
