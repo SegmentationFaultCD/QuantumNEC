@@ -46,11 +46,11 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             lock.release( );
         }
-        lock.acquire( );
 
         PageAllocater2M pa2m { };
         auto header_count = !size % PH::MEMORY_PAGE_DESCRIPTOR ? size / PH::MEMORY_PAGE_DESCRIPTOR : DIV_ROUND_UP( size, PH::MEMORY_PAGE_DESCRIPTOR );
         auto group_header_count = header_count % PH::MEMORY_PAGE_HEADER_COUNT ? header_count / PH::MEMORY_PAGE_HEADER_COUNT + 1 : header_count / PH::MEMORY_PAGE_HEADER_COUNT;
+        lock.acquire( );
         PH page_headers { *this, pa2m, MemoryPageType::PAGE_2M, group_header_count };
         page_headers.allocate( size, this->global_memory );
         this->global_memory += this->page_size * PH::MEMORY_PAGE_DESCRIPTOR * PH::MEMORY_PAGE_HEADER_COUNT * group_header_count;
