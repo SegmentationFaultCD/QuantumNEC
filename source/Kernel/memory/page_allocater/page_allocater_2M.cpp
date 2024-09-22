@@ -1,3 +1,5 @@
+#include "Kernel/memory/page_allocater/page_allocater_2M.hpp"
+#include "Kernel/memory/page_allocater/page_allocater_1G.hpp"
 #include <Kernel/memory/memory.hpp>
 #include <Kernel/memory/paging_map/ptv.hpp>
 #include <Libcxx/string.hpp>
@@ -7,18 +9,19 @@ PUBLIC namespace {
     PRIVATE SpinLock lock { };
 }
 PUBLIC namespace QuantumNEC::Kernel {
-    auto Page2M::allocate( IN uint64_t size ) -> VOID * {
-        lock.acquire( );
+    auto PageAllocater2M::allocate( IN uint64_t size ) -> VOID * {
         if ( !size ) {
-            lock.release( );
             // size空的就没有分配
             return NULL;
         }
 
-        using PH = PageHeader< Page2M >;
-        using PHI = PageHeader< Page2M >::PageInformation;
+        using PH = PageHeader< PageAllocater2M, PageAllocater2M >;
+        using PHI = PH::PageInformation;
 
         if ( size < PH::MEMORY_PAGE_DESCRIPTOR ) {
+            lock.acquire( );
+            // 最大分配数
+            // 超过这个数无法保证内存连续，所以不允许分配超过这个数的
             auto node = this->page_header_group_list.traversal(
                 []( ListNode *node, auto size ) -> BOOL {
                     return ( PH::MEMORY_PAGE_DESCRIPTOR - ( (PHI *)node->container )->free_memory_page_count ) >= size;
@@ -29,91 +32,106 @@ PUBLIC namespace QuantumNEC::Kernel {
                 auto result = page_header->bitmap_->allocate( size );
                 if ( result.has_value( ) ) {
                     page_header->free_memory_page_count -= size;
+                    if ( !page_header->free_memory_page_count ) {
+                        page_header->flags.state = PH::ALL_FULL;
+                    }
+                    else {
+                        page_header->flags.state = PH::NORMAL;
+                    }
+                    auto address = page_header->map_base_adderess + result.value( ) * this->page_size;
                     lock.release( );
-                    return (VOID *)( page_header->map_base_adderess + result.value( ) * this->page_size );
+                    return (VOID *)address;
                 }
             }
+            lock.release( );
         }
-        Page1G p1g { };
-        auto divisible = !( size % PH::MEMORY_PAGE_DESCRIPTOR );
-        auto header_count = divisible ? size / PH::MEMORY_PAGE_DESCRIPTOR : DIV_ROUND_UP( size, PH::MEMORY_PAGE_DESCRIPTOR );
-        PH page_headers { *this, header_count, MemoryPageType::PAGE_2M };
-        page_headers.allocate< p1g.page_size >( &p1g );
-        if ( divisible ) {
-            page_headers.set_range_bit( );
-            for ( auto i = 0ul; i < header_count; ++i ) {
-                std::get< PHI >( page_headers.get( i ) ).free_memory_page_count = 0;
-            }
-        }
-        else {
-            if ( size < PH::MEMORY_PAGE_DESCRIPTOR ) {
-                header_count--;
-            }
-            else {
-                for ( auto i { 0ul }; i < header_count - 1; ++i ) {
-                    page_headers.set_bit( i );
-                    std::get< PHI >( page_headers.get( i ) ).free_memory_page_count = 0;
-                }
-            }
-            auto &&remainder = size % PH::MEMORY_PAGE_DESCRIPTOR;
-            page_headers.set_bit( header_count, remainder );
-            std::get< PHI >( page_headers.get( header_count ) ).free_memory_page_count -= remainder;
-        }
+        PageAllocater2M pa2m { };
+        // 头数
+        auto header_count = !size % PH::MEMORY_PAGE_DESCRIPTOR ? size / PH::MEMORY_PAGE_DESCRIPTOR : DIV_ROUND_UP( size, PH::MEMORY_PAGE_DESCRIPTOR );
+        // 组数
+        auto group_header_count = header_count % PH::MEMORY_PAGE_HEADER_COUNT ? header_count / PH::MEMORY_PAGE_HEADER_COUNT + 1 : header_count / PH::MEMORY_PAGE_HEADER_COUNT;
+        lock.acquire( );
+        PH page_headers { *this, pa2m, MemoryPageType::PAGE_2M, group_header_count };
+        PageAllocater1G pa1g { };
+        page_headers.allocate( pa1g, size );
+        auto address = std::get< PHI >( page_headers.get( 0 ) ).map_base_adderess;
         lock.release( );
-        return (VOID *)std::get< PHI >( page_headers.get( 0 ) ).map_base_adderess;
+        return (void *)address;
     }
-    auto Page2M::free( IN VOID * address, IN uint64_t size ) -> VOID {
+    auto PageAllocater2M::free( IN VOID * address, IN uint64_t size ) -> VOID {
         if ( !size || !address ) {
             return;
         }
-        using PH = PageHeader< Page2M >;
-        using PHI = PageHeader< Page2M >::PageInformation;
-        auto base = (uint64_t)address & ~( this->page_size * PH::MEMORY_PAGE_DESCRIPTOR );
+        using PH = PageHeader< PageAllocater2M, PageAllocater2M >;
+        using PHI = PH::PageInformation;
         lock.acquire( );
+        auto group_base_address = (uint64_t)address & ~( this->page_size * PH::MEMORY_PAGE_DESCRIPTOR * PH::MEMORY_PAGE_HEADER_COUNT - 1 );
         auto node = this->page_header_group_list.traversal(
-            [ & ]( ListNode *node, uint64_t ) -> BOOL {
-                return ( (PHI *)node->container )->map_base_adderess == base;
+            []( ListNode *node, uint64_t group_base_address ) -> BOOL {
+                return ( (PHI *)node->container )->map_base_adderess == group_base_address;
             },
-            0 );
+            group_base_address );     // 找到属于的组
 
         if ( !node ) {
             lock.release( );
             return;
         }
-        auto index = ( (uint64_t)address - base ) / this->page_size;
-        auto header = (PHI *)node->container;
-        if ( index + size > PH::PAGE_INFORMATION_HEADER_SIZE ) {
+
+        auto base_map_address = (uint64_t)address & ~( this->page_size * PH::MEMORY_PAGE_DESCRIPTOR - 1 );
+        PH page_header {
+            (PHI *)node->container
+        };
+        auto index = ( (uint64_t)address - group_base_address - base_map_address ) / this->page_size;
+
+        auto &header = std::get< PHI >( page_header.get( index ) );
+        if ( index + size <= PH::MEMORY_PAGE_DESCRIPTOR ) {
+            header.bitmap_->free( index, size );
+            header.free_memory_page_count += size;
+            if ( header.free_memory_page_count == PH::MEMORY_PAGE_DESCRIPTOR ) {
+                header.flags.state = PH::ALL_FREE;
+            }
+            else {
+                header.flags.state = PH::NORMAL;
+            }
+            std::memset( physical_to_virtual( address ), 0, size * this->page_size );     // 清空之前废弃的数据
+        }
+        else {
             // TODO :
             // N个头块之间的释放操作
             uint64_t header_count { }, end_remainder { };
-            if ( auto tmp = index + size, end_remainder = tmp % PH::PAGE_INFORMATION_HEADER_SIZE; end_remainder ) {
-                header_count = tmp / PH::PAGE_INFORMATION_HEADER_SIZE + 1;
+            if ( auto tmp = index + size, end_remainder = tmp % PH::MEMORY_PAGE_DESCRIPTOR; end_remainder ) {
+                header_count = tmp / PH::MEMORY_PAGE_DESCRIPTOR + 1;
             }
             else {
-                header_count = tmp / PH::PAGE_INFORMATION_HEADER_SIZE;
+                header_count = tmp / PH::MEMORY_PAGE_DESCRIPTOR;
             }
             // 头
-            auto head_free_remainder = PH::PAGE_INFORMATION_HEADER_SIZE - index;
-            header->free_memory_page_count += head_free_remainder;
-            if ( header->free_memory_page_count == PH::PAGE_INFORMATION_HEADER_SIZE ) {
-                header->flags.state = PH::ALL_FREE;
+            auto head_free_remainder = PH::MEMORY_PAGE_DESCRIPTOR - index;
+            header.free_memory_page_count += head_free_remainder;
+            if ( header.free_memory_page_count == PH::MEMORY_PAGE_DESCRIPTOR ) {
+                header.flags.state = PH::ALL_FREE;
             }
             else {
-                header->flags.state = PH::NORMAL;
+                header.flags.state = PH::NORMAL;
             }
-            header->bitmap_->free( index, head_free_remainder );
+            header.bitmap_->free( index, head_free_remainder );
             std::memset( physical_to_virtual( address ), 0, head_free_remainder * this->page_size );
             // 中
-            auto node = header->group_node.next;
+            auto mid_header = header.next;
+
             for ( auto i = 0ul; i < header_count - 1; ++i ) {
-                ( (PHI *)node->container )->free_memory_page_count = PH::MEMORY_PAGE_DESCRIPTOR;
-                ( (PHI *)node->container )->flags.state = PH::ALL_FREE;
-                ( (PHI *)node->container )->bitmap_->free( 0, PH::MEMORY_PAGE_DESCRIPTOR );
-                std::memset( physical_to_virtual( ( (PHI *)node->container )->map_base_adderess ), 0, PH::MEMORY_PAGE_DESCRIPTOR * this->page_size );
-                node = node->next;
+                if ( !mid_header ) {
+                    lock.release( );
+                    return;     // 到时会有错误除处理
+                }
+                mid_header->free_memory_page_count = PH::MEMORY_PAGE_DESCRIPTOR;
+                mid_header->flags.state = PH::ALL_FREE;
+                mid_header->bitmap_->free( 0, PH::MEMORY_PAGE_DESCRIPTOR );
+                std::memset( physical_to_virtual( mid_header->map_base_adderess ), 0, PH::MEMORY_PAGE_DESCRIPTOR * this->page_size );
+                mid_header = mid_header->next;
             }
             // 尾
-            auto end_header = ( (PHI *)node->next->container );
+            auto end_header = mid_header;
             end_header->flags.state = PH::NORMAL;
             end_header->free_memory_page_count += end_remainder;
             if ( end_header->free_memory_page_count == PH::MEMORY_PAGE_DESCRIPTOR ) {
@@ -121,15 +139,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             end_header->bitmap_->free( 0, end_remainder );
             std::memset( physical_to_virtual( end_header->map_base_adderess ), 0, end_remainder * this->page_size );
-            lock.release( );
-            return;
         }
-
-        header->bitmap_->free( index, size );
-        header->free_memory_page_count += size;
-        // 清空之前废弃的数据
-        std::memset( physical_to_virtual( address ), 0, size * this->page_size );
         lock.release( );
-        return;
     }
 }

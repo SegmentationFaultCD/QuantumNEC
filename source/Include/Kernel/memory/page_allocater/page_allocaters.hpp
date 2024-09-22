@@ -97,60 +97,93 @@ PUBLIC namespace QuantumNEC::Kernel {
             type { page_type },
             group_count { group_count } {
             if ( group_count ) {
-                for ( auto i = 0ul; i < group_count; ++i ) {
-                    auto &[ head_info, head_bitmap ] = this->page_header[ i ];
-                    pallocater->page_header_group_list.append( head_info.group_node );
-                    head_info.group_node.container = &head_info;
-                    head_info.flags.state = PageState::ALL_FREE;
-                    head_info.flags.type = this->type;
-                    head_info.flags.physical_base = virtual_to_physical( this->page_header );
-                    head_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-                    head_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-                    head_info.bitmap_ = &head_bitmap;
-                    head_info.next = reinterpret_cast< header_t * >( &head_info ) + 1;
-                    head_info.prev = nullptr;
-                    for ( auto j = 1ul; j < MEMORY_PAGE_HEADER_COUNT - 1; ++j ) {
-                        auto &[ mid_info, mid_bitmap ] = this->page_header[ j + i * MEMORY_PAGE_HEADER_COUNT ];
-                        mid_info.flags.state = PageState::ALL_FREE;
-                        mid_info.flags.type = this->type;
-                        mid_info.flags.physical_base = virtual_to_physical( this->page_header );
-                        mid_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-                        mid_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-                        mid_info.bitmap_ = &mid_bitmap;
-                        mid_info.next = reinterpret_cast< header_t * >( &mid_info ) + 1;
-                        mid_info.prev = reinterpret_cast< header_t * >( &mid_info ) - 1;
-                    }
-                    auto &[ end_info, end_bitmap ] = this->page_header[ i * MEMORY_PAGE_HEADER_COUNT - 1 ];
-                    end_info.flags.state = PageState::ALL_FREE;
-                    end_info.flags.type = this->type;
-                    end_info.flags.physical_base = virtual_to_physical( this->page_header );
-                    end_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-                    end_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-                    end_info.bitmap_ = &end_bitmap;
-                    end_info.next = nullptr;
-                    end_info.prev = reinterpret_cast< header_t * >( &end_info ) - 1;
+                auto &[ head_info, head_bitmap ] = this->page_header[ 0 ];
+                pallocater->page_header_group_list.append( head_info.group_node );
+                head_info.group_node.container = &head_info;
+                head_info.flags.state = PageState::ALL_FREE;
+                head_info.flags.type = this->type;
+                head_info.flags.physical_base = virtual_to_physical( this->page_header );
+                head_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                head_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                head_info.bitmap_ = &head_bitmap;
+                head_info.next = nullptr;
+                head_info.prev = reinterpret_cast< header_t * >( &head_info ) - 1;
+                for ( auto j = 1ul; j < ( MEMORY_PAGE_HEADER_COUNT * this->group_count - 1 ); ++j ) {
+                    auto &[ mid_info, mid_bitmap ] = this->page_header[ j ];
+                    mid_info.flags.state = PageState::ALL_FREE;
+                    mid_info.flags.type = this->type;
+                    mid_info.flags.physical_base = virtual_to_physical( this->page_header );
+                    mid_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    mid_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    mid_info.bitmap_ = &mid_bitmap;
+                    mid_info.next = reinterpret_cast< header_t * >( &mid_info ) + 1;
+                    mid_info.prev = reinterpret_cast< header_t * >( &mid_info ) - 1;
                 }
+                auto &[ end_info, end_bitmap ] = this->page_header[ MEMORY_PAGE_HEADER_COUNT * this->group_count - 1 ];
+                end_info.flags.state = PageState::ALL_FREE;
+                end_info.flags.type = this->type;
+                end_info.flags.physical_base = virtual_to_physical( this->page_header );
+                end_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                end_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                end_info.bitmap_ = &end_bitmap;
+                end_info.next = nullptr;
+                end_info.prev = reinterpret_cast< header_t * >( &end_info ) - 1;
             }
         };
+        PageHeader( IN PageInformation *phis ) {
+            this->page_header = phis;
+            this->type = phis->flags.type;
+            for ( this->group_count = 1; phis; phis = phis->next ) {
+                this->group_count++;
+            }
+            // 头数
+            auto header_count = !this->group_count % MEMORY_PAGE_DESCRIPTOR ? this->group_count / MEMORY_PAGE_DESCRIPTOR : DIV_ROUND_UP( this->group_count, MEMORY_PAGE_DESCRIPTOR );
+            // 组数
+            this->group_count = header_count % MEMORY_PAGE_HEADER_COUNT ? header_count / MEMORY_PAGE_HEADER_COUNT + 1 : header_count / MEMORY_PAGE_HEADER_COUNT;
+        };
         // 第一次分配专用
-        PageHeader( IN Allocater &pallocater, IN VOID *address, IN uint64_t page_type, uint64_t base_address ) :
+        PageHeader( IN Allocater &pallocater, IN VOID *address, IN uint64_t page_type ) :
             page_header { address },
-            type { page_type } {
-            auto &[ info, bitmap ] = this->page_header[ 0 ];
-            info.bitmap_ = &bitmap;
-            info.flags.state = PageState::NORMAL;
-            info.flags.type = page_type;
-            info.flags.physical_base = virtual_to_physical( &this->page_header[ 0 ] );
-            info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-            info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
-            info.group_node.container = &info;
-            info.map_base_adderess = base_address;
-            pallocater->page_header_group_list.append( info.group_node );
-        }
+            type { page_type },
+            group_count { 1 } {
+            if ( group_count ) {
+                auto &[ head_info, head_bitmap ] = this->page_header[ 0 ];
+                pallocater->page_header_group_list.append( head_info.group_node );
+                head_info.group_node.container = &head_info;
+                head_info.flags.state = PageState::ALL_FREE;
+                head_info.flags.type = this->type;
+                head_info.flags.physical_base = virtual_to_physical( this->page_header );
+                head_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                head_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                head_info.bitmap_ = &head_bitmap;
+                head_info.next = nullptr;
+                head_info.prev = reinterpret_cast< header_t * >( &head_info ) - 1;
+                for ( auto j = 1ul; j < MEMORY_PAGE_HEADER_COUNT - 1; ++j ) {
+                    auto &[ mid_info, mid_bitmap ] = this->page_header[ j ];
+                    mid_info.flags.state = PageState::ALL_FREE;
+                    mid_info.flags.type = this->type;
+                    mid_info.flags.physical_base = virtual_to_physical( this->page_header );
+                    mid_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    mid_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                    mid_info.bitmap_ = &mid_bitmap;
+                    mid_info.next = reinterpret_cast< header_t * >( &mid_info ) + 1;
+                    mid_info.prev = reinterpret_cast< header_t * >( &mid_info ) - 1;
+                }
+                auto &[ end_info, end_bitmap ] = this->page_header[ MEMORY_PAGE_HEADER_COUNT - 1 ];
+                end_info.flags.state = PageState::ALL_FREE;
+                end_info.flags.type = this->type;
+                end_info.flags.physical_base = virtual_to_physical( this->page_header );
+                end_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                end_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
+                end_info.bitmap_ = &end_bitmap;
+                end_info.next = nullptr;
+                end_info.prev = reinterpret_cast< header_t * >( &end_info ) - 1;
+            }
+        };
         template < typename AdvancedAllocater >
             requires( !std::is_same_v< AdvancedAllocater, Allocater > )
         auto allocate( IN AdvancedAllocater &allocater, IN uint64_t size ) {
-            auto base_map_address = (uint64_t)allocater.allocate( ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size / allocater.page_size ) * this->count * this->MEMORY_PAGE_HEADER_COUNT );
+            auto base_map_address = (uint64_t)allocater.allocate( ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size / allocater.page_size ) * this->group_count * this->MEMORY_PAGE_HEADER_COUNT );
             this->allocate( size, base_map_address );
         }
 

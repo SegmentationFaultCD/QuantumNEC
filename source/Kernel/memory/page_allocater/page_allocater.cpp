@@ -1,3 +1,5 @@
+#include "Kernel/memory/page_allocater/page_allocater.hpp"
+#include "Kernel/memory/paging_map/ptv.hpp"
 #include <Kernel/memory/memory.hpp>
 #include <Kernel/print.hpp>
 #include <Libcxx/string.hpp>
@@ -13,17 +15,16 @@ PUBLIC namespace {
 }
 
 PUBLIC namespace QuantumNEC::Kernel {
-    Page::Page( VOID ) noexcept {     // 计算可用内存数量
+    PageAllocater::PageAllocater( VOID ) noexcept {     // 计算可用内存数量
 
         Ptr< limine_memmap_response > memory_descriptor { &Architecture::__config.memory_map };
 
-        using PH = PageHeader< Page2M >;
+        using PH = PageHeader< PageAllocater2M, PageAllocater2M >;
         using PHI = PH::PageInformation;
 
-        PH page_header { this->p2m, nullptr, MemoryPageType::PAGE_2M, 0 };
+        PH page_header { this->p2m, physical_to_virtual( nullptr ), MemoryPageType::PAGE_2M };
         auto bitmap = std::get< PHI >( page_header.get( 0 ) ).bitmap_;
         bitmap->set( 0 );
-
         for ( auto i = 0ul; i < Architecture::__config.memory_map.entry_count; ++i ) {
             auto entry = memory_descriptor->entries[ i ];
             auto start { entry->base }, end { start + entry->length };
@@ -58,7 +59,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 
         println< ostream::HeadLevel::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
     }
-    auto Page::allocate( IN size_t size, IN MemoryPageType type ) -> VOID * {
+    auto PageAllocater::allocate( IN size_t size, IN MemoryPageType type ) -> VOID * {
         lock.acquire( );
         using enum MemoryPageType;
         VOID *buffer { };
@@ -76,7 +77,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         lock.release( );
         return buffer;
     }
-    auto Page::free( IN VOID * address, IN size_t size, IN MemoryPageType type ) -> VOID {
+    auto PageAllocater::free( IN VOID * address, IN size_t size, IN MemoryPageType type ) -> VOID {
         lock.acquire( );
         using enum MemoryPageType;
         switch ( type ) {
