@@ -10,24 +10,12 @@ public:
     explicit PidPool( VOID ) noexcept = default;
 
 public:
-    auto allocate( VOID ) -> std::expected< uint64_t, int32_t > {
-        auto index = this->bitmap.allocate( 1 );
-        if ( index.has_value( ) ) {
-            return index.value( );
-        }
-        else {
-            return std::unexpected { -1 };
-        }
-    }
-    auto free( IN uint64_t pid ) {
-        if ( pid >= PID_COUNT ) {
-            return;
-        }
-        this->bitmap.free( pid );
+    auto allocate( VOID ) -> uint64_t {
+        return this->global_pid++;
     }
 
 private:
-    std::bitset< PID_COUNT > bitmap { };
+    uint64_t global_pid { };
 };
 PUBLIC inline PidPool pid_pool { };
 }     // namespace QuantumNEC::Kernel

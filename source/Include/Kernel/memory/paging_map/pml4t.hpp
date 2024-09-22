@@ -46,6 +46,9 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
             return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base << PAGE_4K_SHIFT;
         }
+        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
+            return 0;
+        }
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {
             ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].p = bit;
         }
@@ -70,23 +73,30 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
             ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base = address >> PAGE_4K_SHIFT;
         }
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID {
-            this->set_p( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_PRESENT ) );
-            this->set_rw( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_RW_W ) );
-            this->set_us( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_US_U ) );
-            this->set_pwt( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_PWT ) );
-            this->set_pcd( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_PCD ) );
-            this->set_a( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_ACCESSED ) );
-            this->set_xd( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_XD ) );
-            this->set_base( std::get< 0 >( group ), std::get< 1 >( group ) );
+        virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN BOOL bit ) -> VOID override {
         }
-        virtual auto operator=( IN uint64_t table_address ) -> VOID {
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
+            auto &[ index, base, flags ] = group;
+            this->set_p( index, !!( flags & PAGE_PRESENT ) );
+            this->set_rw( index, !!( flags & PAGE_RW_W ) );
+            this->set_us( index, !!( flags & PAGE_US_U ) );
+            this->set_pwt( index, !!( flags & PAGE_PWT ) );
+            this->set_pcd( index, !!( flags & PAGE_PCD ) );
+            this->set_a( index, !!( flags & PAGE_ACCESSED ) );
+            this->set_xd( index, !!( flags & PAGE_XD ) );
+            this->set_base( index, base );
+            this->set_ps_pat( index, !!( flags & PAGE_PAT ) );
+        }
+        virtual auto operator=( IN uint64_t table_address ) -> VOID override {
             this->pmlx_entry[ Level::PML4 ] = (uint64_t *)table_address;
+        }
+        virtual auto operator=( IN pml4t &pml4_t ) -> VOID {
+            this->pmlx_entry[ Level::PML4 ] = (uint64_t *)pml4_t.pmlx_entry[ Level::PML4 ];
         }
         virtual auto get_table( VOID ) -> uint64_t * override {
             return this->pmlx_entry[ Level::PML4 ];
         }
-        virtual auto get_address_index_in( IN VOID *address ) -> uint64_t {
+        virtual auto get_address_index_in( IN VOID *address ) -> uint64_t override {
             return ( ( (uint64_t)address >> PAGE_4th_SHIFT ) & 0x1ff );
         }
         auto operator=( IN pml4t &&pml4 ) -> pml4t & {

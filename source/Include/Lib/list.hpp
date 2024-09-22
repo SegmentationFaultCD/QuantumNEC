@@ -23,6 +23,12 @@ PUBLIC namespace QuantumNEC::Lib {
         auto is_empty_next( IN ListNode *node ) -> ListNode * {
             return node->next ? node->next : NULL;
         }
+        auto operator=( ListNode &node ) -> ListNode & {
+            this->container = node.container;
+            this->next = node.next;
+            this->prev = node.prev;
+            return *this;
+        }
     };
     // 双向链表
     PUBLIC struct ListTable
@@ -37,8 +43,16 @@ PUBLIC namespace QuantumNEC::Lib {
             this->end.next = NULL;
         }
         ~ListTable( VOID ) noexcept = default;
+        auto operator=( ListTable &lt ) -> ListTable & {
+            this->head = lt.head;
+            this->end = lt.end;
+            return *this;
+        }
 
     public:
+        auto begin( ) {
+            return this->head.next;
+        }
         /**
          * @brief 插入节点到链表末尾
          * @param New 要添加的元素的指针

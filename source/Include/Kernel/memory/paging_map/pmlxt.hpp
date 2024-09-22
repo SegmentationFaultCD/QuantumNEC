@@ -198,6 +198,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto flags_a( IN uint64_t index ) -> uint64_t = 0;
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t = 0;
         virtual auto flags_base( IN uint64_t index ) -> uint64_t = 0;
+        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t = 0;
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
         virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
         virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
@@ -206,6 +207,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID = 0;
+        virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
 
     public:
         /**

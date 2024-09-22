@@ -11,7 +11,8 @@ PUBLIC namespace QuantumNEC::Architecture {
         public Acpi,
         public Sound,
         public Time,
-        public FPU
+        public FPU,
+        public Elf
     {
     public:
         explicit Device( VOID ) noexcept;

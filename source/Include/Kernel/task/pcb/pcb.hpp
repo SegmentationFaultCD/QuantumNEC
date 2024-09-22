@@ -1,4 +1,5 @@
 #pragma once
+#include "Kernel/memory/paging_map/pmlxt.hpp"
 #include <Kernel/print.hpp>
 #include <Lib/Uefi.hpp>
 #include <Lib/list.hpp>
@@ -9,6 +10,7 @@
 #include <Arch/Arch.hpp>
 #include <Libcxx/cstring.hpp>
 #include <concepts>
+#include <cstdint>
 
 PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC constexpr CONST auto TASK_STACK_SIZE { 65536ull };     // 64KB
@@ -28,6 +30,10 @@ PUBLIC namespace QuantumNEC::Kernel {
         {
             pml4t page_table;     // 任务所持有的页表地址
             explicit MM( VOID ) = default;
+            auto operator=( MM &mm ) -> MM & {
+                this->page_table = mm.page_table;
+                return *this;
+            }
         };
         struct ThreadContext     // 栈底
         {
@@ -76,23 +82,31 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     public:
         Lib::ListNode general_task_node;     // 通用任务队列 连接每个任务
-        MM memory_manager;                   // 记录内存分布
-        uint64_t kernel_stack_base;          // 内核栈栈底
-        uint64_t kernel_stack_size;          // 内核栈大小
-        uint64_t user_stack_base;            // 用户栈栈底
-        uint64_t user_stack_size;            // 用户栈大小
-        Context context;                     // 上下文 记录寄存器状态
-        Architecture::Message message;       // 进程消息体
-        uint64_t PID;                        // 任务ID
-        uint64_t PPID;                       // 父进程ID
-        char_t name[ TASK_NAME_SIZE ];       // 任务名
-        uint64_t status;                     // 任务状态
-        uint64_t jiffies;                    // 可运行的时间片
-        uint64_t signal;                     // 任务持有的信号
-        uint64_t priority;                   // 任务优先级
-        uint64_t flags;                      // 任务特殊标志
-        uint64_t virtual_deadline;           // 虚拟截止时间
-        uint64_t cpu_id;                     // CPU ID
+
+        MM memory_manager;     // 记录内存分布
+
+        uint64_t kernel_stack_base;     // 内核栈栈底
+        uint64_t kernel_stack_size;     // 内核栈大小
+        uint64_t user_stack_base;       // 用户栈栈底
+        uint64_t user_stack_size;       // 用户栈大小
+        Context context;                // 上下文 记录寄存器状态
+
+        Architecture::Message message;     // 进程消息体
+
+        uint64_t PID;                      // 任务ID
+        uint64_t PPID;                     // 父进程ID
+        char_t name[ TASK_NAME_SIZE ];     // 任务名
+        uint64_t status;                   // 任务状态
+        uint64_t jiffies;                  // 可运行的时间片
+        uint64_t signal;                   // 任务持有的信号
+        uint64_t priority;                 // 任务优先级
+        uint64_t flags;                    // 任务特殊标志
+        uint64_t virtual_deadline;         // 虚拟截止时间
+        uint64_t cpu_id;                   // CPU ID
+
+        Lib::ListTable thread_queue;     // 进程持有的线程队列
+        uint64_t number_of_threads;      // 线程数量，最少为1（也就是进程本身）
+
         Architecture::ArchitectureManager< TARGET_ARCH >::SSE *fxsave_region;
         uint64_t stack_magic;     // 用于检测栈的溢出
         explicit PCB( IN CONST char_t *_name, IN int64_t _priority, IN int64_t _flags, IN VOID *_entry, IN uint64_t _arg ) noexcept {
@@ -116,15 +130,24 @@ PUBLIC namespace QuantumNEC::Kernel {
             else {
                 this->context.tcontext->make( (VOID *)Architecture::ArchitectureManager< TARGET_ARCH >::to_process, (uint64_t)this->context.pcontext );
             }
+            // 用户栈
+            if ( _flags & TASK_FLAG_USER_PROCESS ) {
+                Memory::memory_paging_map->copy( this->memory_manager.page_table );     // 制作页表
+                this->user_stack_base = (uint64_t)Memory::page->allocate( 4, MemoryPageType::PAGE_2M );
+                this->user_stack_size = PAGE_2M_SIZE * 4;
+                *(uint64_t *)physical_to_virtual( this->user_stack_base ) = uint64_t( this );
+                Memory::memory_paging_map->map( this->user_stack_base,
+                                                USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size,
+                                                4,
+                                                PAGE_PRESENT | PAGE_RW_W | PAGE_US_U,
+                                                MemoryPageType::PAGE_2M,
+                                                this->memory_manager.page_table );
+                this->context.pcontext->rsp = USER_STACK_VIRTUAL_ADDRESS_TOP;
+            }
+            // SSE
             this->fxsave_region = reinterpret_cast< Architecture::ArchitectureManager< TARGET_ARCH >::SSE * >( this + 1 );
             // 分配PID
-            const auto pid = pid_pool.allocate( );
-            if ( pid.has_value( ) ) {
-                this->PID = pid.value( );
-            }
-            else {
-                std::println< std::ostream::HeadLevel::ERROR >( "PID allocating fault! error code" );
-            }
+            this->PID = pid_pool.allocate( );
             // 设置进程名
             std::strncpy( this->name, _name, TASK_NAME_SIZE );
             // 设置进程初始状态
@@ -142,15 +165,6 @@ PUBLIC namespace QuantumNEC::Kernel {
 #endif
             // 魔术字节
             this->stack_magic = TASK_STACK_MAGIC;
-            // 制作页表
-            if ( _flags & TASK_FLAG_USER_PROCESS ) {
-                Memory::memory_paging_map->copy( this->memory_manager.page_table );
-                this->user_stack_base = (uint64_t)Memory::page->allocate( 1, MemoryPageType::PAGE_2M );
-                this->user_stack_size = PAGE_2M_SIZE;
-                *(uint64_t *)physical_to_virtual( this->user_stack_base ) = uint64_t( this );
-                Memory::memory_paging_map->map( this->user_stack_base, USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size, 1, PAGE_PRESENT | PAGE_RW_W | PAGE_US_U, MemoryPageType::PAGE_2M, this->memory_manager.page_table );
-                this->context.pcontext->rsp = USER_STACK_VIRTUAL_ADDRESS_TOP;
-            }
 
             lock.release( );
         }
@@ -175,6 +189,31 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             lock.release( );
         }
+        auto operator=( PCB &pcb ) -> PCB & {
+            this->general_task_node = pcb.general_task_node;
+            this->memory_manager = pcb.memory_manager;
+            this->kernel_stack_base = pcb.kernel_stack_base;
+            this->kernel_stack_size = pcb.kernel_stack_size;
+            this->user_stack_base = pcb.user_stack_base;
+            this->user_stack_size = pcb.user_stack_size;
+            this->context = pcb.context;
+            this->message = pcb.message;
+            this->PID = pcb.PID;
+            this->PID = pcb.PPID;
+            std::strcpy( this->name, pcb.name );
+            this->status = pcb.status;
+            this->jiffies = pcb.jiffies;
+            this->signal = pcb.signal;
+            this->priority = pcb.priority;
+            this->flags = pcb.flags;
+            this->virtual_deadline = pcb.virtual_deadline;
+            this->cpu_id = pcb.cpu_id;
+            this->thread_queue = pcb.thread_queue;
+            this->number_of_threads = pcb.number_of_threads;
+            this->fxsave_region = pcb.fxsave_region;
+            this->stack_magic = pcb.stack_magic;
+            return *this;
+        }
     };
 
     inline auto get_current( VOID ) {
@@ -182,6 +221,5 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto rsp = Architecture::ArchitectureManager< TARGET_ARCH >::get_rsp( );
         rsp = (uint64_t)Memory::memory_paging_map->VTP_address_from( (VOID *)rsp, MemoryPageType::PAGE_2M, page_table );
         return (PCB *)( *(uint64_t *)rsp );
-        // return reinterpret_cast< PCB * >( Architecture::ArchitectureManager< TARGET_ARCH >::get_rsp( ) & ~( TASK_STACK_SIZE - 1 ) );
     }
 }

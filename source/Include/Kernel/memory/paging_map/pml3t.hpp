@@ -42,7 +42,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
             return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].a;
         }
-        virtual auto flags_ps( IN uint64_t index ) -> uint64_t {
+        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
             return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps;
         }
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
@@ -83,7 +83,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
             ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd = bit;
         }
-        virtual auto set_ps( IN uint64_t index, IN BOOL bit ) -> VOID {
+        virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID override {
             ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps = bit;
         }
 
@@ -95,27 +95,26 @@ PUBLIC namespace QuantumNEC::Kernel {
                 ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_4K_SHIFT;
             }
         }
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID {
-            this->set_p( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_PRESENT ) );
-            this->set_rw( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_RW_W ) );
-            this->set_us( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_US_U ) );
-            this->set_pwt( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_PWT ) );
-            this->set_pcd( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_PCD ) );
-            this->set_a( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_ACCESSED ) );
-            if ( this->mode == MemoryPageType::PAGE_1G ) {
-                this->set_ps( std::get< 0 >( group ), 1 );
-            }
-            this->set_xd( std::get< 0 >( group ), !!( std::get< 2 >( group ) & PAGE_XD ) );
-            this->set_base( std::get< 0 >( group ), std::get< 1 >( group ) );
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
+            auto &[ index, base, flags ] = group;
+            this->set_p( index, !!( flags & PAGE_PRESENT ) );
+            this->set_rw( index, !!( flags & PAGE_RW_W ) );
+            this->set_us( index, !!( flags & PAGE_US_U ) );
+            this->set_pwt( index, !!( flags & PAGE_PWT ) );
+            this->set_pcd( index, !!( flags & PAGE_PCD ) );
+            this->set_a( index, !!( flags & PAGE_ACCESSED ) );
+            this->set_xd( index, !!( flags & PAGE_XD ) );
+            this->set_base( index, base );
+            this->set_ps_pat( index, !!( flags & PAGE_PS ) );
         }
-        virtual auto operator=( IN uint64_t table_address ) -> VOID {
+        virtual auto operator=( IN uint64_t table_address ) -> VOID override{
             this->pmlx_entry[ Level::PDPT ] = (uint64_t *)table_address;
         }
 
         virtual auto get_table( VOID ) -> uint64_t * override {
             return this->pmlx_entry[ Level::PDPT ];
         }
-        virtual auto get_address_index_in( IN VOID *address ) -> uint64_t {
+        virtual auto get_address_index_in( IN VOID *address ) -> uint64_t override {
             return ( ( (uint64_t)address >> PAGE_1G_SHIFT ) & 0x1ff );
         }
         auto operator=( IN pml3t_entry *entry ) -> pml3t & {

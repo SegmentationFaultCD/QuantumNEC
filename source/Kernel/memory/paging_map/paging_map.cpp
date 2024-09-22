@@ -1,3 +1,4 @@
+#include "Kernel/memory/page_allocater/page_allocaters.hpp"
 #include <Kernel/memory/memory.hpp>
 #include <Arch/Arch.hpp>
 #include <Libcxx/string.hpp>
@@ -101,8 +102,9 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
             return *page_table[ level - 1 ];
         };
-        auto page_size = pml4t.check_page_size( mode );                                                    // 确认每页大小
-        flags |= pml4t.is_huge( mode );                                                                    // 如果为huge页那么设置ps位为1
+        auto page_size = pml4t.check_page_size( mode );     // 确认每页大小
+        flags |= pml4t.is_huge( mode );                     // 如果为huge页那么设置ps位为1
+
         auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
             auto index = pmlx_t.get_address_index_in( reinterpret_cast< VOID * >( virtual_address ) );     // 拿到虚拟地址所在页表入口的index
 
@@ -112,7 +114,6 @@ PUBLIC namespace QuantumNEC::Kernel {
                 // 换句话说，就是舍去1级页表
                 // 4K分页，那么就是查到1级页表为止
                 // 1G分页，就是查到3级页表为止
-
                 pmlx_t = { index, physics_address & ~0x7FF, flags & 0x7FF };
                 Architecture::ArchitectureManager< TARGET_ARCH >::invlpg( reinterpret_cast< VOID * >( virtual_address ) );     // 刷新快表
                 physics_address += page_size;

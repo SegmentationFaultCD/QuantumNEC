@@ -17,15 +17,29 @@ PUBLIC namespace QuantumNEC::Architecture {
                 uint32_t i3;
                 uint32_t i4;
                 explicit MSG1( VOID ) noexcept = default;
-            } volatile msg1;
+                auto operator=( MSG1 &msg ) -> MSG1 & {
+                    this->i1 = msg.i1;
+                    this->i2 = msg.i2;
+                    this->i3 = msg.i3;
+                    this->i4 = msg.i4;
+                    return *this;
+                }
+            } msg1;
             struct MSG2
             {
                 VOID *p1;
                 VOID *p2;
                 VOID *p3;
                 VOID *p4;
+                auto operator=( MSG2 &msg ) -> MSG2 & {
+                    this->p1 = msg.p1;
+                    this->p2 = msg.p2;
+                    this->p3 = msg.p3;
+                    this->p4 = msg.p4;
+                    return *this;
+                }
                 explicit MSG2( VOID ) noexcept = default;
-            } volatile msg2;
+            } msg2;
             struct MSG3
             {
                 uint32_t i1;
@@ -36,9 +50,20 @@ PUBLIC namespace QuantumNEC::Architecture {
                 uint64_t l2;
                 VOID *p1;
                 VOID *p2;
+                auto operator=( MSG3 &msg ) -> MSG3 & {
+                    this->p1 = msg.p1;
+                    this->p2 = msg.p2;
+                    this->l1 = msg.l1;
+                    this->l2 = msg.l2;
+                    this->i1 = msg.i1;
+                    this->i2 = msg.i2;
+                    this->i3 = msg.i3;
+                    this->i4 = msg.i4;
+                    return *this;
+                }
                 explicit MSG3( VOID ) noexcept = default;
 
-            } volatile msg3;
+            } msg3;
         } message;
         uint64_t source;                /* 发出这个消息的进程pid */
         uint32_t type;                  /* 消息类型 */
@@ -50,6 +75,11 @@ PUBLIC namespace QuantumNEC::Architecture {
     public:
         explicit Message( VOID ) noexcept = default;
         ~Message( VOID ) noexcept = default;
+        auto operator=( Message &msg ) -> Message & {
+            this->message.msg1 = msg.message.msg1;
+            this->message.msg2 = msg.message.msg2;
+            this->message.msg3 = msg.message.msg3;
+        }
 
     public:
         /**

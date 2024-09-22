@@ -103,8 +103,11 @@ PUBLIC namespace QuantumNEC::Architecture {
         };
 
     public:
+        explicit Elf( VOID ) = default;
+
+    public:
         STATIC auto load_elf_file( IN uint64_t address ) -> uint64_t;
-        STATIC auto check_elf_magic( IN ElfHeader *Ehdr ) -> BOOL;
+        STATIC auto check_elf_magic( IN VOID *Ehdr ) -> BOOL;
     };
     // class FileHeaderService : Elf
     // {

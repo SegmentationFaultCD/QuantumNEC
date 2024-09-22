@@ -20,9 +20,11 @@ PUBLIC namespace QuantumNEC::Architecture {
             }
         }
         auto page_count { ( ( high_address - low_address ) >> 12 ) + 1 };
-        auto kernel_relocate_base { (uint64_t)physical_to_virtual( Memory::page->malloc( page_count, MemoryPageType::PAGE_4K ) ) };
-        auto relocate_offset = kernel_relocate_base - low_address;
-        auto zero_start = reinterpret_cast< uint64_t * >( kernel_relocate_base );
+        auto relocate_base { (uint64_t)physical_to_virtual( Memory::page->allocate( page_count, MemoryPageType::PAGE_4K ) ) };
+        Kernel::Memory::memory_paging_map->map< Kernel::MemoryPageType::PAGE_2M >( (uint64_t)Kernel::virtual_to_physical( relocate_base ), relocate_base, 1, Kernel::PAGE_PRESENT | Kernel::PAGE_RW_W | Kernel::PAGE_US_U );
+
+        auto relocate_offset = relocate_base - low_address;
+        auto zero_start = reinterpret_cast< uint64_t * >( relocate_base );
         for ( uint64_t i { }; i < ( page_count << 9 ); i++ ) {
             *zero_start = 0x000000000000;
             zero_start++;
@@ -40,10 +42,11 @@ PUBLIC namespace QuantumNEC::Architecture {
         }
         return Elf_header->e_Entry + relocate_offset;
     }
-    auto Elf::check_elf_magic( IN ElfHeader * Ehdr ) -> BOOL {
-        if ( Ehdr->e_Magic != ELF_MAGIC )
+    auto Elf::check_elf_magic( IN VOID * Ehdr ) -> BOOL {
+        auto header = (ElfHeader *)Ehdr;
+        if ( header->e_Magic != ELF_MAGIC )
             return FALSE;
-        if ( Ehdr->e_Type != ELF_ET_DYN ) {
+        if ( header->e_Type != ELF_ET_DYN ) {
             return FALSE;
         }
         return TRUE;

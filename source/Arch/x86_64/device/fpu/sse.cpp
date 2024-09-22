@@ -14,11 +14,11 @@ auto Architecture::Sse::SSE::check_fpu( VOID ) -> BOOL {
     }
     return TRUE;
 }
-auto Architecture::Sse::SSE::load_sse( VOID ) -> VOID {
+auto Architecture::Sse::SSE::save_sse( VOID ) -> VOID {
     ASM( "FXSAVE %0" ::"m"( *this ) );
 }
 
-auto Architecture::Sse::SSE::read_sse( VOID ) -> VOID {
+auto Architecture::Sse::SSE::load_sse( VOID ) -> VOID {
     ASM( "FXRSTOR %0" ::"m"( *this ) );
 }
 Architecture::Sse::Sse( VOID ) noexcept {

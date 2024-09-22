@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Arch/Arch.hpp"
 #include <Lib/Uefi.hpp>
 #include <Lib/list.hpp>
 #include <Libcxx/bitset.hpp>
 #include <Lib/spin_lock.hpp>
 #include <Kernel/task/scheduler/sche_src.hpp>
+
 PUBLIC namespace QuantumNEC::Kernel {
     // 该调度器思想由Con Kolivas发明
     // 面向桌面端设备，适用与较少的CPU
@@ -141,21 +143,76 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     public:
         // 任务插入
-        virtual auto insert( IN PCB *pcb ) -> VOID override {
+        virtual auto insert( IN PCB *pcb ) -> PCB * override {
+            auto index = 0;
+            for ( ; index < 102; ++index ) {
+                if ( this->bitmap[ index ] ) {
+                    break;
+                }
+            }
+            if ( index < 100 ) {
+                return (PCB *)this->running_queue[ index ].head.next->container;
+            }
+            else {
+                for ( auto i = index; i <= 102; ++i ) {
+                    if ( this->running_queue[ i ].is_empty( ) ) {
+                        continue;
+                    }
+                    auto head = this->running_queue[ i ].begin( );
+                    auto isChange = true;
+                    Lib::ListNode *p = NULL, *tmp { }, *q;
+                    while ( p != head->next && isChange ) {
+                        q = head;
+                        isChange = false;
+                        for ( ; q->next && q->next != p; q = q->next ) {
+                            if ( ( (PCB *)q->container )->virtual_deadline < Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies ) {
+                                this->running_queue[ i ].remove( ( (PCB *)q->container )->general_task_node );
+                                if ( this->running_queue[ i ].is_empty( ) ) {
+                                    this->bitmap[ i ] = 0;
+                                }
+                                return (PCB *)q->container;
+                            }
+                            if ( ( (PCB *)q->container )->virtual_deadline > ( (PCB *)q->next->container )->virtual_deadline ) {
+                                tmp = q;
+                                q = q->next;
+                                q->next = tmp;
+                                isChange = true;
+                            }
+                        }
+                        p = q;
+                    }
+                    this->running_queue[ i ].remove( ( (PCB *)head->container )->general_task_node );
+                    if ( this->running_queue[ i ].is_empty( ) ) {
+                        this->bitmap[ i ] = 0;
+                    }
+                    return (PCB *)head->container;
+                }
+            }
         }
         // 任务唤醒
-        virtual auto wake_up( ) -> VOID override {
+        virtual auto wake_up( PCB * ) -> PCB * override {
+            return NULL;
         }
         // 任务睡眠
-        virtual auto sleep( ) -> VOID override {
+        virtual auto sleep( ) -> PCB * override {
+            return NULL;
         }
-        // 时间片耗尽时的正常调度
-        virtual auto schedule( ) -> VOID override {
+        virtual auto schedule( ) -> PCB * override {
+            auto current = get_current( );
+            if ( !current->jiffies ) {     // 时间片耗尽
+                current->jiffies = rr_interval;
+                current->virtual_deadline = Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies + prio_ratios[ current->priority ] * rr_interval;
+                return this->insert( current );
+            }
+            else {
+                current->jiffies--;
+                return current;
+            }
         }
 
     private:
         Lib::ListTable running_queue[ 103 ] { };     // 存放除了running状态下的其他所有任务
-        std::bitset< 103 > bitmap { };               // 每个队列对应的位图
+        BOOL bitmap[ 103 ] { };                      // 每个队列对应的位图
         Lib::SpinLock global_lock { };               // 全局锁
     };
 }

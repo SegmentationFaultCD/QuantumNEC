@@ -17,7 +17,7 @@ PUBLIC namespace QuantumNEC::Architecture {
              * @brief 读取fpu
              * @param task 当前进程
              */
-            auto read_sse( VOID ) -> VOID;
+            auto save_sse( VOID ) -> VOID;
             /**
              * @brief 设置fpu
              * @param task 当前进程
