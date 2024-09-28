@@ -36,7 +36,7 @@ xmake -F source/Lib/xmake.lua         # 编译系统库
 ```
  等待编译完成后，开始编译链接内核
 ```bash
-xmake build_kernel # 编译内核文件
+xmake -F source/xmake.lua build # 编译内核文件
 ```
  然后，开始编译链接模块驱动
 ```bash
@@ -71,4 +71,4 @@ xmake run # 运行
 # 依赖
 - 使用现代化引导[limine](https://github.com/limine-bootloader/limine)进行来装载内核，不需要自己编写boot loader
 # 贡献
-如果您想为此项目做出贡献，请阅读[贡献指南](https://github.com/SegmentationFaultCD/QuantumNEC/CONTRIBUTING.md)
+如果您想为此项目做出贡献，请阅读[贡献指南](CONTRIBUTING.md)
