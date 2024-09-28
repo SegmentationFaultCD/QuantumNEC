@@ -1,6 +1,5 @@
 #include <Arch/x86_64/platform/platform.hpp>
 #include <Kernel/print.hpp>
-#include <Kernel/kernel.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace std;
     Hpet ::Hpet( VOID ) noexcept {

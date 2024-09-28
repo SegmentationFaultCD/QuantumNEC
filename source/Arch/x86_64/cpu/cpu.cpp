@@ -1,9 +1,8 @@
 #include <Arch/x86_64/platform/platform.hpp>
 #include <utility>
-#include <Kernel/kernel.hpp>
 #include <Kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
-    using namespace Lib;
+    using namespace std;
     CPUs::CPUs( VOID ) noexcept {
         // 初始化GDT， IDT
         STATIC byte_t buffer[ sizeof( InterruptDescriptorTable ) + sizeof( GlobalSegmentDescriptorTable ) ] { };
@@ -40,7 +39,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             *reinterpret_cast< Ptr< uint32_t > >( &factoryName[ 8 ] ) = status.rcx;
             *reinterpret_cast< Ptr< uint32_t > >( &factoryName[ 12 ] ) = status.rdx;
             factoryName[ 16 ] = '\0';
-            Lib::strcat( factory_name_str, factoryName );
+            std::strcat( factory_name_str, factoryName );
         }
         println< ostream::HeadLevel::INFO >( "{}", factory_name_str );
         // 获取处理器的版本信息
@@ -67,7 +66,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         this->cpuid( status );
         println< ostream::HeadLevel::INFO >( "Max Extended Operation Code -> {:x}", status.rax );
     }
-    auto CPUs::cpuid( IN CpuidStatus & status )->CpuidStatus & {
+    auto CPUs::cpuid( IN CpuidStatus & status ) -> CpuidStatus & {
         uint64_t max_basic_operation_code { };
         ASM( "cpuid"
              : "=a"( max_basic_operation_code )
@@ -81,7 +80,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         return status;
     }
 
-    auto CPUs::port_insw( IN uint64_t port, IN VOID * buffer, IN uint64_t nr )->VOID {
+    auto CPUs::port_insw( IN uint64_t port, IN VOID * buffer, IN uint64_t nr ) -> VOID {
         ASM( "cld\n\t"
              "rep\n\t"
              "insw\n\t"
@@ -90,7 +89,7 @@ PUBLIC namespace QuantumNEC::Architecture {
              : "memory" );
     }
 
-    auto CPUs::port_outsw( IN uint64_t port, IN VOID * buffer, IN uint64_t nr )->VOID {
+    auto CPUs::port_outsw( IN uint64_t port, IN VOID * buffer, IN uint64_t nr ) -> VOID {
         ASM( "cld\n\t"
              "rep\n\t"
              "outsw\n\t"
@@ -99,27 +98,27 @@ PUBLIC namespace QuantumNEC::Architecture {
              : "memory" );
     }
 
-    auto CPUs::cli( VOID )->VOID {
+    auto CPUs::cli( VOID ) -> VOID {
         ASM( "cli\n\t" ::
                  : "memory" );
     }
 
-    auto CPUs::sti( VOID )->VOID {
+    auto CPUs::sti( VOID ) -> VOID {
         ASM( "sti\n\t" ::
                  : "memory" );
     }
 
-    auto CPUs::hlt( VOID )->VOID {
+    auto CPUs::hlt( VOID ) -> VOID {
         ASM( "hlt\n\t" ::
                  : "memory" );
     }
 
-    auto CPUs::nop( VOID )->VOID {
+    auto CPUs::nop( VOID ) -> VOID {
         ASM( "nop\n\t" ::
                  : "memory" );
     }
 
-    auto CPUs::rdmsr( IN uint64_t address )->uint64_t {
+    auto CPUs::rdmsr( IN uint64_t address ) -> uint64_t {
         uint32_t tmp0 { };
         uint32_t tmp1 { };
         ASM( "rdmsr	\n\t"
@@ -131,19 +130,19 @@ PUBLIC namespace QuantumNEC::Architecture {
 
     auto CPUs::wrmsr( IN uint64_t address,
                       IN uint64_t value )
-        ->VOID {
+        -> VOID {
         ASM( "wrmsr	\n\t" ::"d"( value >> 32 ), "a"( value & 0xffffffff ), "c"( address )
              : "memory" );
     }
 
-    auto CPUs::get_rsp( VOID )->uint64_t {
+    auto CPUs::get_rsp( VOID ) -> uint64_t {
         uint64_t rsp { };
         ASM( "movq	%%rsp, %0	\n\t"
              : "=r"( rsp )::"memory" );
         return rsp;
     }
 
-    auto CPUs::get_rflags( VOID )->uint64_t {
+    auto CPUs::get_rflags( VOID ) -> uint64_t {
         uint64_t rsp_flags { };
         ASM( "pushfq	\n\t"
              "movq	(%%rsp), %0	\n\t"
@@ -153,7 +152,7 @@ PUBLIC namespace QuantumNEC::Architecture {
              : "memory" );
         return rsp_flags;
     }
-    auto CPUs::io_in8( IN uint16_t port )->uint8_t {
+    auto CPUs::io_in8( IN uint16_t port ) -> uint8_t {
         uint8_t ret { };
         ASM( "inb	%%dx,	%0	\n\t"
              "mfence			\n\t"
@@ -162,7 +161,7 @@ PUBLIC namespace QuantumNEC::Architecture {
              : "memory" );
         return ret;
     }
-    auto CPUs::io_in16( IN uint16_t port )->uint16_t {
+    auto CPUs::io_in16( IN uint16_t port ) -> uint16_t {
         uint16_t ret { };
         ASM( "inw	%%dx,	%0	\n\t"
              "mfence			\n\t"
@@ -172,7 +171,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         return ret;
     }
 
-    auto CPUs::io_in32( IN uint16_t port )->uint32_t {
+    auto CPUs::io_in32( IN uint16_t port ) -> uint32_t {
         uint32_t ret { };
         ASM( "inl	%%dx,	%0	\n\t"
              "mfence			\n\t"
@@ -184,7 +183,7 @@ PUBLIC namespace QuantumNEC::Architecture {
 
     auto CPUs::io_out8( IN uint16_t port,
                         IN uint8_t value )
-        ->VOID {
+        -> VOID {
         ASM( "outb %b[value],%w[port];"
              :
              : [value] "a"( value ), [port] "d"( port )
@@ -193,7 +192,7 @@ PUBLIC namespace QuantumNEC::Architecture {
 
     auto CPUs::io_out16( IN uint16_t port,
                          IN uint16_t value )
-        ->VOID {
+        -> VOID {
         ASM( "outw %w[value],%w[port];"
              :
              : [value] "a"( value ), [port] "d"( port )
@@ -202,100 +201,100 @@ PUBLIC namespace QuantumNEC::Architecture {
 
     auto CPUs::io_out32( IN uint16_t port,
                          IN uint32_t value )
-        ->VOID {
+        -> VOID {
         ASM( "outl %[value],%w[port];"
              :
              : [value] "a"( value ), [port] "d"( port )
              : "memory" );
     }
-    auto CPUs::read_cr8( VOID )->ControlRegisters::CR8 {
+    auto CPUs::read_cr8( VOID ) -> ControlRegisters::CR8 {
         ControlRegisters::CR8 cr8 { };
         ASM( "movq %%cr8, %0"
              : "=r"( cr8 )::"memory" );
         return cr8;
     }
 
-    auto CPUs::write_cr8( IN ControlRegisters::CR8 cr8 )->VOID {
+    auto CPUs::write_cr8( IN ControlRegisters::CR8 cr8 ) -> VOID {
         ASM( "movq %0, %%cr8" ::"r"( cr8 )
              : "memory" );
     }
-    auto CPUs::read_cr4( VOID )->ControlRegisters::CR4 {
+    auto CPUs::read_cr4( VOID ) -> ControlRegisters::CR4 {
         ControlRegisters::CR4 cr4 { };
         ASM( "movq %%cr4, %0"
              : "=r"( cr4 )::"memory" );
         return cr4;
     }
 
-    auto CPUs::write_cr4( IN ControlRegisters::CR4 cr4 )->VOID {
+    auto CPUs::write_cr4( IN ControlRegisters::CR4 cr4 ) -> VOID {
         ASM( "movq %0, %%cr4" ::"r"( cr4 )
              : "memory" );
     }
-    auto CPUs::read_cr3( VOID )->ControlRegisters::CR3 {
+    auto CPUs::read_cr3( VOID ) -> ControlRegisters::CR3 {
         ControlRegisters::CR3 cr3 { };
         ASM( "movq %%cr3, %0"
              : "=r"( cr3 )::"memory" );
         return cr3;
     }
 
-    auto CPUs::write_cr3( IN ControlRegisters::CR3 cr3 )->VOID {
+    auto CPUs::write_cr3( IN ControlRegisters::CR3 cr3 ) -> VOID {
         ASM( "movq %0, %%cr3" ::"r"( cr3 )
              : "memory" );
     }
 
-    auto CPUs::read_cr2( VOID )->ControlRegisters::CR2 {
+    auto CPUs::read_cr2( VOID ) -> ControlRegisters::CR2 {
         ControlRegisters::CR2 cr2 { };
         ASM( "movq %%cr2, %0"
              : "=r"( cr2 )::"memory" );
         return cr2;
     }
 
-    auto CPUs::write_cr2( IN ControlRegisters::CR2 cr2 )->VOID {
+    auto CPUs::write_cr2( IN ControlRegisters::CR2 cr2 ) -> VOID {
         ASM( "movq %0, %%cr2" ::"r"( cr2 )
              : "memory" );
     }
 
-    auto CPUs::read_cr0( VOID )->ControlRegisters::CR0 {
+    auto CPUs::read_cr0( VOID ) -> ControlRegisters::CR0 {
         ControlRegisters::CR0 cr0 { };
         ASM( "movq %%cr0, %0"
              : "=r"( cr0 )::"memory" );
         return cr0;
     }
 
-    auto CPUs::write_cr0( IN ControlRegisters::CR0 cr0 )->VOID {
+    auto CPUs::write_cr0( IN ControlRegisters::CR0 cr0 ) -> VOID {
         ASM( "movq %0, %%cr0" ::"r"( cr0 )
              : "memory" );
     }
 
-    auto CPUs::invlpg( IN VOID * address )->VOID {
+    auto CPUs::invlpg( IN VOID * address ) -> VOID {
         ASM( "invlpg (%0)"
              :
              : "r"( address )
              : "memory" );
     }
-    auto CPUs::pause( VOID )->VOID {
+    auto CPUs::pause( VOID ) -> VOID {
         ASM( "pause" );
     }
-    auto CPUs::mfence( VOID )->VOID {
+    auto CPUs::mfence( VOID ) -> VOID {
         ASM( "mfence" ::
                  : "memory" );
     }
-    auto CPUs::lfence( VOID )->VOID {
+    auto CPUs::lfence( VOID ) -> VOID {
         ASM( "lfence" ::
                  : "memory" );
     }
-    auto CPUs::sfence( VOID )->VOID {
+    auto CPUs::sfence( VOID ) -> VOID {
         ASM( "sfence" ::
                  : "memory" );
     }
-    auto CPUs::set_page_table( IN uint64_t * mmap )->VOID {
+    auto CPUs::set_page_table( IN uint64_t * mmap ) -> VOID {
         ControlRegisters::CR3 cr3 { };
         cr3.page_directory_base = (uint64_t)mmap >> 12;
         write_cr3( cr3 );
     }
-    auto CPUs::get_page_table( VOID )->uint64_t * {
+    auto CPUs::get_page_table( VOID ) -> uint64_t * {
         return reinterpret_cast< uint64_t * >( Architecture::ArchitectureManager< TARGET_ARCH >::read_cr3( ).page_directory_base << 12 );
     }
-    auto CPUs::cpuid( IN CpuidStatus && status )->CpuidStatus {
+    auto CPUs::cpuid( IN CpuidStatus && status ) -> CpuidStatus {
         CpuidStatus new_status { std::move( status ) };
         uint64_t max_basic_operation_code { };
         ASM( "cpuid"

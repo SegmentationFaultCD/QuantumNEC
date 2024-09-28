@@ -2,7 +2,7 @@
 #include <Kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace Kernel;
-    using namespace Lib;
+    using namespace std;
     Xsdt::Xsdt( IN Xsdp & xsdp ) noexcept {
         this->xsdt = (XSDT *)uint64_t( xsdp.get_rsdp( )->xsdt_address );
         if ( !this->xsdt || this->xsdt->signature != this->signature || !xsdp.check_sum( this->xsdt, this->xsdt->length ) ) {

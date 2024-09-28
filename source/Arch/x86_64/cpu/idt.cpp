@@ -4,7 +4,7 @@
 #include <Lib/spin_lock.hpp>
 using namespace QuantumNEC;
 using namespace Architecture;
-using namespace Lib;
+using namespace std;
 /**
  * @brief 设置中断入口（Trap）
  */
@@ -355,11 +355,11 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept :
     println< ostream::HeadLevel::OK >( "Initialize the interrupt descriptor table management." );
 }
 
-auto InterruptDescriptorTable::load( VOID ) CONST->VOID {
+auto InterruptDescriptorTable::load( VOID ) CONST -> VOID {
     ASM( "lidt %0" ::"m"( *this->xdtr ) );
     return;
 }
-auto InterruptDescriptorTable::read( VOID ) CONST->InterruptDescriptor * {
+auto InterruptDescriptorTable::read( VOID ) CONST -> InterruptDescriptor * {
     // 获取idt地址并返回
     ASM( "sidt %0" ::"m"( *this->xdtr ) );
     return this->xdtr->descriptor;

@@ -1,9 +1,6 @@
-#include "Kernel/memory/page_allocater/page_allocater_1G.hpp"
-#include "Lib/deflib.hpp"
 #include <Kernel/memory/memory.hpp>
 #include <Kernel/memory/paging_map/ptv.hpp>
 #include <Libcxx/string.hpp>
-
 #include <Lib/spin_lock.hpp>
 PUBLIC namespace {
     using namespace QuantumNEC::Lib;
@@ -23,23 +20,30 @@ PUBLIC namespace QuantumNEC::Kernel {
             lock.acquire( );
             // 最大分配数
             // 超过这个数无法保证内存连续，所以不允许分配超过这个数的
+
+            PHI *find_node { };
             auto node = this->page_header_group_list.traversal(
-                []( ListNode *node, auto size ) -> BOOL {
-                    return ( PH::MEMORY_PAGE_DESCRIPTOR - ( (PHI *)node->container )->free_memory_page_count ) >= size;
+                [ &find_node ]( ListNode *node, auto size ) -> BOOL {
+                    for ( find_node = ( (PHI *)node->container ); find_node; find_node = find_node->next ) {
+                        if ( ( PH::MEMORY_PAGE_DESCRIPTOR - find_node->free_memory_page_count ) >= size ) {
+                            return TRUE;
+                        }
+                    }
+                    return FALSE;
                 },
                 size );
             if ( node ) {
-                auto page_header = (PHI *)node->container;
-                auto result = page_header->bitmap_->allocate( size );
+                auto result = find_node->bitmap_->allocate( size );
                 if ( result.has_value( ) ) {
-                    page_header->free_memory_page_count -= size;
-                    if ( !page_header->free_memory_page_count ) {
-                        page_header->flags.state = PH::ALL_FULL;
+                    find_node->free_memory_page_count -= size;
+                    if ( !find_node->free_memory_page_count ) {
+                        find_node->flags.state = PH::ALL_FULL;
                     }
                     else {
-                        page_header->flags.state = PH::NORMAL;
+                        find_node->flags.state = PH::NORMAL;
                     }
-                    auto address = page_header->map_base_adderess + result.value( ) * this->page_size;
+                    auto address = find_node->map_base_adderess + result.value( ) * this->page_size;
+                    std::memset( (VOID *)address, 0, size );
                     lock.release( );
                     return (VOID *)address;
                 }
@@ -54,9 +58,12 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto group_header_count = header_count % PH::MEMORY_PAGE_HEADER_COUNT ? header_count / PH::MEMORY_PAGE_HEADER_COUNT + 1 : header_count / PH::MEMORY_PAGE_HEADER_COUNT;
         lock.acquire( );
         PH page_headers { *this, pa2m, MemoryPageType::PAGE_2M, group_header_count };
+        // 开块
         page_headers.allocate( size, this->global_memory );
         this->global_memory += this->page_size * PH::MEMORY_PAGE_DESCRIPTOR * PH::MEMORY_PAGE_HEADER_COUNT * group_header_count;
+        // 拿第一个头的map_base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).map_base_adderess;
+        std::memset( (VOID *)address, 0, size );
         lock.release( );
         return (void *)address;
     }
@@ -67,26 +74,35 @@ PUBLIC namespace QuantumNEC::Kernel {
         using PH = PageHeader< PageAllocater1G, PageAllocater2M >;
         using PHI = PH::PageInformation;
         lock.acquire( );
+        // 掩码方式取得所在组基地址
         auto group_base_address = (uint64_t)address & ~( this->page_size * PH::MEMORY_PAGE_DESCRIPTOR * PH::MEMORY_PAGE_HEADER_COUNT - 1 );
+        // 查找是否有符合要求的空闲块
+        PHI *find_node { };
         auto node = this->page_header_group_list.traversal(
-            []( ListNode *node, uint64_t group_base_address ) -> BOOL {
-                return ( (PHI *)node->container )->map_base_adderess == group_base_address;
+            [ &find_node ]( ListNode *node, uint64_t group_base_address ) -> BOOL {
+                for ( find_node = ( (PHI *)node->container ); find_node; find_node = find_node->next ) {
+                    if ( find_node->map_base_adderess == group_base_address ) {
+                        return TRUE;
+                    }
+                }
+                return FALSE;
             },
             group_base_address );     // 找到属于的组
 
-        if ( !node ) {
+        if ( !node ) {     // 没找到说明在释放不存在的页
             lock.release( );
             return;
         }
 
-        auto base_map_address = (uint64_t)address & ~( this->page_size * PH::MEMORY_PAGE_DESCRIPTOR - 1 );
-        PH page_header {
-            (PHI *)node->container
-        };
-        auto index = ( (uint64_t)address - group_base_address - base_map_address ) / this->page_size;
+        // 掩码方式取得所在组基地址
+        auto base_address = (uint64_t)address & ~( this->page_size * PH::MEMORY_PAGE_DESCRIPTOR - 1 );
+        // 取得处于所在组中的头的bitmap中的编号
+        auto index = ( (uint64_t)address - group_base_address - base_address ) / this->page_size;
+        PH page_header { find_node };
 
         auto &header = std::get< PHI >( page_header.get( index ) );
         if ( index + size <= PH::MEMORY_PAGE_DESCRIPTOR ) {
+            // 所释放的不超过一个大组控制的大小
             header.bitmap_->free( index, size );
             header.free_memory_page_count += size;
             if ( header.free_memory_page_count == PH::MEMORY_PAGE_DESCRIPTOR ) {
@@ -95,12 +111,12 @@ PUBLIC namespace QuantumNEC::Kernel {
             else {
                 header.flags.state = PH::NORMAL;
             }
-            std::memset( physical_to_virtual( address ), 0, size * this->page_size );     // 清空之前废弃的数据
         }
         else {
-            // TODO :
-            // N个头块之间的释放操作
-            uint64_t header_count { }, end_remainder { };
+            // 超过了，那就属于多个组处理范围
+            uint64_t
+                header_count { },      // 头信息块的数量
+                end_remainder { };     // 结尾要释放根数量
             if ( auto tmp = index + size, end_remainder = tmp % PH::MEMORY_PAGE_DESCRIPTOR; end_remainder ) {
                 header_count = tmp / PH::MEMORY_PAGE_DESCRIPTOR + 1;
             }
@@ -108,7 +124,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 header_count = tmp / PH::MEMORY_PAGE_DESCRIPTOR;
             }
             // 头
-            auto head_free_remainder = PH::MEMORY_PAGE_DESCRIPTOR - index;
+            auto head_free_remainder = PH::MEMORY_PAGE_DESCRIPTOR - ( index + 1 );     // 头的要释放根数量
             header.free_memory_page_count += head_free_remainder;
             if ( header.free_memory_page_count == PH::MEMORY_PAGE_DESCRIPTOR ) {
                 header.flags.state = PH::ALL_FREE;
@@ -119,13 +135,9 @@ PUBLIC namespace QuantumNEC::Kernel {
             header.bitmap_->free( index, head_free_remainder );
             std::memset( physical_to_virtual( address ), 0, head_free_remainder * this->page_size );
             // 中
-            auto mid_header = header.next;
-
-            for ( auto i = 0ul; i < header_count - 1; ++i ) {
-                if ( !mid_header ) {
-                    lock.release( );
-                    return;     // 到时会有错误除处理
-                }
+            auto mid_header = header.next;     // 从头的下一节知道尾巴前一节
+            while ( mid_header->next )         // 为假，说明已经达到了尾部，否则还在中间区域
+            {
                 mid_header->free_memory_page_count = PH::MEMORY_PAGE_DESCRIPTOR;
                 mid_header->flags.state = PH::ALL_FREE;
                 mid_header->bitmap_->free( 0, PH::MEMORY_PAGE_DESCRIPTOR );
@@ -133,16 +145,15 @@ PUBLIC namespace QuantumNEC::Kernel {
                 mid_header = mid_header->next;
             }
             // 尾
-            auto end_header = mid_header;
+            auto end_header = mid_header;     // 此时mid_header已经指向结尾
             end_header->flags.state = PH::NORMAL;
             end_header->free_memory_page_count += end_remainder;
             if ( end_header->free_memory_page_count == PH::MEMORY_PAGE_DESCRIPTOR ) {
                 end_header->flags.state = PH::ALL_FREE;
             }
             end_header->bitmap_->free( 0, end_remainder );
-            std::memset( physical_to_virtual( end_header->map_base_adderess ), 0, end_remainder * this->page_size );
         }
+        std::memset( physical_to_virtual( address ), 0, size * this->page_size );     // 清空之前废弃的数据
         lock.release( );
-        return;
     }
 }

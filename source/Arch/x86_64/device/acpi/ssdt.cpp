@@ -2,7 +2,7 @@
 #include <Kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace Kernel;
-    using namespace Lib;
+    using namespace std;
     Ssdt::Ssdt( IN Xsdt & xsdt ) noexcept {
         this->ssdt = xsdt.find_table< Ssdt >( );
         if ( !this->ssdt ) {

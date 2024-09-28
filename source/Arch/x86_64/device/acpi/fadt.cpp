@@ -2,7 +2,7 @@
 #include <Kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace Kernel;
-    using namespace Lib;
+    using namespace std;
     Fadt::Fadt( IN Xsdt & xsdt ) noexcept {
         this->fadt = xsdt.find_table< Fadt >( );
         if ( !this->fadt ) {

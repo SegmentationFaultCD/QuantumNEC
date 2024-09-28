@@ -48,6 +48,9 @@ PUBLIC namespace QuantumNEC::Architecture {
             explicit ApicLocalVectorTableRegisters( IN uint32_t value ) {
                 *this = *reinterpret_cast< ApicLocalVectorTableRegisters * >( &value );
             }
+            explicit ApicLocalVectorTableRegisters( IN uint64_t value ) {
+                *this = *reinterpret_cast< ApicLocalVectorTableRegisters * >( &value );
+            }
 
             auto operator=( IN uint32_t value ) -> CONST ApicLocalVectorTableRegisters & {
                 *reinterpret_cast< uint32_t * >( this ) = value;

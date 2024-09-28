@@ -2,7 +2,7 @@
 #include <Kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace Kernel;
-    using namespace Lib;
+    using namespace std;
     Srat::Srat( IN Xsdt & xsdt ) noexcept {
         this->srat = xsdt.find_table< Srat >( );
         if ( !this->srat ) {

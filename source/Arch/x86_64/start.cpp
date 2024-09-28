@@ -3,6 +3,7 @@
 #include <Kernel/kernel.hpp>
 #include <Kernel/kernel.hpp>
 #include <Modules/modules.hpp>
+using namespace std;
 namespace {
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION( 2 );
@@ -59,9 +60,9 @@ __attribute__( ( used, section( ".requests" ) ) ) volatile limine_module_request
 
 namespace {
 
-__attribute__( ( used, section( ".requests_start_marker" ) ) ) volatile long LIMINE_REQUESTS_START_MARKER;
+__attribute__( ( used, section( ".requests_start_marker" ) ) ) volatile LIMINE_REQUESTS_START_MARKER;
 
-__attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile long LIMINE_REQUESTS_END_MARKER;
+__attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQUESTS_END_MARKER;
 
 }     // namespace
 
@@ -95,8 +96,7 @@ int64_t ProcC( uint64_t ) {
     //     send_receive( a, Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND, 3, message );
     // }
     println< ostream::HeadLevel::DEBUG >( "Process Csfdsfsfsfsf" );
-    while ( true )
-        ;
+    while ( true );
 
     return 0;
 }
@@ -107,8 +107,7 @@ int64_t ProcD( uint64_t ) {
     // println< ostream::HeadLevel::DEBUG >( "Process D" );
     // send_receive( a, Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND_RECEIVE, 2, message );
     println< ostream::HeadLevel::DEBUG >( "Process D" );
-    while ( true )
-        ;
+    while ( true );
     return 0;
 }
 int64_t ProcE( uint64_t ) {
@@ -126,8 +125,7 @@ int64_t ProcE( uint64_t ) {
     // message.send_receive( Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND, 2 );
     // Lib::IO::sout << "D:\n";
 
-    while ( true )
-        ;
+    while ( true );
     return 0;
 }
 int64_t ThreadA( uint64_t ) {
@@ -177,7 +175,7 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Architecture::ArchitectureManager< TARGET_ARCH > architecture { };     // 系统架构初始化
     Kernel::Memory memory { };                                             // 内存管理初始化
     Kernel::Task task { };                                                 // 进程管理初始化
-    Modules::ModuleService modules { };
+    Modules::Module modules { };
 
     println< ostream::HeadLevel::DEBUG >( "Test 1 : Memory allocate--------------------------------" );
 

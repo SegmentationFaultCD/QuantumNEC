@@ -1,10 +1,9 @@
 #include <Arch/x86_64/platform/platform.hpp>
-#include <Kernel/kernel.hpp>
 #include <Kernel/print.hpp>
 
 PUBLIC namespace QuantumNEC::Architecture {
-    using namespace Lib;
-    auto Apic::enable_xapic( VOID )->VOID {
+    using namespace std;
+    auto Apic::enable_xapic( VOID ) -> VOID {
         // 开启x2apic & xapic
         InterruptCommandRegister icr { CPUs::rdmsr( IA32_APIC_BASE_MSR ) };
         icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
@@ -55,7 +54,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         lvt.vector = 0xB;
         write_apic( LOCAL_BASE_APIC_TDCR, lvt, ApicType::LOCAL_APIC );
     }
-    auto Apic::enable_x2apic( VOID )->VOID {
+    auto Apic::enable_x2apic( VOID ) -> VOID {
         // 开启x2apic & xapic
         InterruptCommandRegister icr { CPUs::rdmsr( IA32_APIC_BASE_MSR ) };
         icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
@@ -132,7 +131,7 @@ PUBLIC namespace QuantumNEC::Architecture {
     }
     Apic::~Apic( VOID ) noexcept {
     }
-    auto Apic::eoi( IN CONST irq_t )->VOID {
+    auto Apic::eoi( IN CONST irq_t ) -> VOID {
         if ( apic_flags == 0 ) {
             write_apic( LOCAL_BASE_APIC_EOI, 0, ApicType::LOCAL_APIC );
         }
@@ -140,7 +139,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             CPUs::wrmsr( LOCAL_APIC_MSR_EOI, 0 );
         }
     }
-    auto Apic::check_apic( VOID )->int16_t {
+    auto Apic::check_apic( VOID ) -> int16_t {
         CPUs::CpuidStatus status { 1, 0, 0, 0, 0, 0 };
         CPUs::cpuid( status );
         if ( ( status.rcx & CPUs::CpuidStatus::CPUID_FEAT_RCX_X2APIC ) ) {
@@ -152,7 +151,7 @@ PUBLIC namespace QuantumNEC::Architecture {
 
         return -1;     // 不支持apic
     }
-    auto Apic::read_apic( IN uint16_t index, IN ApicType type )->uint64_t {
+    auto Apic::read_apic( IN uint16_t index, IN ApicType type ) -> uint64_t {
         uint64_t return_value { };
         if ( type == ApicType::LOCAL_APIC ) {
             return_value = reinterpret_cast< uint32_t volatile * >( apic_map.local_apic_address )[ index / 4 ];
@@ -174,7 +173,7 @@ PUBLIC namespace QuantumNEC::Architecture {
 
         return 0;
     }
-    auto Apic::write_apic( IN uint16_t index, IN uint64_t value, IN ApicType type )->VOID {
+    auto Apic::write_apic( IN uint16_t index, IN uint64_t value, IN ApicType type ) -> VOID {
         if ( type == ApicType::LOCAL_APIC ) {
             reinterpret_cast< uint32_t volatile * >( ( apic_map.local_apic_address ) )[ index / 4 ] = static_cast< uint32_t >( value );
             CPUs::mfence( );
@@ -191,31 +190,31 @@ PUBLIC namespace QuantumNEC::Architecture {
             CPUs::mfence( );
         }
     }
-    auto Apic::enable_ioapic( IN IN irq_t vector )->VOID {
+    auto Apic::enable_ioapic( IN IN irq_t vector ) -> VOID {
         IOApicRedirectionEntry entry { read_apic( ( vector - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, ApicType::IO_APIC ) };
         entry.mask = APIC_ICR_IOAPIC_UNMASKED;
         write_apic( ( vector - 32 ) * 2 + IOAPIC_REG_TABLE, entry, ApicType::IO_APIC );
     }
-    auto Apic::disable_ioapic( IN irq_t irq )->VOID {
+    auto Apic::disable_ioapic( IN irq_t irq ) -> VOID {
         IOApicRedirectionEntry entry { read_apic( ( irq - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, ApicType::IO_APIC ) };
         entry.mask = APIC_ICR_IOAPIC_MASKED;
         write_apic( ( irq - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, entry, ApicType::IO_APIC );
     }
-    auto Apic::install_ioapic( IN irq_t irq, IN VOID * entry )->uint64_t {
+    auto Apic::install_ioapic( IN irq_t irq, IN VOID * entry ) -> uint64_t {
         write_apic( ( irq - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, *reinterpret_cast< uint64_t * >( entry ), Apic::ApicType::IO_APIC );
         return 1;
     }
-    auto Apic::uninstall_ioapic( IN irq_t irq )->VOID {
+    auto Apic::uninstall_ioapic( IN irq_t irq ) -> VOID {
         write_apic( ( irq - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, INT_DISABLED, ApicType::IO_APIC );
     }
-    auto Apic::ioapic_level_ack( IN irq_t irq )->VOID {
+    auto Apic::ioapic_level_ack( IN irq_t irq ) -> VOID {
         eoi( irq );
         *reinterpret_cast< uint32_t * >( apic_map.ioapic[ 0 ].io_apic_EOI_address ) = irq;
     }
-    auto Apic::ioapic_edge_ack( IN irq_t irq )->VOID {
+    auto Apic::ioapic_edge_ack( IN irq_t irq ) -> VOID {
         eoi( irq );
     }
-    auto Apic::apic_id( )->uint64_t {
+    auto Apic::apic_id( ) -> uint64_t {
         CPUs::CpuidStatus status { 1, 0, 0, 0, 0, 0 };
         CPUs::cpuid( status );
 

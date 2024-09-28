@@ -65,13 +65,13 @@ PUBLIC namespace QuantumNEC::Architecture {
 
             } msg3;
         } message;
-        uint64_t source;                /* 发出这个消息的进程pid */
-        uint32_t type;                  /* 消息类型 */
-        uint64_t send_to;               /* 记录进程想要向谁发送消息 */
-        uint64_t receive_from;          /* 记录进程想要从谁获取消息 */
-        uint64_t has_int_message;       /* 有来自中断的消息,这个结构被中断处理程序置为1 */
-        Lib::ListTable sender_list { }; /* 如果有进程向这个进程发送消息, 但本进程没有要接收消息,那么发送信息的进程将自己的通任务队列加入这个队列 */
-
+        uint64_t source;                     /* 发出这个消息的进程pid */
+        uint32_t type;                       /* 消息类型 */
+        uint64_t send_to;                    /* 记录进程想要向谁发送消息 */
+        uint64_t receive_from;               /* 记录进程想要从谁获取消息 */
+        uint64_t has_int_message;            /* 有来自中断的消息,这个结构被中断处理程序置为1 */
+        Lib::ListTable sender_list { };      /* 如果有进程向这个进程发送消息, 但本进程没有要接收消息,那么发送信息的进程将自己的通任务队列加入这个队列 */
+        Lib::ListNode message_task_node;     // 运行任务队列 连接每个任务
     public:
         explicit Message( VOID ) noexcept = default;
         ~Message( VOID ) noexcept = default;

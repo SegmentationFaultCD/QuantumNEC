@@ -3,9 +3,7 @@
 /**
  * @brief 强制变量在本地分配
  */
-#define LOCALVAR __attribute__( ( section( ".data" ) ) )
-#define USED __attribute__( ( used ) )
-#define ALIGN( x ) __attribute__( ( aligned( #x ) ) )
+
 #define VOLATILE __attribute__( ( volatile ) )
 #define ASMCALL __attribute__( ( sysv_abi ) )
 #define ____cacheline_aligned __attribute__( ( __aligned__( 32 ) ) )

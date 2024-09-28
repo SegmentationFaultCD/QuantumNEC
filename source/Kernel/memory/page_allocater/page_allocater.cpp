@@ -23,8 +23,9 @@ PUBLIC namespace QuantumNEC::Kernel {
         using PHI = PH::PageInformation;
 
         PH page_header { this->p2m, physical_to_virtual( nullptr ), MemoryPageType::PAGE_2M };
-        auto bitmap = std::get< PHI >( page_header.get( 0 ) ).bitmap_;
-        bitmap->set( 0 );
+        auto &bitmap = std::get< PHI >( page_header.get( 0 ) ).bitmap_;
+        bitmap->set( 0 );     // 第一个2M内存块送给他
+
         for ( auto i = 0ul; i < Architecture::__config.memory_map.entry_count; ++i ) {
             auto entry = memory_descriptor->entries[ i ];
             auto start { entry->base }, end { start + entry->length };

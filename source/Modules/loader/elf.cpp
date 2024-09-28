@@ -1,11 +1,11 @@
-#include <Arch/x86_64/platform/platform.hpp>
+#include <Modules/loader/elf.hpp>
 #include <Kernel/kernel.hpp>
 using namespace QuantumNEC::Kernel;
-PUBLIC namespace QuantumNEC::Architecture {
-    auto Elf::load_elf_file( IN uint64_t address ) -> uint64_t {
+PUBLIC namespace QuantumNEC::Modules {
+    auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< uint64_t, ElfErrorCode > {
         auto Elf_header { reinterpret_cast< ElfHeader * >( address ) };
         if ( !check_elf_magic( Elf_header ) )
-            return 0ul;
+            return std::unexpected { ElfErrorCode::MAGIC_IS_NOT_STANDARD };
         ProgramHeaderTable *P_header = (ProgramHeaderTable *)( address + Elf_header->e_Phoff );
         auto low_address { 0xFFFFFFFFFFFFFFFFull };
         auto high_address { 0ull };

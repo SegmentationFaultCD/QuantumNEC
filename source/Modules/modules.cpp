@@ -5,45 +5,26 @@
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
 using namespace std;
-Modules::ModuleService::ModuleService( VOID ) noexcept {
-    uint64_t file_entry { };
-    char_t name[ Kernel::TASK_NAME_SIZE ] { };
-    // 首先将所有limine读入的文件进行解析
-    // 使用limine读入的模块文件一律视为servicer
-    Architecture::ArchitectureManager< TARGET_ARCH >::switch_to = (VOID *)read_limine_module_file( 0, ModuleFileType::ELF );
-    Architecture::ArchitectureManager< TARGET_ARCH >::to_process = (VOID *)read_limine_module_file( 1, ModuleFileType::ELF );
-
-    for ( auto i { 2ul }; i < Architecture::__config.modules.module_count; ++i ) {
-        file_entry = read_limine_module_file( i, ModuleFileType::ELF );
-
-        auto j = strlen( Architecture::__config.modules.modules[ i ]->path ), k = 0ul;
-        memset( name, 0, Kernel::TASK_NAME_SIZE );
-        for ( ; Architecture::__config.modules.modules[ i ]->path[ j ] != '/'; --j );
-        j++;
-        for ( ; Architecture::__config.modules.modules[ i ]->path[ j ] != '\0'; k++, j++ ) {
-            name[ k ] = Architecture::__config.modules.modules[ i ]->path[ j ];
-        }
-        name[ k + 1 ] = '\0';
-        println< ostream::HeadLevel::SYSTEM >( "Service {} ready!", name );
-        // Kernel::Task::create< Kernel::Process >( name, 31, Kernel::TASK_FLAG_USER_PROCESS, (Kernel::TaskFunction)file_entry, 0 );
-    }
-}
-auto Modules::ModuleService::read_limine_module_file( IN uint64_t index, IN ModuleFileType module_type ) -> uint64_t {
-    if ( index < Architecture::__config.modules.module_count ) {
-        switch ( module_type ) {
-        case ModuleFileType::ELF:
-            using arch = Architecture::ArchitectureManager< TARGET_ARCH >;
-            if ( arch::check_elf_magic( Architecture::__config.modules.modules[ index ]->address ) ) {
-                auto entry = arch::load_elf_file( (uint64_t)Architecture::__config.modules.modules[ index ]->address );
-                return entry;
+PUBLIC namespace QuantumNEC::Modules {
+    Modules::Module::Module( VOID ) noexcept {
+        char_t name[ Kernel::TASK_NAME_SIZE ] { };
+        // 首先将所有limine读入的文件进行解析
+        // 使用limine读入的模块文件一律视为servicer
+        ModuleLoader loader { };
+        for ( auto i { 0 }; i < Architecture::__config.modules.module_count; ++i ) {
+            auto file_entry = loader.load( Architecture::__config.modules.modules[ i ], ModuleLoader::ModuleFileType::ELF );
+            auto j = strlen( Architecture::__config.modules.modules[ i ]->path ), k = 0ul;
+            memset( name, 0, Kernel::TASK_NAME_SIZE );
+            // 解析类型名
+            for ( ; Architecture::__config.modules.modules[ i ]->path[ j ] != '/'; --j );
+            j++;
+            for ( ; Architecture::__config.modules.modules[ i ]->path[ j ] != '\0'; k++, j++ ) {
+                name[ k ] = Architecture::__config.modules.modules[ i ]->path[ j ];
             }
-            else
-                return 0;
-        case ModuleFileType::BIN:
-            // bin文件，不需要解析，读取出来的即是它入口函数地址
-            return (uint64_t)Architecture::__config.modules.modules[ index ]->address;
-        case ModuleFileType::PE: return 0;
+            name[ k + 1 ] = '\0';
+            println< ostream::HeadLevel::SYSTEM >( "Service {} ready!", name );
+            // Kernel::Task::create< Kernel::Process >( name, 31, Kernel::TASK_FLAG_USER_PROCESS, (Kernel::TaskFunction)file_entry, 0 );
         }
+        // TODO 挂载动态模块文件
     }
-    return 0;
 }

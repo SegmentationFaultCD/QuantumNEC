@@ -4,7 +4,7 @@
 #include <Lib/spin_lock.hpp>
 using namespace QuantumNEC;
 using namespace Architecture;
-using namespace Lib;
+using namespace std;
 GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept :
     Descriptor< GlobalSegmentDescriptor, GLOBAL_SEGMENT_DESCRIPTOR_TABLE_COUNT, SEGMENT_DESCRIPTOR_COUNT > { } {
     for ( size_t i { }, tss_base_low { }, tss_base_high { }; i < __config.smp.cpu_count; ++i ) {
@@ -34,7 +34,7 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept :
     this->tss[ Apic::apic_id( ) ].load_tr( SELECTOR_TSS );
     println< ostream::HeadLevel::OK >( "Initialize the global segment descriptor table management." );
 }
-auto GlobalSegmentDescriptorTable::load( VOID ) CONST->VOID {
+auto GlobalSegmentDescriptorTable::load( VOID ) CONST -> VOID {
     ASM( "lgdt %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ Apic::apic_id( ) ] ) );
     ASM(
         "MOVQ %%RAX, %%DS \n\t"
@@ -53,7 +53,7 @@ auto GlobalSegmentDescriptorTable::load( VOID ) CONST->VOID {
         : );
     return;
 }
-auto GlobalSegmentDescriptorTable::read( VOID ) CONST->GlobalSegmentDescriptor * {
+auto GlobalSegmentDescriptorTable::read( VOID ) CONST -> GlobalSegmentDescriptor * {
     ASM( "sgdt %0" ::"m"( this->xdtr[ Apic::apic_id( ) ] ) );
     return this->xdtr[ Apic::apic_id( ) ].descriptor;
 }

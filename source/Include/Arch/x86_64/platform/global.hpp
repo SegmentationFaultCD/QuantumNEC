@@ -17,65 +17,6 @@ PUBLIC namespace QuantumNEC::Architecture {
         NO_SOURCE,
     };
 
-    PUBLIC constexpr uint32_t ELF_MAGIC = 0x464C457F;     // 0x7f454c46; // ELF Magic as one unit
-    PUBLIC constexpr uint16_t ELF_ET_NONE = 0x0000;
-    PUBLIC constexpr uint16_t ELF_ET_REL = 0x0001;
-    PUBLIC constexpr uint16_t ELF_ET_EXEC = 0x0002;
-    PUBLIC constexpr uint16_t ELF_ET_DYN = 0x0003;
-    PUBLIC constexpr uint16_t ELF_ET_CORE = 0x0004;
-    PUBLIC constexpr uint16_t ELF_ET_LOOS = 0xFE00;
-    PUBLIC constexpr uint16_t ELF_ET_HIOS = 0xFEFF;
-    PUBLIC constexpr uint16_t ELF_ET_LOPROC = 0xFF00;
-    PUBLIC constexpr uint16_t ELF_ET_HIPROC = 0xFFFF;
-    PUBLIC constexpr uint8_t ELF_EI_MAG0 = 0;
-    PUBLIC constexpr uint8_t ELF_EI_MAG1 = 1;
-    PUBLIC constexpr uint8_t ELF_EI_MAG2 = 2;
-    PUBLIC constexpr uint8_t ELF_EI_MAG3 = 3;
-    PUBLIC constexpr uint8_t ELF_EI_CLASS = 4;
-    PUBLIC constexpr uint8_t ELF_EI_DATA = 5;
-    PUBLIC constexpr uint8_t ELF_EI_VERSION = 6;
-    PUBLIC constexpr uint8_t ELF_EI_OSABI = 7;
-    PUBLIC constexpr uint8_t ELF_EI_ABIVERSION = 8;
-    PUBLIC constexpr uint8_t ELF_EI_PAD = 9;
-    PUBLIC constexpr uint8_t ELF_EI_NIDENT = 0x10;
-    PUBLIC constexpr uint32_t ELF_PT_NULL = 0;
-    PUBLIC constexpr uint32_t ELF_PT_LOAD = 1;
-    PUBLIC constexpr uint32_t ELF_PT_DYNAMIC = 2;
-    PUBLIC constexpr uint32_t ELF_PT_INTERP = 3;
-    PUBLIC constexpr uint32_t ELF_PT_NOTE = 4;
-    PUBLIC constexpr uint32_t ELF_PT_SHLIB = 5;
-    PUBLIC constexpr uint32_t ELF_PT_PHDR = 6;
-    PUBLIC constexpr uint32_t ELF_PT_LOOS = 0x60000000;
-    PUBLIC constexpr uint32_t ELF_PT_HIOS = 0x6fffffff;
-    PUBLIC constexpr uint32_t ELF_PT_LOPROC = 0x70000000;
-    PUBLIC constexpr uint32_t ELF_PT_HIPROC = 0x7fffffff;
-    PUBLIC constexpr uint32_t ELF_PF_X = 0x1;
-    PUBLIC constexpr uint32_t ELF_PF_W = 0x2;
-    PUBLIC constexpr uint32_t ELF_PF_R = 0x4;
-    PUBLIC constexpr uint32_t ELF_PF_MASKOS = 0x00ff0000;
-    PUBLIC constexpr uint32_t ELF_PF_MASKPROC = 0xff000000;
-    PUBLIC constexpr uint8_t ELF_ELFCLASS32 = 1;
-    PUBLIC constexpr uint8_t ELF_ELFCLASS64 = 2;
-    PUBLIC constexpr uint64_t ELF_DT_NULL = 0x00000000;
-    PUBLIC constexpr uint64_t ELF_DT_NEEDED = 0x00000001;
-    PUBLIC constexpr uint64_t ELF_DT_RELA = 0x00000007;
-    PUBLIC constexpr uint64_t ELF_DT_RELASZ = 0x00000008;
-    PUBLIC constexpr uint64_t ELF_DT_RELAENT = 0x00000009;
-    PUBLIC constexpr auto ELF64_R_SYM( auto i ) {
-        return ( ( i ) >> 32 );
-    }
-    PUBLIC constexpr auto ELF64_R_TYPE( auto i ) {
-        return ( ( i ) & 0xFFFFFFFFL );
-    }
-    PUBLIC constexpr auto ELF64_R_INFO( auto s, auto t ) {
-        return ( ( ( s ) << 32 ) + ( ( t ) & 0xFFFFFFFFL ) );
-    }
-    PUBLIC constexpr uint64_t R_X86_64_64 { 1 };
-    PUBLIC constexpr uint64_t R_X86_64_32 { 10 };
-    PUBLIC constexpr uint64_t R_X86_64_32S { 11 };
-    PUBLIC constexpr uint64_t R_X86_64_PC32 { 2 };
-    PUBLIC constexpr uint64_t R_X86_64_PLT32 { 4 };
-    PUBLIC constexpr uint64_t R_X86_64_RELATIVE { 8 };
     PUBLIC struct ControlRegisters
     {
         struct CR0

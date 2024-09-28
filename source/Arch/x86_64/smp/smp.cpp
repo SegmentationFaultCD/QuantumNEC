@@ -1,7 +1,6 @@
-
 #include <Arch/x86_64/platform/platform.hpp>
 #include <Kernel/memory/memory.hpp>
-#include <Kernel/memory/task.hpp>
+#include <Kernel/task/task.hpp>
 #include <Lib/spin_lock.hpp>
 
 PUBLIC namespace QuantumNEC::Architecture {

@@ -3,8 +3,8 @@
 #include <Kernel/print.hpp>
 using namespace QuantumNEC;
 using namespace Architecture;
-using namespace Lib;
-PRIVATE SpinLock lock { };
+using namespace std;
+PRIVATE Lib::SpinLock lock { };
 PUBLIC [[noreturn]] auto Architecture::apu_entry( IN limine_smp_info *cpu ) -> VOID {
     lock.acquire( );
     // 挂载这个核心的GDT IDT TSS

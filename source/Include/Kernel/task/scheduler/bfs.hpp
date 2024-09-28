@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Arch/Arch.hpp"
 #include "Kernel/task/pcb/pcb.hpp"
 #include "Libcxx/expected.hpp"
 #include <Lib/Uefi.hpp>
 #include <Lib/list.hpp>
 #include <Lib/spin_lock.hpp>
 #include <Kernel/task/scheduler/sche_src.hpp>
+#include <cstddef>
 
 PUBLIC namespace QuantumNEC::Kernel {
     // 该调度器思想由Con Kolivas发明
@@ -156,36 +158,44 @@ PUBLIC namespace QuantumNEC::Kernel {
                 }
             }
             if ( index < 100 ) {
+                this->global_lock.acquire( );
                 // 实时任务，直接弹出首位
-                return (PCB *)this->running_queue[ index ].begin( )->container;
+                auto pcb = (PCB *)this->task_queue[ index ].pop( )->container;
+                pcb->flags.state = PCB::State::RUNNING;
+                this->global_lock.release( );
+                return pcb;
             }
             else {
                 // EEVDF算法
                 for ( auto i = index; i < 103; ++i ) {
-                    if ( this->running_queue[ i ].is_empty( ) ) {
+                    if ( this->task_queue[ i ].is_empty( ) ) {
                         continue;
                     }
-                    auto head = this->running_queue[ i ].begin( );
-                    auto is_change = true;
-                    Lib::ListNode *p = NULL, *tmp { }, *q;
+                    auto head = this->task_queue[ i ].begin( );
                     this->global_lock.acquire( );
-                    // 冒泡排序按照vd从小到大排列
-                    while ( p != head->next && is_change ) {
-                        q = head;
-                        is_change = false;
-                        for ( ; q->next && q->next != p; q = q->next ) {
+                    Lib::ListNode *p, *q, *tail;                      // 创建三个指针，进行冒泡排序
+                    auto count = this->task_queue[ i ].length( );     // 记录链表结点的个数
+                    for ( auto i = 0ul; i < count - 1; i++ )          // 外层循环，跟数组冒泡排序一样
+                    {
+                        auto num = count - i - 1;     // 记录内层循环需要的次数，跟数组冒泡排序一样，
+                        q = head;                     // 令q指向第一个结点
+                        p = q->next;                  // 令p指向第二个结点
+                        tail = head->prev;            // 让tail始终指向q前一个结点，方便交换，也方便与进行下一步操作
+                        while ( num-- )               // 内层循环,次数跟数组冒泡排序一样
+                        {
                             if ( ( (PCB *)q->container )->virtual_deadline < Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies ) {
-                                this->global_lock.release( );
-                                return (PCB *)q->container;
                             }
-                            if ( ( (PCB *)q->container )->virtual_deadline > ( (PCB *)q->next->container )->virtual_deadline ) {
-                                tmp = q;
-                                q = q->next;
-                                q->next = tmp;
-                                is_change = true;
+                            if ( ( (PCB *)q->container )->virtual_deadline > ( (PCB *)p->container )->virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
+                            {
+                                q->next = p->next;
+                                p->next = q;
+                                tail->next = p;
                             }
+                            // 进行指针的移动
+                            tail = tail->next;
+                            q = tail->next;
+                            p = q->next;
                         }
-                        p = q;
                     }
                     this->global_lock.release( );
                     return (PCB *)head->container;
@@ -197,19 +207,19 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto wake_up( PCB *pcb ) -> std::expected< PCB *, ErrorCode > override {
             auto current = get_current( );
             if ( pcb->virtual_deadline < current->virtual_deadline ) {
-                this->running_queue[ pcb->priority ].push( pcb->general_task_node );
+                this->task_queue[ pcb->priority ].push( pcb->general_task_node );
                 // TODO: 循环抢占CPU
                 return pcb;
             }
             else {
-                this->running_queue[ pcb->priority ].append( pcb->general_task_node );
+                this->task_queue[ pcb->priority ].append( pcb->general_task_node );
                 return current;
             }
         }
         // 任务睡眠
         virtual auto sleep( VOID ) -> std::expected< PCB *, ErrorCode > override {
             auto current = get_current( );
-            this->running_queue[ current->priority ].remove( current->general_task_node );
+            this->task_queue[ current->priority ].remove( current->general_task_node );
             auto result = this->pick_next( );
             if ( result.has_value( ) ) {
                 return result.value( );
@@ -217,7 +227,6 @@ PUBLIC namespace QuantumNEC::Kernel {
             return result;
         }
         virtual auto schedule( VOID ) -> std::expected< PCB *, ErrorCode > override {
-            
         }
         //     auto current = get_current( );
         //     if ( !current->jiffies ) {     // 时间片耗尽
@@ -240,8 +249,13 @@ PUBLIC namespace QuantumNEC::Kernel {
         // }
 
     private:
-        Lib::ListTable running_queue[ total_priority ] { };     // 存放除了running状态下的其他所有任务
-        BOOL bitmap[ total_priority ] { };                      // 每个队列对应的位图
-        Lib::SpinLock global_lock { };                          // 全局锁
+        // 存放除了running状态下的其他所有任务
+        Lib::ListTable task_queue[ total_priority ] { };
+        // 每个队列对应的位图
+        BOOL bitmap[ total_priority ] { };
+        // 全局锁
+        Lib::SpinLock global_lock { };
+        // 仅仅存放运行任务，数量为CPU个数
+        Lib::ListTable running_queue { };
     };
 }

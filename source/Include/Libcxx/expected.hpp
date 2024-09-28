@@ -115,4 +115,50 @@ PUBLIC namespace std {
             return this->has_val;
         }
     };
+    template < class T >
+    class expected< T, void >
+    {
+        using value_type = T;
+        bool has_val;
+        value_type val;
+
+    public:
+        template < class U = T >
+            requires( !std::is_same_v< std::remove_cvref_t< U >, std::in_place_t > && !std::is_same_v< std::expected< T, void >, std::remove_cvref_t< U > > && std::is_constructible_v< T, U > )
+        constexpr explicit( !std::is_convertible_v< U, T > ) expected( U &&v ) :
+            val { v }, has_val { true } {
+        }
+
+        template < class U >
+            requires std::is_move_constructible_v< T >
+        constexpr expected( expected< U, void > &&other ) :
+            val { other.val }, has_val { other.has_val } {
+        }
+
+        constexpr expected( VOID ) :
+            val { }, has_val { false } {
+        }
+
+    public:
+        constexpr T &value( ) & {
+            return this->val;
+        }
+        constexpr const T &value( ) const & {
+            return this->val;
+        }
+        constexpr T &&value( ) && {
+            return this->val;
+        }
+        constexpr const T &&value( ) const && {
+            return this->val;
+        }
+
+    public:
+        constexpr explicit operator bool( ) const noexcept {
+            return this->has_val;
+        }
+        constexpr auto has_value( ) const noexcept {
+            return this->has_val;
+        }
+    };
 }

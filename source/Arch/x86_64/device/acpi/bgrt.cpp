@@ -2,7 +2,7 @@
 #include <Kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace Kernel;
-    using namespace Lib;
+    using namespace std;
     Bgrt::Bgrt( IN Xsdt & xsdt ) noexcept {
         this->brgt = xsdt.find_table< Bgrt >( );
         if ( !this->brgt ) {

@@ -3,7 +3,7 @@
 #include <cstdint>
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace Kernel;
-    using namespace Lib;
+    using namespace std;
     Madt::Madt( IN Xsdt & xsdt ) noexcept {
         this->madt = xsdt.find_table< Madt >( );
         if ( !this->madt ) {
@@ -13,7 +13,7 @@ PUBLIC namespace QuantumNEC::Architecture {
 
         auto length { this->madt->length - sizeof *this->madt };
         auto ICS { reinterpret_cast< MadtICS * >( (uint64_t)( this->madt ) + sizeof *this->madt ) };
-        Lib::memset( &this->global_system_interrupt, 0xFF, 24 );
+        std::memset( &this->global_system_interrupt, 0xFF, 24 );
         while ( length > 0 ) {
             switch ( ICS->type ) {
             case ICSAttribute::PROCESSOR_LOCAL_APIC: {

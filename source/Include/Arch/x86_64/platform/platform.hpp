@@ -1,5 +1,4 @@
 #pragma once
-#include "Arch/x86_64/cpu/idt.hpp"
 #include <Arch/x86_64/abi/builtins.hpp>
 #include <Arch/x86_64/cpu/cpu.hpp>
 #include <Arch/x86_64/smp/smp.hpp>

@@ -2,7 +2,7 @@
 #include <Kernel/print.hpp>
 
 PUBLIC namespace QuantumNEC::Architecture {
-    using namespace Lib;
+    using namespace std;
     Interrupt::Interrupt( VOID ) noexcept :
         PIC { },
         PIT { },
@@ -12,7 +12,7 @@ PUBLIC namespace QuantumNEC::Architecture {
     }
     Interrupt::~Interrupt( VOID ) noexcept {
     }
-    auto Interrupt::enable_interrupt( VOID )->InterruptStatus {
+    auto Interrupt::enable_interrupt( VOID ) -> InterruptStatus {
         InterruptStatus status { InterruptStatus::INTERRUPT_DISABLE };
         if ( get_interrupt( ) == InterruptStatus::INTERRUPT_ENABLE ) {
             status = InterruptStatus::INTERRUPT_ENABLE;
@@ -25,7 +25,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         }
     }
 
-    auto Interrupt::disable_interrupt( VOID )->InterruptStatus {
+    auto Interrupt::disable_interrupt( VOID ) -> InterruptStatus {
         InterruptStatus status { InterruptStatus::INTERRUPT_DISABLE };
         if ( get_interrupt( ) == InterruptStatus::INTERRUPT_ENABLE ) {
             status = InterruptStatus::INTERRUPT_ENABLE;
@@ -38,11 +38,11 @@ PUBLIC namespace QuantumNEC::Architecture {
         }
     }
 
-    auto Interrupt::set_interrupt( IN CONST InterruptStatus & status )->InterruptStatus {
+    auto Interrupt::set_interrupt( IN CONST InterruptStatus & status ) -> InterruptStatus {
         return status == InterruptStatus::INTERRUPT_ENABLE ? enable_interrupt( ) : disable_interrupt( );
     }
 
-    auto Interrupt::get_interrupt( VOID )->InterruptStatus {
+    auto Interrupt::get_interrupt( VOID ) -> InterruptStatus {
         return ( CPUs::get_rflags( ) & 0x00000200 ) ? InterruptStatus::INTERRUPT_ENABLE : InterruptStatus::INTERRUPT_DISABLE;
     }
 }
