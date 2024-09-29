@@ -97,12 +97,10 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 计算取得所在组的块的编号
         auto base_index = ( (uint64_t)address - group_base_address ) / ( PH::MEMORY_PAGE_DESCRIPTOR * this->page_size );
         // 取得处于所在组的块的bitmap中的编号
-
-        auto index = ( (uint64_t)address & PAGE_1G_MASK ) / this->page_size;
-
+        auto index = ( ( (uint64_t)address & PAGE_1G_MASK ) / this->page_size ) % PH::MEMORY_PAGE_DESCRIPTOR;
         PH page_header { find_node };
         auto &header = std::get< PHI >( page_header.get( base_index ) );
-        if ( index + size <= PH::MEMORY_PAGE_DESCRIPTOR ) {
+        if ( ( index + size ) <= PH::MEMORY_PAGE_DESCRIPTOR ) {
             // 所释放的不超过一个大组控制的大小
             header.bitmap_->free( index, size );
             header.free_memory_page_count += size;
@@ -115,7 +113,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         }
         else {
             // 超过了，那就属于多个组处理范围
-            uint64_t end_remainder = index + size % PH::MEMORY_PAGE_DESCRIPTOR;     // 结尾要释放根数量
+            uint64_t end_remainder = index + size;     // 结尾要释放根数量
             // 头
             auto head_free_remainder = PH::MEMORY_PAGE_DESCRIPTOR - ( index + 1 );     // 头的要释放根数量
             header.free_memory_page_count += head_free_remainder;
