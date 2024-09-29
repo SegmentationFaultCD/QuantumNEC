@@ -1,7 +1,16 @@
 #pragma once
 #include <Lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
-    PUBLIC inline auto bytes_sum_total( IN CONST uint8_t * data, IN size_t bytes ) {
+    STATIC constexpr auto SIGN_16( char_t A, char_t B ) -> uint16_t {
+        return ( A ) | ( B << 8u );
+    }
+    STATIC constexpr auto SIGN_32( char_t A, char_t B, char_t C, char_t D ) -> uint32_t {
+        return SIGN_16( A, B ) | ( SIGN_16( C, D ) << 16u );
+    }
+    STATIC constexpr auto SIGN_64( char_t A, char_t B, char_t C, char_t D, char_t E, char_t F, char_t G, char_t H ) -> uint64_t {
+        return (uint64_t)SIGN_32( A, B, C, D ) | ( (uint64_t)SIGN_32( E, F, G, H ) << 32u );
+    }
+    STATIC inline auto bytes_sum_total( IN CONST uint8_t * data, IN size_t bytes ) {
         uint8_t sum { };
         for ( size_t i { }; i < bytes; ++i ) {
             sum += data[ i ];
@@ -38,25 +47,9 @@ PUBLIC namespace QuantumNEC::Architecture {
             }
             return NULL;
         }
-        STATIC consteval inline auto SIGN_16( auto A, auto B ) {
-            return ( A ) | ( B << 8u );
-        }
-        STATIC consteval inline auto SIGN_32( auto A, auto B, auto C, auto D ) {
-            return SIGN_16( A, B ) | ( SIGN_16( C, D ) << 16u );
-        }
-        STATIC consteval inline auto SIGN_64( auto A, auto B, auto C, auto D, auto E, auto F, auto G, auto H ) {
-            return SIGN_32( A, B, C, D ) | ( (uint64_t)SIGN_32( E, F, G, H ) << 32u );
-        }
-        STATIC inline auto bytes_sum_total( IN CONST uint8_t *data, IN size_t bytes ) {
-            uint8_t sum { };
-            for ( size_t i { }; i < bytes; ++i ) {
-                sum += data[ i ];
-            }
-            return sum;
-        }
 
     public:
-        inline STATIC constexpr auto signature { SIGN_64( 'R', 'S', 'D', ' ', 'P', 'T', 'R', ' ' ) };
+        constexpr static auto signature { SIGN_64( 'R', 'S', 'D', ' ', 'P', 'T', 'R', ' ' ) };
 
     private:
         inline STATIC RSDP *rsdp;

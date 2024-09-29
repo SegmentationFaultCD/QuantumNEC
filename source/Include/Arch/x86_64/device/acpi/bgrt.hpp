@@ -20,9 +20,9 @@ PUBLIC namespace QuantumNEC::Architecture {
         explicit Bgrt( IN Xsdt &xsdt ) noexcept;
 
     public:
-        inline STATIC constexpr auto signature { Xsdp::SIGN_32( 'B', 'R', 'G', 'T' ) };
+        constexpr static auto signature { SIGN_32( 'B', 'G', 'R', 'T' ) };
 
     private:
-        inline STATIC BGRT *brgt;
+        inline STATIC BGRT *bgrt;
     };
 }

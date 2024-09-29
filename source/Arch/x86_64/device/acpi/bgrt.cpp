@@ -4,10 +4,9 @@ PUBLIC namespace QuantumNEC::Architecture {
     using namespace Kernel;
     using namespace std;
     Bgrt::Bgrt( IN Xsdt & xsdt ) noexcept {
-        this->brgt = xsdt.find_table< Bgrt >( );
-        if ( !this->brgt ) {
+        this->bgrt = xsdt.find_table< Bgrt >( );
+        if ( !this->bgrt ) {
             println< ostream::HeadLevel::ERROR >( "Can not find bgrt." );
-            while ( true );
         }
     }
 }

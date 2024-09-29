@@ -5,13 +5,13 @@
 
 PUBLIC namespace QuantumNEC::Architecture {
     SymmetricMultiprocessing::SymmetricMultiprocessing( VOID ) noexcept {
-        uint64_t stack_start = 0;
+        // uint64_t stack_start = 0;
         Lib::SpinLock lock { };
         using namespace QuantumNEC::Kernel;
         for ( auto i { 0ul }; i < Architecture::__config.smp.cpu_count; ++i ) {
             lock.acquire( );
             __config.smp.cpus[ i ]->goto_address = apu_entry;
-            stack_start = (uint64_t)Memory::page->allocate( TASK_STACK_SIZE / PAGE_4K_SIZE, MemoryPageType::PAGE_4K );
+            // stack_start = (uint64_t)Memory::page->allocate( TASK_STACK_SIZE / PAGE_4K_SIZE, MemoryPageType::PAGE_4K );
 
             lock.release( );
         }

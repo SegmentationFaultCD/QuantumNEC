@@ -2,6 +2,10 @@ auto operator delete( void *, unsigned long int ) noexcept -> void {
 }
 auto operator delete[]( void *, unsigned long int ) noexcept -> void {
 }
+auto operator delete( void * ) noexcept -> void {
+}
+auto operator delete[]( void * ) noexcept -> void {
+}
 extern "C" {
 int __cxa_atexit( void ( * )( void * ), void *, void * ) {
     return 0;

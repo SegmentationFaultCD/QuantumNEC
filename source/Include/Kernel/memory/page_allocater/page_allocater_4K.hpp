@@ -14,7 +14,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto allocate( IN uint64_t size ) -> VOID * override;
         virtual auto free( IN VOID *address, IN uint64_t size ) -> VOID override;
 
-    private:
+    public:
         inline STATIC Lib::ListTable page_header_group_list { };
     };
 }

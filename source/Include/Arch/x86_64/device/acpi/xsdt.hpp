@@ -55,7 +55,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             for ( size_t i { }; i < this->xsdt->size( ); i++ ) {
                 auto *header = (ACPISDTHeader *)( Kernel::physical_to_virtual( address[ i ] ) );
                 if ( header->signature == signature ) {
-                    if ( Xsdp::check_sum( header, header->length ) )
+                    if ( check_sum( header, header->length ) )
                         return reinterpret_cast< TableType::table_type * >( header );
                 }
             }
@@ -64,7 +64,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         }
 
     public:
-        inline STATIC constexpr auto signature { Xsdp::SIGN_32( 'X', 'S', 'D', 'T' ) };
+        inline STATIC constexpr auto signature { SIGN_32( 'X', 'S', 'D', 'T' ) };
 
     private:
         inline STATIC XSDT *xsdt;

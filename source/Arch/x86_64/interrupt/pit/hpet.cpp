@@ -4,7 +4,7 @@ PUBLIC namespace QuantumNEC::Architecture {
     using namespace std;
     Hpet ::Hpet( VOID ) noexcept {
         // 开启HPET
-        auto info { reinterpret_cast< HpetInfo * >( Kernel::physical_to_virtual( Device::hpet->hpet_address.address ) ) };
+        auto info { reinterpret_cast< HpetInfo * >( Kernel::physical_to_virtual( Madt::hpet->hpet_address.address ) ) };
         info->general_configuration = 3;
         CPUs::mfence( );
         // edge triggered & periodic

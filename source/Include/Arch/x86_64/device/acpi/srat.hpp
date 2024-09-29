@@ -52,7 +52,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         explicit Srat( IN Xsdt &xsdt ) noexcept;
 
     public:
-        inline STATIC constexpr auto signature { Xsdp::SIGN_32( 'S', 'R', 'A', 'T' ) };
+        constexpr static auto signature { SIGN_32( 'S', 'R', 'A', 'T' ) };
 
     private:
         inline STATIC SRAT *srat;

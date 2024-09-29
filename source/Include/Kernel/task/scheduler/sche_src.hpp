@@ -1,5 +1,4 @@
 #pragma once
-#include "Libcxx/expected.hpp"
 #include <Lib/Uefi.hpp>
 #include <Kernel/task/pcb/pcb.hpp>
 #include <Libcxx/expected.hpp>

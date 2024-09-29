@@ -8,7 +8,6 @@ PUBLIC namespace QuantumNEC::Architecture {
         this->rsdt = (Rsdt::RSDT *)uint64_t( rsdp.get_rsdp( )->rsdt_address );
         if ( !this->rsdt || this->rsdt->signature != this->signature || !rsdp.check_sum( this->rsdt, this->rsdt->length ) ) {
             println< ostream::HeadLevel::ERROR >( "RSDT is not valid." );
-            while ( true );
         }
     }
 }

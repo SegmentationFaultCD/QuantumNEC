@@ -46,7 +46,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
             return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base << PAGE_4K_SHIFT;
         }
-        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
+        virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
             return 0;
         }
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {

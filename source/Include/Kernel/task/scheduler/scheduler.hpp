@@ -17,5 +17,4 @@ PUBLIC namespace QuantumNEC::Kernel {
         explicit Scheduler( VOID ) noexcept = default;
         virtual ~Scheduler( VOID ) noexcept = default;
     };
-    inline Scheduler< BrainFuckScheduler > scheduler { };
 }

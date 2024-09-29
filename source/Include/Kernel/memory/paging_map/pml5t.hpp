@@ -43,7 +43,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
             return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd;
         }
-        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
+        virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
             return 0;
         }
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {

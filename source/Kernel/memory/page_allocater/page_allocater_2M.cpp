@@ -1,3 +1,4 @@
+#include "Lib/Uefi.hpp"
 #include <Kernel/memory/memory.hpp>
 #include <Kernel/memory/paging_map/ptv.hpp>
 #include <Libcxx/string.hpp>
@@ -93,13 +94,13 @@ PUBLIC namespace QuantumNEC::Kernel {
             lock.release( );
             return;
         }
-        // 掩码方式取得所在组基地址
-        auto base_address = (uint64_t)address & ~( this->page_size * PH::MEMORY_PAGE_DESCRIPTOR - 1 );
-        // 取得处于所在组中的头的bitmap中的编号
-        auto index = ( (uint64_t)address - group_base_address - base_address ) / this->page_size;
-        PH page_header { find_node };
 
-        auto &header = std::get< PHI >( page_header.get( index ) );
+        // 计算取得所在组的块的编号
+        auto base_index = ( (uint64_t)address - group_base_address ) / ( PH::MEMORY_PAGE_DESCRIPTOR * this->page_size );
+        // 取得处于所在组的块的bitmap中的编号
+        auto index = ( (uint64_t)address & PAGE_2M_MASK ) / this->page_size;
+        PH page_header { find_node };
+        auto &header = std::get< PHI >( page_header.get( base_index ) );
         if ( index + size <= PH::MEMORY_PAGE_DESCRIPTOR ) {
             // 所释放的不超过一个大组控制的大小
             header.bitmap_->free( index, size );
@@ -113,15 +114,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         }
         else {
             // 超过了，那就属于多个组处理范围
-            uint64_t
-                header_count { },      // 头信息块的数量
-                end_remainder { };     // 结尾要释放根数量
-            if ( auto tmp = index + size, end_remainder = tmp % PH::MEMORY_PAGE_DESCRIPTOR; end_remainder ) {
-                header_count = tmp / PH::MEMORY_PAGE_DESCRIPTOR + 1;
-            }
-            else {
-                header_count = tmp / PH::MEMORY_PAGE_DESCRIPTOR;
-            }
+            uint64_t end_remainder = index + size % PH::MEMORY_PAGE_DESCRIPTOR;     // 结尾要释放根数量
             // 头
             auto head_free_remainder = PH::MEMORY_PAGE_DESCRIPTOR - ( index + 1 );     // 头的要释放根数量
             header.free_memory_page_count += head_free_remainder;

@@ -63,7 +63,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         }
 
     public:
-        inline STATIC constexpr auto signature { Rsdp::SIGN_32( 'R', 'S', 'D', 'T' ) };
+        constexpr static auto signature { SIGN_32( 'R', 'S', 'D', 'T' ) };
 
     private:
         inline STATIC RSDT *rsdt;

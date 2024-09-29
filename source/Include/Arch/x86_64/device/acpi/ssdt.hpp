@@ -17,7 +17,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         explicit Ssdt( IN Xsdt &xsdt ) noexcept;
 
     public:
-        inline STATIC constexpr auto signature { Xsdp::SIGN_32( 'S', 'S', 'D', 'T' ) };
+        constexpr static auto signature { SIGN_32( 'S', 'S', 'D', 'T' ) };
 
     private:
         inline STATIC SSDT *ssdt;

@@ -9,30 +9,30 @@ using namespace QuantumNEC::Lib;
 PUBLIC VOID *__frame { };
 
 PUBLIC namespace QuantumNEC::Architecture {
-    _C_LINK auto save_current_frame( IN CONST InterruptDescriptorTable::InterruptFrame * frame )->VOID;
+    _C_LINK auto save_current_frame( IN CONST InterruptDescriptorTable::InterruptFrame * frame ) -> VOID;
     PRIVATE auto ASMCALL cascade_timer_handler( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t )
-        ->CONST InterruptDescriptorTable::InterruptFrame * {
+        -> CONST InterruptDescriptorTable::InterruptFrame * {
         Cascade_TimerEntry::global_jiffies++;
-        auto p_current { get_current< Process >( ) };
-        auto t_current { get_current< Thread >( ) };
-        if ( !( p_current->flags & TASK_FLAG_THREAD ) ) {
-            // 非线程，需保存进程栈
-            save_current_frame( frame );
-        }
+        // auto p_current { get_current< Process >( ) };
+        // auto t_current { get_current< Thread >( ) };
+        // if ( !( p_current->flags & TASK_FLAG_THREAD ) ) {
+        //     // 非线程，需保存进程栈
+        //     save_current_frame( frame );
+        // }
 
-        if ( !p_current->ticks ) {
-            p_current->ticks = p_current->priority;
-            if ( !( p_current->flags & TASK_FLAG_THREAD ) ) {
-                p_current->schedule( );
-                return &Task::ready_task->context->iframe;
-            }
-            else {
-                t_current->schedule( );
-            }
-        }
-        else {
-            p_current->ticks--;
-        }
+        // if ( !p_current->ticks ) {
+        //     p_current->ticks = p_current->priority;
+        //     if ( !( p_current->flags & TASK_FLAG_THREAD ) ) {
+        //         p_current->schedule( );
+        //         return &Task::ready_task->context->iframe;
+        //     }
+        //     else {
+        //         t_current->schedule( );
+        //     }
+        // }
+        // else {
+        //     p_current->ticks--;
+        // }
         return frame;
     }
     Cascade_TimerEntry::Cascade_TimerEntry( VOID ) noexcept {

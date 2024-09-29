@@ -5,10 +5,10 @@ using namespace QuantumNEC::Kernel;
 
 PUBLIC namespace QuantumNEC::Kernel {
     Memory::Memory( VOID ) noexcept {
-        STATIC byte_t buffer[ sizeof( Page ) + sizeof( PagingMap ) + sizeof( Heap ) ];
+        STATIC byte_t buffer[ sizeof( PageAllocater ) + sizeof( PagingMap ) + sizeof( Heap ) ];
         auto ptr { buffer };
-        this->page = new ( ptr ) Page { };
-        ptr += sizeof( Page );
+        this->page = new ( ptr ) PageAllocater { };
+        ptr += sizeof( PageAllocater );
         this->memory_paging_map = new ( ptr ) PagingMap { };
         ptr += sizeof( PagingMap );
         this->heap = new ( ptr ) Heap { };

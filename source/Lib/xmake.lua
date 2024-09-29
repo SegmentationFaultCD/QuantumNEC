@@ -1,30 +1,30 @@
 add_rules("mode.release", "mode.debug")
-add_cxxflags(" -m64 \
-               -fno-builtin \
-               -mcmodel=large \
-               -ffreestanding \
-               -fno-stack-protector \
-               -nostdlib \
-               -nostartfiles \
-               -fstrength-reduce \
-               -falign-loops \
-               -falign-jumps \
-               -fno-strict-aliasing \
-               -fno-common \
-               -fno-rtti \
-               -fno-exceptions \
-               -mno-red-zone \
-               -fno-stack-check \
-               -fno-lto \
-               -Wall \
-               -Wextra \
-               -fPIC \
-               ")
+add_cxxflags("-m64")
+add_cxxflags("-fno-builtin")
+add_cxxflags("-mcmodel=large")
+add_cxxflags("-ffreestanding")
+add_cxxflags("-fno-stack-protector")
+add_cxxflags("-nostdlib")
+add_cxxflags("-nostartfiles")
+add_cxxflags("-fstrength-reduce")
+add_cxxflags("-falign-loops")
+add_cxxflags("-falign-jumps")
+add_cxxflags("-fno-strict-aliasing")
+add_cxxflags("-fno-common")
+add_cxxflags("-fno-rtti")
+add_cxxflags("-fno-exceptions")
+add_cxxflags("-mno-red-zone")
+add_cxxflags("-fno-stack-check")
+add_cxxflags("-fno-lto")
+add_cxxflags("-Wall")
+add_cxxflags("-Wextra")
+add_cxxflags("-Werror")
+add_cxxflags("-fPIC")
 add_includedirs("../Include", "../Boot/limine/")
 set_optimize("none")
 set_languages("c17", "c++23")
 
-target("s")
+target("sys")
     set_kind("static")
     add_files("./*.cpp" )
     before_build(function (target) 

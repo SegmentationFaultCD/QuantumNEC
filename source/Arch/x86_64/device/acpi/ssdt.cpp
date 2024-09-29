@@ -7,7 +7,6 @@ PUBLIC namespace QuantumNEC::Architecture {
         this->ssdt = xsdt.find_table< Ssdt >( );
         if ( !this->ssdt ) {
             println< ostream::HeadLevel::ERROR >( "Can not find Ssdt." );
-            while ( true );
         }
     }
 }

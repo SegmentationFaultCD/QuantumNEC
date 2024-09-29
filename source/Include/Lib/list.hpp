@@ -36,12 +36,13 @@ PUBLIC namespace QuantumNEC::Lib {
         ListNode head { }; /* 链表头 */
         ListNode end { };  /* 链表尾 */
     public:
-        ListTable( VOID ) noexcept {
+        constexpr ListTable( VOID ) noexcept {
             this->head.prev = NULL;
             this->head.next = &this->end;
             this->end.prev = &this->head;
             this->end.next = NULL;
         }
+
         ~ListTable( VOID ) noexcept = default;
         auto operator=( ListTable &lt ) -> ListTable & {
             this->head = lt.head;

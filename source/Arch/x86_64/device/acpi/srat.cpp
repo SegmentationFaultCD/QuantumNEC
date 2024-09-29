@@ -7,7 +7,6 @@ PUBLIC namespace QuantumNEC::Architecture {
         this->srat = xsdt.find_table< Srat >( );
         if ( !this->srat ) {
             println< ostream::HeadLevel::ERROR >( "Can not find Srat." );
-            while ( true );
         }
     }
 }

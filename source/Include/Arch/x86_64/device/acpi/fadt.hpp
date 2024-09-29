@@ -71,7 +71,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         explicit Fadt( IN Xsdt &xsdt ) noexcept;
 
     public:
-        inline STATIC constexpr auto signature { Xsdp::SIGN_32( 'F', 'A', 'C', 'P' ) };
+        constexpr static auto signature {  SIGN_32( 'F', 'A', 'C', 'P' ) };
 
     private:
         inline STATIC FADT *fadt;

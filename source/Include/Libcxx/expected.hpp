@@ -67,18 +67,18 @@ PUBLIC namespace std {
         template < class U = T >
             requires( !std::is_same_v< std::remove_cvref_t< U >, std::in_place_t > && !std::is_same_v< std::expected< T, E >, std::remove_cvref_t< U > > && std::is_constructible_v< T, U > )
         constexpr explicit( !std::is_convertible_v< U, T > ) expected( U &&v ) :
-            val { v }, has_val { true } {
+            has_val { true }, val { v }, unex { } {
         }
         template < class U, class G >
             requires std::is_move_constructible_v< T > && std::is_move_constructible_v< E >
         constexpr expected( expected< U, G > &&other ) :
-            val { other.val }, unex { other.unex }, has_val { other.has_val } {
+            has_val { other.has_val }, val { other.val }, unex { other.unex } {
         }
 
         template < class G >
         constexpr explicit( !std::is_convertible_v< const G &, E > )
             expected( std::unexpected< G > &&e ) :
-            unex { e.error( ) }, has_val { false } {
+            has_val { false }, val { }, unex { e.error( ) } {
         }
 
     public:

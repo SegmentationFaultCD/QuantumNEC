@@ -4,11 +4,13 @@
 #include <Lib/spin_lock.hpp>
 using namespace QuantumNEC;
 using namespace QuantumNEC::Architecture;
+using namespace std;
 using namespace Lib;
 PRIVATE SpinLock lock { };
 
 extern "C" auto do_divide_error( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     // 显示中断名
+
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -18,7 +20,7 @@ extern "C" auto do_divide_error( IN CONST InterruptDescriptorTable::InterruptFra
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -34,7 +36,7 @@ extern "C" auto do_divide_error( IN CONST InterruptDescriptorTable::InterruptFra
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_debug( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -46,7 +48,7 @@ extern "C" auto do_debug( IN CONST InterruptDescriptorTable::InterruptFrame *fra
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -62,7 +64,7 @@ extern "C" auto do_debug( IN CONST InterruptDescriptorTable::InterruptFrame *fra
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_nmi( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> CONST InterruptDescriptorTable::InterruptFrame * {
     ControlRegisterFrame control_registers_frame { };
@@ -74,7 +76,7 @@ extern "C" auto do_nmi( IN CONST InterruptDescriptorTable::InterruptFrame *frame
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -90,7 +92,7 @@ extern "C" auto do_nmi( IN CONST InterruptDescriptorTable::InterruptFrame *frame
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
     return frame;
 }
 extern "C" auto do_int3( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
@@ -103,7 +105,7 @@ extern "C" auto do_int3( IN CONST InterruptDescriptorTable::InterruptFrame *fram
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -119,7 +121,7 @@ extern "C" auto do_int3( IN CONST InterruptDescriptorTable::InterruptFrame *fram
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_overflow( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -131,7 +133,7 @@ extern "C" auto do_overflow( IN CONST InterruptDescriptorTable::InterruptFrame *
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -147,7 +149,7 @@ extern "C" auto do_overflow( IN CONST InterruptDescriptorTable::InterruptFrame *
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_bounds( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -175,7 +177,7 @@ extern "C" auto do_bounds( IN CONST InterruptDescriptorTable::InterruptFrame *fr
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_undefined_opcode( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -203,7 +205,7 @@ extern "C" auto do_undefined_opcode( IN CONST InterruptDescriptorTable::Interrup
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 
 extern "C" auto do_dev_not_available( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
@@ -232,7 +234,7 @@ extern "C" auto do_dev_not_available( IN CONST InterruptDescriptorTable::Interru
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_double_fault( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -260,7 +262,7 @@ extern "C" auto do_double_fault( IN CONST InterruptDescriptorTable::InterruptFra
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_coprocessor_segment_overrun( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -288,7 +290,7 @@ extern "C" auto do_coprocessor_segment_overrun( IN CONST InterruptDescriptorTabl
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_invalid_TSS( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -301,7 +303,7 @@ extern "C" auto do_invalid_TSS( IN CONST InterruptDescriptorTable::InterruptFram
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}\n"
+                                          "\t\t\t CPU -> {}\n"
                                           "\t\t\t {}\n"
                                           "\t\t\t {}"
                                           "\t\t\t Segment Selector Index : {:x}",
@@ -322,7 +324,7 @@ extern "C" auto do_invalid_TSS( IN CONST InterruptDescriptorTable::InterruptFram
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID,
+                                          Apic::apic_id( ),
                                           ( frame->error_code & 0x01 ) ? "The exception occurred during delivery of an event external to the program,such as an interrupt or an earlier exception." : ( ( frame->error_code & 0x02 ) ? "Refers to a gate descriptor in the IDT." : "Refers to a descriptor in the GDT or the current LDT." ),
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
@@ -338,7 +340,7 @@ extern "C" auto do_segment_not_present( IN CONST InterruptDescriptorTable::Inter
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}\n"
+                                          "\t\t\t CPU -> {}\n"
                                           "\t\t\t {}\n"
                                           "\t\t\t {}"
                                           "\t\t\t Segment Selector Index : {:x}",
@@ -359,7 +361,7 @@ extern "C" auto do_segment_not_present( IN CONST InterruptDescriptorTable::Inter
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID,
+                                          Apic::apic_id( ),
                                           ( frame->error_code & 0x01 ) ? "The exception occurred during delivery of an event external to the program,such as an interrupt or an earlier exception." : ( ( frame->error_code & 0x02 ) ? "Refers to a gate descriptor in the IDT." : "Refers to a descriptor in the GDT or the current LDT." ),
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
@@ -375,7 +377,7 @@ extern "C" auto do_stack_segment_fault( IN CONST InterruptDescriptorTable::Inter
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}\n"
+                                          "\t\t\t CPU -> {}\n"
                                           "\t\t\t {}\n"
                                           "\t\t\t {}"
                                           "\t\t\t Segment Selector Index : {:x}",
@@ -396,7 +398,7 @@ extern "C" auto do_stack_segment_fault( IN CONST InterruptDescriptorTable::Inter
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID,
+                                          Apic::apic_id( ),
                                           ( frame->error_code & 0x01 ) ? "The exception occurred during delivery of an event external to the program,such as an interrupt or an earlier exception." : ( ( frame->error_code & 0x02 ) ? "Refers to a gate descriptor in the IDT." : "Refers to a descriptor in the GDT or the current LDT." ),
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
@@ -412,7 +414,7 @@ extern "C" auto do_general_protection( IN CONST InterruptDescriptorTable::Interr
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}\n"
+                                          "\t\t\t CPU -> {}\n"
                                           "\t\t\t {}\n"
                                           "\t\t\t {}"
                                           "\t\t\t Segment Selector Index : {:x}",
@@ -433,7 +435,7 @@ extern "C" auto do_general_protection( IN CONST InterruptDescriptorTable::Interr
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID,
+                                          Apic::apic_id( ),
                                           ( frame->error_code & 0x01 ) ? "The exception occurred during delivery of an event external to the program,such as an interrupt or an earlier exception." : ( ( frame->error_code & 0x02 ) ? "Refers to a gate descriptor in the IDT." : "Refers to a descriptor in the GDT or the current LDT." ),
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
@@ -448,7 +450,7 @@ extern "C" auto do_page_fault( IN CONST InterruptDescriptorTable::InterruptFrame
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2(PFLA) -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}\n"
+                                          "\t\t\t CPU -> {}\n"
                                           "\t\t\t {}{}{}{}{}{}{}{}.",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
@@ -465,16 +467,15 @@ extern "C" auto do_page_fault( IN CONST InterruptDescriptorTable::InterruptFrame
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID,
-                                          ( !( frame->error_code & (1 << 0) ) ) ? "Page Not-Present " : "",
-                                          ( frame->error_code & (1 << 1) ) ? "Write Cause Fault " : "Read Cause Fault ",
-                                          ( frame->error_code & (1 << 2) ) ? "Fault in user(3) " : "Fault in supervisor(0,1,2) ",
-                                          ( frame->error_code & (1 << 3) ) ? "Reserved Bit Cause Fault " : "",
-                                          ( frame->error_code & (1 << 4) ) ? "Instruction fetch Cause Fault " : "",
-					  ( frame->error_code & (1 << 5) ) ? "Protection Key Cause Fault ",
-				          ( frame->error_code & (1 << 6) ) ? "Shadow Stack Cause Fault",
-					  ( frame->error_code & (1 << 7) ) ? "Software Guard Extensions Cause Fault"
-					  );
+                                          Apic::apic_id( ),
+                                          ( !( frame->error_code & ( 1 << 0 ) ) ) ? "Page Not-Present " : "",
+                                          ( frame->error_code & ( 1 << 1 ) ) ? "Write Cause Fault " : "Read Cause Fault ",
+                                          ( frame->error_code & ( 1 << 2 ) ) ? "Fault in user(3) " : "Fault in supervisor(0,1,2) ",
+                                          ( frame->error_code & ( 1 << 3 ) ) ? "Reserved Bit Cause Fault " : "",
+                                          ( frame->error_code & ( 1 << 4 ) ) ? "Instruction fetch Cause Fault " : "",
+                                          ( frame->error_code & ( 1 << 5 ) ) ? "Protection Key Cause Fault " : "",
+                                          ( frame->error_code & ( 1 << 6 ) ) ? "Shadow Stack Cause Fault" : "",
+                                          ( frame->error_code & ( 1 << 7 ) ) ? "Software Guard Extensions Cause Fault" : "" );
 }
 extern "C" auto do_x87_FPU_error( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -486,7 +487,7 @@ extern "C" auto do_x87_FPU_error( IN CONST InterruptDescriptorTable::InterruptFr
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -502,7 +503,7 @@ extern "C" auto do_x87_FPU_error( IN CONST InterruptDescriptorTable::InterruptFr
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_alignment_check( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -514,7 +515,7 @@ extern "C" auto do_alignment_check( IN CONST InterruptDescriptorTable::Interrupt
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -530,7 +531,7 @@ extern "C" auto do_alignment_check( IN CONST InterruptDescriptorTable::Interrupt
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_machine_check( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -542,7 +543,7 @@ extern "C" auto do_machine_check( IN CONST InterruptDescriptorTable::InterruptFr
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -558,7 +559,7 @@ extern "C" auto do_machine_check( IN CONST InterruptDescriptorTable::InterruptFr
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_SIMD_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -570,7 +571,7 @@ extern "C" auto do_SIMD_exception( IN CONST InterruptDescriptorTable::InterruptF
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -586,7 +587,7 @@ extern "C" auto do_SIMD_exception( IN CONST InterruptDescriptorTable::InterruptF
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_virtualization_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -598,7 +599,7 @@ extern "C" auto do_virtualization_exception( IN CONST InterruptDescriptorTable::
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -614,7 +615,7 @@ extern "C" auto do_virtualization_exception( IN CONST InterruptDescriptorTable::
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_control_protection_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -626,7 +627,7 @@ extern "C" auto do_control_protection_exception( IN CONST InterruptDescriptorTab
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -642,7 +643,7 @@ extern "C" auto do_control_protection_exception( IN CONST InterruptDescriptorTab
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_exception_injected_by_the_virtual_machine( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -654,7 +655,7 @@ extern "C" auto do_exception_injected_by_the_virtual_machine( IN CONST Interrupt
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -670,7 +671,7 @@ extern "C" auto do_exception_injected_by_the_virtual_machine( IN CONST Interrupt
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_VMM_communication_failed( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -682,7 +683,7 @@ extern "C" auto do_VMM_communication_failed( IN CONST InterruptDescriptorTable::
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -698,7 +699,7 @@ extern "C" auto do_VMM_communication_failed( IN CONST InterruptDescriptorTable::
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }
 extern "C" auto do_security_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
@@ -710,7 +711,7 @@ extern "C" auto do_security_exception( IN CONST InterruptDescriptorTable::Interr
                                           "\t\t\t RDI -> {:x} RSI -> {:x} RBP -> {:x}\n"
                                           "\t\t\t DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}\n"
                                           "\t\t\t CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}\n"
-                                          "\t\t\t CPU -> {} PID -> {}",
+                                          "\t\t\t CPU -> {}",
                                           frame->vector,
                                           InterruptDescriptorTable::interrupt_name[ frame->vector ],
                                           frame->rflags,
@@ -726,5 +727,5 @@ extern "C" auto do_security_exception( IN CONST InterruptDescriptorTable::Interr
                                           frame->regs.rdi, frame->regs.rsi, frame->regs.rbp,
                                           frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
-                                          Apic::apic_id( ), Kernel::get_current< Kernel::Process >( )->PID );
+                                          Apic::apic_id( ) );
 }

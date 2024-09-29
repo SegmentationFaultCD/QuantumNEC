@@ -1,8 +1,5 @@
 #pragma once
 
-#include "Arch/Arch.hpp"
-#include "Kernel/task/pcb/pcb.hpp"
-#include "Libcxx/expected.hpp"
 #include <Lib/Uefi.hpp>
 #include <Lib/list.hpp>
 #include <Lib/spin_lock.hpp>
@@ -227,6 +224,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             return result;
         }
         virtual auto schedule( VOID ) -> std::expected< PCB *, ErrorCode > override {
+            return (PCB *)NULL;
         }
         //     auto current = get_current( );
         //     if ( !current->jiffies ) {     // 时间片耗尽

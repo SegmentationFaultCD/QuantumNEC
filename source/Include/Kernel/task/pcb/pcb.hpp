@@ -241,4 +241,11 @@ PUBLIC namespace QuantumNEC::Kernel {
         rsp = (uint64_t)Memory::memory_paging_map->VTP_address_from( (VOID *)rsp, MemoryPageType::PAGE_2M, page_table );
         return (PCB *)( *(uint64_t *)rsp );
     }
+
+    using Process = uint64_t;
+    template < typename T >
+    inline auto get_current( VOID ) {
+        auto rsp = Architecture::ArchitectureManager< TARGET_ARCH >::get_rsp( );
+        return (PCB *)( *(uint64_t *)rsp );
+    }
 }

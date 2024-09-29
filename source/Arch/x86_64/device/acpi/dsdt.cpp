@@ -7,7 +7,6 @@ PUBLIC namespace QuantumNEC::Architecture {
         this->dsdt = xsdt.find_table< Dsdt >( );
         if ( !this->dsdt ) {
             println< ostream::HeadLevel::ERROR >( "Can not find Dsdt." );
-            while ( true );
         }
     }
 }

@@ -3,14 +3,12 @@
 
 using namespace QuantumNEC;
 PUBLIC namespace QuantumNEC::Architecture {
-    _C_LINK auto save_current_frame( IN CONST InterruptDescriptorTable::InterruptFrame * frame )->VOID;
+    _C_LINK auto save_current_frame( IN CONST InterruptDescriptorTable::InterruptFrame * frame ) -> VOID;
 
-    _C_LINK auto syscall_entry( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t )->CONST InterruptDescriptorTable::InterruptFrame * {
-        using Kernel::Task;
-
-        if ( !( Kernel::get_current< Kernel::Process >( )->flags & Kernel::TASK_FLAG_THREAD ) ) {
-            save_current_frame( frame );
-        }
+    _C_LINK auto syscall_entry( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t ) -> CONST InterruptDescriptorTable::InterruptFrame * {
+        // if ( !( Kernel::get_current< Kernel::Process >( )->flags ) ) {
+        //     save_current_frame( frame );
+        // }
         auto entry = Syscall::get_syscall_table( )[ frame->regs.rax ];
         if ( !entry ) {
             const_cast< InterruptDescriptorTable::InterruptFrame * >( frame )->regs.rax = static_cast< uint64_t >( SyscallStatus::NO_SYSCALL );

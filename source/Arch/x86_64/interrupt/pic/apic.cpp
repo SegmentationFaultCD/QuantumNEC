@@ -1,17 +1,17 @@
+#include "Lib/Uefi.hpp"
 #include <Arch/x86_64/platform/platform.hpp>
 #include <Kernel/print.hpp>
 
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace std;
     auto Apic::enable_xapic( VOID ) -> VOID {
-        // 开启x2apic & xapic
+        // 开启x2apic
         InterruptCommandRegister icr { CPUs::rdmsr( IA32_APIC_BASE_MSR ) };
         icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
         icr.dest_mode = ICR_IOAPIC_DELV_LOGIC;
-        CPUs::wrmsr( IA32_APIC_BASE_MSR, icr );
-
+        CPUs::wrmsr( IA32_APIC_BASE_MSR, (uint64_t)icr );
         // 开启SVR
-        ApicLocalVectorTableRegisters lvt { CPUs::rdmsr( LOCAL_APIC_MSR_SVR ) };
+        ApicLocalVectorTableRegisters lvt { (uint32_t)CPUs::rdmsr( LOCAL_APIC_MSR_SVR ) };
         lvt.deliver_mode = IOAPIC_ICR_LOWEST_PRIORITY;
         if ( CPUs::rdmsr( LOCAL_APIC_MSR_VERSION ) >> 24 & 1 ) {
             lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
@@ -55,7 +55,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         write_apic( LOCAL_BASE_APIC_TDCR, lvt, ApicType::LOCAL_APIC );
     }
     auto Apic::enable_x2apic( VOID ) -> VOID {
-        // 开启x2apic & xapic
+        // 开启  xapic
         InterruptCommandRegister icr { CPUs::rdmsr( IA32_APIC_BASE_MSR ) };
         icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
         icr.dest_mode = ICR_IOAPIC_DELV_LOGIC;
@@ -100,6 +100,7 @@ PUBLIC namespace QuantumNEC::Architecture {
     }
     Apic::Apic( VOID ) noexcept {
         // 关闭8259A PIC
+
         PIC8259A::disable_8259A_pic( );
         // 开启 IMCR
         CPUs::io_out8( 0x22, 0x70 );

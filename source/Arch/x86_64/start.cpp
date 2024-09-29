@@ -65,24 +65,6 @@ __attribute__( ( used, section( ".requests_start_marker" ) ) ) volatile LIMINE_R
 __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQUESTS_END_MARKER;
 
 }     // namespace
-
-// GCC and Clang reserve the right to generate calls to the following
-// 4 functions even if they are not directly called.
-// Implement them as the C specification mandates.
-// DO NOT remove or rename these functions, or stuff will eventually break!
-// They CAN be moved to a different .cpp file.
-
-// Halt and catch fire function.
-namespace {
-
-auto hcf( ) -> void {
-    asm( "cli" );
-    for ( ;; ) {
-        asm( "hlt" );
-    }
-}
-
-}     // namespace
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
 SpinLock _lock { };
@@ -173,12 +155,13 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Architecture::__config.paging_mode = *paging_mode_request.response;
     Architecture::__config.modules = *modules_request.response;
     Architecture::ArchitectureManager< TARGET_ARCH > architecture { };     // 系统架构初始化
-    Kernel::Memory memory { };                                             // 内存管理初始化
-    Kernel::Task task { };                                                 // 进程管理初始化
+
+    Kernel::Memory memory { };     // 内存管理初始化
+
+    __asm__( "hlt" );
+    // Kernel::Task task { };                                                 // 进程管理初始化
     Modules::Module modules { };
-
     println< ostream::HeadLevel::DEBUG >( "Test 1 : Memory allocate--------------------------------" );
-
     // char buf[] { "hello world\0" };
     // auto w { new char[ 12 ] };
     // strcpy( w, buf );
@@ -208,19 +191,19 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
 
     println< ostream::HeadLevel::DEBUG >( "Test 2 : Make 2 processes-------------------------------" );
 
-    task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
-    task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
+    // task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
+    // task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
 
-    // task.create( "Thread A", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_THREAD, ThreadA, 0 );
-    // task.create( "Thread B", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_THREAD, ThreadB, 0 );
+    // // task.create( "Thread A", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_THREAD, ThreadA, 0 );
+    // // task.create( "Thread B", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_THREAD, ThreadB, 0 );
 
-    // task.create( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
-    // task.create( "Process E", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcE, 0 );
-    // task.create( "Process E", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcE, 0 );
+    // // task.create( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
+    // // task.create( "Process E", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcE, 0 );
+    // // task.create( "Process E", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcE, 0 );
 
-    Architecture::ArchitectureManager< TARGET_ARCH >::enable_interrupt( );
+    // Architecture::ArchitectureManager< TARGET_ARCH >::enable_interrupt( );
 
-    task.main_task->block( Kernel::TaskStatus::BLOCKED );
+    // task.main_task->block( Kernel::TaskStatus::BLOCKED );
 
     // 锁死主进程，相当于直接抛弃
 

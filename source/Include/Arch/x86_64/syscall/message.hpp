@@ -1,7 +1,7 @@
 #pragma once
 #include <Lib/Uefi.hpp>
 #include <Lib/list.hpp>
-
+#include <Arch/x86_64/platform/global.hpp>
 PUBLIC namespace QuantumNEC::Architecture {
     PUBLIC constexpr CONST auto NO_TASK { 0x1919810 };
     PUBLIC constexpr CONST auto ANY { 0x018919 };
@@ -79,6 +79,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             this->message.msg1 = msg.message.msg1;
             this->message.msg2 = msg.message.msg2;
             this->message.msg3 = msg.message.msg3;
+            return *this;
         }
 
     public:

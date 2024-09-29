@@ -135,9 +135,9 @@ PUBLIC namespace QuantumNEC::Architecture {
         } inline STATIC global_system_interrupt;
 
     public:
-        inline STATIC constexpr auto signature { Xsdp::SIGN_32( 'A', 'P', 'I', 'C' ) };
+        constexpr static auto signature { SIGN_32( 'A', 'P', 'I', 'C' ) };
 
-        inline STATIC constexpr auto hpet_signature { Xsdp::SIGN_32( 'H', 'P', 'E', 'T' ) };
+        constexpr static auto hpet_signature { SIGN_32( 'H', 'P', 'E', 'T' ) };
 
     private:
         inline STATIC MADT *madt;

@@ -1,3 +1,4 @@
+#include "Arch/x86_64/cpu/cpu.hpp"
 #include "Lib/deflib.hpp"
 #include <Arch/x86_64/platform/platform.hpp>
 #include <Kernel/print.hpp>
@@ -27,11 +28,12 @@ Architecture::Sse::Sse( VOID ) noexcept {
 }
 
 auto Architecture::Sse::activate_sse( VOID ) noexcept -> VOID {
-    ASM( "MOVQ %%CR0,%%RAX \n\t"
-         "ANDW $0xfffb,%%AX \n\t"
-         "ORW $0x2,%%AX \n\t"
-         "MOVQ %%RAX,%%CR0 \n\t"
-         "MOVQ %%CR4,%%RAX \n\t"
-         "ORW $(3 << 9),%%AX \n\t"
-         "MOVQ %%RAX,%%CR4 \n\t" ::: );
+    auto cr0 = CPUs::read_cr0( );
+    auto cr4 = CPUs::read_cr4( );
+    cr0.EM = 0;
+    cr0.MP = 1;
+    CPUs::write_cr0( cr0 );
+    cr4.OSFXSR = 1;
+    cr4.OSXMMEXCPT = 1;
+    CPUs::write_cr4( cr4 );
 }
