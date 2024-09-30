@@ -155,13 +155,12 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Architecture::__config.paging_mode = *paging_mode_request.response;
     Architecture::__config.modules = *modules_request.response;
     Architecture::ArchitectureManager< TARGET_ARCH > architecture { };     // 系统架构初始化
-
-    Kernel::Memory memory { };     // 内存管理初始化
-
-    __asm__( "hlt" );
+    Kernel::Memory memory { };                                             // 内存管理初始化
     // Kernel::Task task { };                                                 // 进程管理初始化
+
     Modules::Module modules { };
     println< ostream::HeadLevel::DEBUG >( "Test 1 : Memory allocate--------------------------------" );
+
     // char buf[] { "hello world\0" };
     // auto w { new char[ 12 ] };
     // strcpy( w, buf );

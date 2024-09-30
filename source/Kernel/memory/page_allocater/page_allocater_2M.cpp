@@ -1,9 +1,7 @@
-#include "Lib/Uefi.hpp"
 #include <Kernel/memory/memory.hpp>
 #include <Kernel/memory/paging_map/ptv.hpp>
 #include <Libcxx/string.hpp>
 #include <Lib/spin_lock.hpp>
-
 PUBLIC namespace {
     using namespace QuantumNEC::Lib;
     PRIVATE SpinLock lock { };
@@ -14,15 +12,12 @@ PUBLIC namespace QuantumNEC::Kernel {
             // size空的就没有分配
             return NULL;
         }
-
-        using PH = PageHeader< PageAllocater2M, PageAllocater2M >;
+        using PH = PageHeader< PageAllocater2M, PageAllocater2M, PageAllocater1G >;
         using PHI = PH::PageInformation;
-
         if ( size < PH::MEMORY_PAGE_DESCRIPTOR ) {
             lock.acquire( );
             // 最大分配数
             // 超过这个数无法保证内存连续，所以不允许分配超过这个数的
-
             PHI *find_node { };
             auto node = this->page_header_group_list.traversal(
                 [ &find_node ]( ListNode *node, auto size ) -> BOOL {
@@ -36,6 +31,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 size );
             if ( node ) {
                 auto result = find_node->bitmap_->allocate( size );
+
                 if ( result.has_value( ) ) {
                     find_node->free_memory_page_count -= size;
                     if ( !find_node->free_memory_page_count ) {
@@ -52,16 +48,18 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             lock.release( );
         }
+
         PageAllocater2M pa2m { };
+        PageAllocater1G pa1g { };
         // 头数
         auto header_count = !size % PH::MEMORY_PAGE_DESCRIPTOR ? size / PH::MEMORY_PAGE_DESCRIPTOR : DIV_ROUND_UP( size, PH::MEMORY_PAGE_DESCRIPTOR );
         // 组数
         auto group_header_count = header_count % PH::MEMORY_PAGE_HEADER_COUNT ? header_count / PH::MEMORY_PAGE_HEADER_COUNT + 1 : header_count / PH::MEMORY_PAGE_HEADER_COUNT;
         lock.acquire( );
-        PH page_headers { *this, pa2m, MemoryPageType::PAGE_2M, group_header_count };
-        PageAllocater1G pa1g { };
+        PH page_headers { *this, pa2m, pa1g, MemoryPageType::PAGE_2M, group_header_count };
+
         // 开块
-        page_headers.allocate( pa1g, size );
+        page_headers.allocate( size );
         // 拿第一个头的map_base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).map_base_adderess;
         std::memset( (VOID *)address, 0, size );
@@ -72,7 +70,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         if ( !size || !address ) {
             return;
         }
-        using PH = PageHeader< PageAllocater2M, PageAllocater2M >;
+        using PH = PageHeader< PageAllocater2M, PageAllocater2M, PageAllocater1G >;
         using PHI = PH::PageInformation;
         lock.acquire( );
         // 掩码方式取得所在组基地址

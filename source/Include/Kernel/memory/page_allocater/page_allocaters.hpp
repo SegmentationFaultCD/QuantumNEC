@@ -59,7 +59,7 @@ PUBLIC namespace QuantumNEC::Kernel {
      * @tparam Allocater 要绑定的目标分配器
      * @tparam InfoAllocater 要绑定的页头块分配器
      */
-    template < typename Allocater, typename InfoAllocater >
+    template < typename Allocater, typename InfoAllocater, typename AAlocater >
         requires std::derived_from< Allocater, PageAllocaters< Allocater::page_size > >
                  && std::derived_from< InfoAllocater, PageAllocaters< InfoAllocater::page_size > >
                  && page_size_is_single_bit< Allocater::page_size >
@@ -120,7 +120,7 @@ PUBLIC namespace QuantumNEC::Kernel {
          * @param page_type 内存页类型
          * @param group_count 内存块组的数量
          */
-        explicit PageHeader( IN Allocater &pallocater, IN InfoAllocater &iallocater, IN uint64_t page_type, IN uint64_t group_count ) :
+        explicit PageHeader( IN Allocater &pallocater, IN InfoAllocater &iallocater, IN AAlocater &aallocater, IN uint64_t page_type, IN uint64_t group_count ) :
             page_header { (header_t *)iallocater.allocate( group_count ) },     // 这样分配保证效率
             type { page_type },
             group_count { group_count },
@@ -137,7 +137,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 head_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
                 head_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
                 head_info.bitmap_ = &head_bitmap;
-                head_info.next = reinterpret_cast< PageInformation * >( &this->page_header[ 0 ] );
+                head_info.next = reinterpret_cast< PageInformation * >( &this->page_header[ 1 ] );
                 head_info.prev = nullptr;
                 // 从第二块开始到结尾块之前，属于中间块
                 for ( auto j = 1ul; j < this->all_memory_header_count - 1; ++j ) {
@@ -165,6 +165,13 @@ PUBLIC namespace QuantumNEC::Kernel {
                 end_info.bitmap_ = &end_bitmap;
                 end_info.next = nullptr;
                 end_info.prev = reinterpret_cast< PageInformation * >( &this->page_header[ this->all_memory_header_count - 2 ] );
+                // 这样分配保证块都是连续的，而不是分散开来的
+
+                this->base_map_address = (uint64_t)aallocater.allocate( ( ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size * all_memory_header_count ) / AAlocater::page_size ) );
+                for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
+                    std::get< PageInformation >( this->page_header[ i ] ).map_base_adderess = this->base_map_address + ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size ) * i;
+                    // 取得base_map_address的计算公式为 分配起始地址 + 内存描述符数量 * 内存页大小 * 所处页头index（这里的计算公式为组index * 内存描述符数量 + 所处组里的index）
+                }
             }
         };
         /** 仅用于已经准备好PageInformation的情况下
@@ -197,12 +204,13 @@ PUBLIC namespace QuantumNEC::Kernel {
          * @param address 页头块分配器
          * @param page_type 内存页类型
          */
-        explicit PageHeader( IN Allocater &pallocater, IN VOID *address, IN uint64_t page_type ) :
+        explicit PageHeader( IN Allocater &pallocater, IN VOID *address, IN uint64_t page_type, IN uint64_t _base_map_address ) :
             page_header { reinterpret_cast< header_t * >( address ) },
             type { page_type },
             group_count { 1 },     // 默认数为1
             all_memory_header_count { MEMORY_PAGE_HEADER_COUNT * group_count },
-            all_memory_page_desvriptor_count { all_memory_header_count * MEMORY_PAGE_DESCRIPTOR } {
+            all_memory_page_desvriptor_count { all_memory_header_count * MEMORY_PAGE_DESCRIPTOR },
+            base_map_address { _base_map_address } {
             if ( group_count ) {
                 auto &[ head_info, head_bitmap ] = this->page_header[ 0 ];
                 pallocater.page_header_group_list.append( head_info.group_node );
@@ -213,7 +221,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 head_info.all_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
                 head_info.free_memory_page_count = this->MEMORY_PAGE_DESCRIPTOR;
                 head_info.bitmap_ = &head_bitmap;
-                head_info.next = reinterpret_cast< PageInformation * >( &this->page_header[ 0 ] );
+                head_info.next = reinterpret_cast< PageInformation * >( &this->page_header[ 1 ] );
                 head_info.prev = nullptr;
                 for ( auto j = 1ul; j < all_memory_header_count - 1; ++j ) {
                     auto &[ mid_info, mid_bitmap ] = this->page_header[ j ];
@@ -239,6 +247,11 @@ PUBLIC namespace QuantumNEC::Kernel {
                 end_info.bitmap_ = &end_bitmap;
                 end_info.next = nullptr;
                 end_info.prev = reinterpret_cast< PageInformation * >( &this->page_header[ all_memory_header_count - 2 ] );
+
+                for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
+                    std::get< PageInformation >( this->page_header[ i ] ).map_base_adderess = this->base_map_address + ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size ) * i;
+                    // 取得base_map_address的计算公式为 分配起始地址 + 内存描述符数量 * 内存页大小 * 所处页头index（这里的计算公式为组index * 内存描述符数量 + 所处组里的index）
+                }
             }
         };
 
@@ -247,25 +260,8 @@ PUBLIC namespace QuantumNEC::Kernel {
          * @param allocater 辅助分配器
          * @param size 要占用内存页数量
          */
-        template < typename AllocateHelper >
-        auto allocate( IN AllocateHelper &allocater, IN uint64_t size ) {
-            // 这样分配保证块都是连续的，而不是分散开来的
-            auto base_map_address = (uint64_t)allocater.allocate( ( ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size ) / allocater.page_size ) * all_memory_header_count );
-            this->allocate( size, base_map_address );
-        }
-
-        auto allocate( IN uint64_t size, IN uint64_t base_map_address ) {
-            // 拿来取得mapbase的
-            // 比如我现在是2M分配器， 有512个根
-            // 那么则需要1g分配器分配一个1g来给这512个2m
-            // AdvancedAllocater 便是这个1g分配器
+        auto allocate( IN uint64_t size ) {
             if ( this->group_count ) {
-                // 设置每个base_map_address
-                // 一共有this->all_memory_header_count个base_map_address要设置
-                for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
-                    std::get< PageInformation >( this->page_header[ i ] ).map_base_adderess = base_map_address + ( this->MEMORY_PAGE_DESCRIPTOR * Allocater::page_size ) * i;
-                    // 取得base_map_address的计算公式为 分配起始地址 + 内存描述符数量 * 内存页大小 * 所处页头index（这里的计算公式为组index * 内存描述符数量 + 所处组里的index）
-                }
                 auto remainder = size % this->MEMORY_PAGE_DESCRIPTOR;
                 auto end = remainder ? size / this->MEMORY_PAGE_DESCRIPTOR + 1 : size / this->MEMORY_PAGE_DESCRIPTOR;
                 for ( auto i = 0ul; i < end - 1; ++i ) {
@@ -290,7 +286,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         header_t *page_header;
         uint64_t type;
         uint64_t group_count;
-        uint64_t all_memory_header_count { };
-        uint64_t all_memory_page_desvriptor_count { };
+        uint64_t all_memory_header_count;
+        uint64_t all_memory_page_desvriptor_count;
+        uint64_t base_map_address;
     };
 }

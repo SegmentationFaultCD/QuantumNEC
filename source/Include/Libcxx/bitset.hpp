@@ -1,6 +1,5 @@
 #pragma once
 #include <Lib/Uefi.hpp>
-#include <bit>
 #include <utility>
 #include <cstdint>
 #include <Libcxx/expected.hpp>
@@ -104,7 +103,11 @@ PUBLIC namespace std {
         auto count( ) {
             auto count { 0ul };
             for ( auto i { 0ul }; i < length; ++i ) {
-                count += std::popcount( this->bitmap[ i ] );
+                for ( auto j { 0ul }; j < 64ul; ++j ) {
+                    if ( this->bitmap[ i ] & ( 1ul << j ) ) {
+                        count++;
+                    }
+                }
             }
             return count;
         }
@@ -129,6 +132,9 @@ PUBLIC namespace std {
         }
         template < bool value = true >
         auto set( std::size_t pos, std::uint64_t size ) -> bitset & {
+            if ( size ) {
+                return *this;
+            }
             auto &&bitmap_index = pos / 64;
             if constexpr ( value ) {
                 if ( 64 - pos % 64 >= size ) {
@@ -225,7 +231,6 @@ PUBLIC namespace std {
                                      }
                                      continue;
                                  }
-
                                  if ( this->bitmap[ i ] >> j ) {
                                      continue;
                                  }
@@ -237,7 +242,6 @@ PUBLIC namespace std {
                                      used_length = tmp / 64 + 1;
                                  }
                                  bool success { true };
-
                                  for ( auto &&_ { i + 1 }; _ < used_length + i; ++_ ) {
                                      if ( this->bitmap[ _ ] ) {
                                          success = false;
@@ -247,7 +251,6 @@ PUBLIC namespace std {
                                  if ( !success ) {
                                      continue;
                                  }
-
                                  if ( this->bitmap[ used_length + i ] & ( ( 1ul << ( ( size - ( 64 - j ) ) % 64 ) ) - 1 ) ) {
                                      continue;
                                  }

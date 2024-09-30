@@ -1,5 +1,6 @@
 #include "Kernel/memory/paging_map/pmlxt.hpp"
 #include "Kernel/memory/paging_map/ptv.hpp"
+#include "Lib/Uefi.hpp"
 #include <Kernel/memory/memory.hpp>
 #include <Kernel/print.hpp>
 #include <Libcxx/string.hpp>
@@ -57,13 +58,11 @@ PUBLIC namespace QuantumNEC::Kernel {
                 }
 
                 break;
-
             case LIMINE_MEMMAP_RESERVED:               // 保留内存
             case LIMINE_MEMMAP_ACPI_NVS:               // ACPI NVS内存
             case LIMINE_MEMMAP_BAD_MEMORY:             // 错误内存
             case LIMINE_MEMMAP_KERNEL_AND_MODULES:     // 模块文件内存
             case LIMINE_MEMMAP_FRAMEBUFFER:            // 显存占用的
-
                 // 如果是以上这几类，那么将其所在的bitmap中的位置设置为1
                 auto group_base_address = (uint64_t)start & ~( PAGE_2M_SIZE * PH::MEMORY_PAGE_DESCRIPTOR * PH::MEMORY_PAGE_HEADER_COUNT - 1 );
                 // 计算取得所在组的块的编号
@@ -78,7 +77,6 @@ PUBLIC namespace QuantumNEC::Kernel {
                 break;
             }
         }
-
         println< ostream::HeadLevel::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
     }
     auto PageAllocater::allocate( IN size_t size, IN MemoryPageType type ) -> VOID * {
