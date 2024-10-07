@@ -166,7 +166,9 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::__page_allocater allocater { };
     Kernel::__page_collector collector { };
     using namespace QuantumNEC::Kernel;
-
+    auto s = allocater.__allocate< MemoryPageType::PAGE_2M >( 1028 );
+    println< ostream::HeadLevel::DEBUG >( "{}", s );
+    collector.__free< MemoryPageType::PAGE_2M >( s, 1028 );
     // char buf[] { "hello world\0" };
     // auto w { new char[ 12 ] };
     // strcpy( w, buf );

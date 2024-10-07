@@ -3,6 +3,7 @@
 PUBLIC namespace QuantumNEC::Kernel {
     __heap_manager::__heap_manager( VOID ) noexcept {
         this->global_memory_zone_table.init( );
+
         auto zone = new ( physical_to_virtual( __page_allocater { }.__allocate< MemoryPageType::PAGE_2M >( 1 ) ) ) __zone { };
 
         zone->zone_node.container = reinterpret_cast< decltype( zone->zone_node.container ) >( zone );

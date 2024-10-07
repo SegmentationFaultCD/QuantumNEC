@@ -81,22 +81,22 @@ PUBLIC namespace QuantumNEC::Architecture {
         lvt.mask = APIC_ICR_IOAPIC_UNMASKED;
         CPUs::wrmsr( LOCAL_APIC_MSR_EOI, lvt );
         CPUs::wrmsr( LOCAL_APIC_MSR_TPR, lvt );
-        lvt.vector = 0xB;
-        CPUs::wrmsr( LOCAL_APIC_MSR_TDCR, lvt );
-        lvt.vector = 0x80;
-        lvt.deliver_mode = ICR_ALL_EXCLUDE_SELF;
-        lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
-        lvt.trigger = APIC_ICR_IOAPIC_LEVEL;
-        lvt.resd = 19;
-        CPUs::wrmsr( LOCAL_APIC_MSR_TICR, lvt );
-        icr.deliver_mode = APIC_ICR_IOAPIC_FIXED;
-        icr.dest_mode = ICR_IOAPIC_DELV_PHYSICAL;
-        icr.deliver_status = APIC_ICR_IOAPIC_IDLE;
-        icr.level = ICR_LEVEL_DE_ASSERT;
-        icr.trigger = APIC_ICR_IOAPIC_EDGE;
-        icr.dest_shorthand = ICR_SELF;
-        icr.destination.x2apic_destination = apic_id( );
-        CPUs::wrmsr( LOCAL_APIC_MSR_ICRLO, icr );
+        // lvt.vector = 0xB;
+        // CPUs::wrmsr( LOCAL_APIC_MSR_TDCR, lvt );
+        // lvt.vector = 0x80;
+        // lvt.deliver_mode = ICR_ALL_EXCLUDE_SELF;
+        // lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
+        // lvt.trigger = APIC_ICR_IOAPIC_LEVEL;
+        // lvt.resd = 19;
+        // CPUs::wrmsr( LOCAL_APIC_MSR_TICR, lvt );
+        // icr.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        // icr.dest_mode = ICR_IOAPIC_DELV_PHYSICAL;
+        // icr.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        // icr.level = ICR_LEVEL_DE_ASSERT;
+        // icr.trigger = APIC_ICR_IOAPIC_EDGE;
+        // icr.dest_shorthand = ICR_SELF;
+        // icr.destination.x2apic_destination = apic_id( );
+        // CPUs::wrmsr( LOCAL_APIC_MSR_ICRLO, icr );
     }
     Apic::Apic( VOID ) noexcept {
         // 关闭8259A PIC
@@ -105,7 +105,7 @@ PUBLIC namespace QuantumNEC::Architecture {
         // 开启 IMCR
         CPUs::io_out8( 0x22, 0x70 );
         CPUs::io_out8( 0x23, 0x01 );
-
+        println< ostream::HeadLevel::OK >( "1." );
         this->apic_flags = this->check_apic( );
 
         // 开启APIC
@@ -113,6 +113,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             this->enable_xapic( );
         }
         else if ( this->apic_flags == 1 ) {
+            println< ostream::HeadLevel::OK >( "2." );
             this->enable_x2apic( );
         }
         else {
@@ -126,7 +127,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             entry.mask = APIC_ICR_IOAPIC_MASKED;
             this->write_apic( IOAPIC_REG_TABLE + i * 2, entry, ApicType::IO_APIC );
         }
-    
+
         ASM( "MOVQ %0, %%CR8" ::"r"( 0ull ) );
         println< ostream::HeadLevel::OK >( "Initialize the advanced programmable interrupt controller." );
     }

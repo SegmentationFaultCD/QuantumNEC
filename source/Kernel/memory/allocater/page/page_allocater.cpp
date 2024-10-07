@@ -1,5 +1,4 @@
-#include "Kernel/memory/manager/page/page_manager.hpp"
-#include "Lib/Uefi.hpp"
+#include "Kernel/print.hpp"
 #include <Kernel/memory/allocater/page/page_allocater.hpp>
 #include <Kernel/memory/manager/page/page_header.hpp>
 #include <Lib/spin_lock.hpp>
@@ -158,9 +157,11 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             else {
                 page_header.bitmap->set( bitmap_index, __size );
+                std::println< std::ostream::HeadLevel::DEBUG >( "{}", bitmap_index );
             }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_2M >;
             std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_2M > );
+            return (void *)address;
         }
         // 先前开辟的全没符合要求
         // 那么就得开辟新块
@@ -244,6 +245,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_1G >;
             std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_1G > );
+            return (void *)address;
         }
         // 先前开辟的全没符合要求
         // 那么就得开辟新块
