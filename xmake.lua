@@ -77,7 +77,7 @@ target("build")
             "qemu-system-x86_64 \
             -drive if=pflash,format=raw,readonly=on,file=vm/OVMF.fd \
             -cpu qemu64,x2apic \
-            -m 2G \
+            -m 8G \
             -smp 4,cores=4,threads=1,sockets=1 \
             -drive file=fat:rw:vm,index=0,format=vvfat \
             -device nec-usb-xhci,id=xhci \

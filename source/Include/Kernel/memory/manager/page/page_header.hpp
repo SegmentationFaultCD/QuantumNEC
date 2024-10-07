@@ -1,4 +1,5 @@
 #pragma once
+#include "Kernel/memory/paging/ptv.hpp"
 #include <Lib/Uefi.hpp>
 #include <Kernel/memory/manager/page/page_manager.hpp>
 #include <Kernel/memory/allocater/page/page_allocater.hpp>
@@ -52,7 +53,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         explicit __page_header( IN uint64_t group_count, IN std::pair< uint64_t, int64_t > __header_start_address, IN std::pair< uint64_t, int64_t > __base_address ) {
             auto &table = allocate_information_list[ __allocater_to_bind ];
             if ( std::get< 1 >( __header_start_address ) == -1 ) {
-                this->group = reinterpret_cast< header_t * >( allocater.__allocate< _prev_info_block_allocater >( group_count ) );
+                this->group = reinterpret_cast< header_t * >( physical_to_virtual( allocater.__allocate< _prev_info_block_allocater >( group_count ) ) );
             }
             else {
                 this->group = reinterpret_cast< header_t * >( std::get< 0 >( __header_start_address ) );
@@ -72,12 +73,15 @@ PUBLIC namespace QuantumNEC::Kernel {
             start_info.free_memory_page_count = this->page_descriptor_count;
             start_info.bitmap = &start_bitmap;
 
+            for ( auto i = 0ul; i < this->all_memory_header_count / page_header_count; ++i ) {
+                auto info = std::get< __page_information >( this->group[ i ] );
+                table.append( info.group_node );
+                info.group_node.container = &info;
+            }
+
             for ( auto j = 1ul; j < this->all_memory_header_count; ++j ) {
                 auto &[ end_info, end_bitmap ] = this->group[ j ];
-                if ( !( j % this->page_header_count ) ) {     // 每个头作为节点加入目标分配器的内存块队列中
-                    table.append( end_info.group_node );
-                    end_info.group_node.container = &end_info;
-                }
+                end_info.header_count = this->all_memory_header_count;
                 end_info.owner = &start_info;
                 end_info.flags.state = __page_state::ALL_FREE;
                 end_info.flags.type = __allocater_to_bind;
@@ -91,6 +95,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                     base_address = (uint64_t)allocater.__allocate< _mmap_allocater >( (( this->page_descriptor_count * __page_allocater::__page_size< __allocater_to_bind > * this->all_memory_header_count ) / __page_allocater::__page_size< _mmap_allocater >));
                 }
             }
+
             for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {     // 对每个块的base_adderess进行初始化
                 std::get< __page_information >( this->group[ i ] ).base_adderess = base_address + this->page_descriptor_count * __page_allocater::__page_size< __allocater_to_bind > * i;
             }

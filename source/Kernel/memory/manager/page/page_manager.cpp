@@ -55,16 +55,15 @@ PUBLIC namespace QuantumNEC::Kernel {
                 auto base_index = ( (uint64_t)start - group_base_address ) / ( PH::page_descriptor_count * __page_allocater::__page_size< MemoryPageType::PAGE_2M > );
                 // 取得处于所在组的块的bitmap中的编号
                 auto index = (((uint64_t)start & __page_allocater::__page_mask< MemoryPageType::PAGE_2M >) / __page_allocater::__page_size< MemoryPageType::PAGE_2M >) % PH::page_descriptor_count;
-                bitmap = std::get< PHI >( page_header.get( base_index ) ).bitmap;
+                auto &[ header, bitmap ] = page_header.get( base_index );
                 start = start / __page_allocater::__page_size< MemoryPageType::PAGE_2M >;
                 end = Lib::DIV_ROUND_UP( end, __page_allocater::__page_size< MemoryPageType::PAGE_2M > );
                 // 将这部分内存添加至bitmap
-                bitmap->set( index, end - start );
-
+                bitmap.set( index, end - start );
+                header.flags.state = PH::NORMAL;
                 break;
             }
         }
-
         println< ostream::HeadLevel::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
     }
 }

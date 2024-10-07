@@ -1,3 +1,5 @@
+#include "Kernel/memory/allocater/page/page_allocater.hpp"
+#include "Kernel/memory/collector/page/page_collector.hpp"
 #include <Kernel/print.hpp>
 #include <Arch/Arch.hpp>
 #include <Kernel/kernel.hpp>
@@ -160,6 +162,10 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
 
     Modules::Module modules { };
     println< ostream::HeadLevel::DEBUG >( "Test 1 : Memory allocate--------------------------------" );
+
+    Kernel::__page_allocater allocater { };
+    Kernel::__page_collector collector { };
+    using namespace QuantumNEC::Kernel;
 
     // char buf[] { "hello world\0" };
     // auto w { new char[ 12 ] };
