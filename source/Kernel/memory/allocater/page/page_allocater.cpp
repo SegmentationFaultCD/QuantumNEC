@@ -1,6 +1,5 @@
-#include "Kernel/print.hpp"
+#include "Kernel/memory/manager/page/page_manager.hpp"
 #include "Lib/Uefi.hpp"
-#include "Lib/list.hpp"
 #include <Kernel/memory/allocater/page/page_allocater.hpp>
 #include <Kernel/memory/manager/page/page_header.hpp>
 #include <Lib/spin_lock.hpp>
@@ -18,6 +17,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto header_count = !__size % PH::page_descriptor_count ? __size / PH::page_descriptor_count : Lib::DIV_ROUND_UP( __size, PH::page_descriptor_count );
         Lib::ListNode *node { };
         if ( __size < PH::page_descriptor_count ) {
+            // 不超过一个header可控制的，那就找到1个内存大小足够的任意状态块
             node = list.traversal(
                 [ &index, &bitmap_index ]( Lib::ListNode *node, uint64_t size ) -> BOOL {
                     for ( auto i = 0ul; i < PH::page_header_count; ++i ) {
@@ -32,6 +32,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 __size );
         }
         else {
+            // 超过一个header可控制的，那就找到几个连续的空闲块
             node = list.traversal(
                 [ &index, &bitmap_index ]( Lib::ListNode *node, uint64_t size ) -> BOOL {
                     for ( auto i = 0ul; i < PH::page_header_count; ++i ) {
@@ -51,6 +52,8 @@ PUBLIC namespace QuantumNEC::Kernel {
                 header_count );
         }
         if ( node ) {
+            // 找到说明有符合的块可以使用
+
             for ( auto i = index; i < index + header_count - 1; ++i ) {
                 auto &page_header = std::get< PHI >( ( (PH::header_t *)node->container )[ i ] );
                 page_header.bitmap->set( 0, PH::page_descriptor_count );
@@ -59,13 +62,20 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             auto &page_header = std::get< PHI >( ( (PH::header_t *)node->container )[ index + header_count - 1 ] );
             page_header.free_memory_page_count -= __size % PH::page_descriptor_count;
+
             if ( !page_header.free_memory_page_count ) {
                 page_header.flags.state = PH::ALL_FULL;
             }
             else {
                 page_header.flags.state = PH::NORMAL;
             }
-            page_header.bitmap->set( 0, __size % PH::page_descriptor_count );
+
+            if ( __size >= PH::page_descriptor_count ) {
+                page_header.bitmap->set( 0, __size % PH::page_descriptor_count );
+            }
+            else {
+                page_header.bitmap->set( bitmap_index, __size );
+            }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_4K >;
             std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_4K > );
             return (VOID *)address;
@@ -135,16 +145,22 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             auto &page_header = std::get< PHI >( ( (PH::header_t *)node->container )[ index + header_count - 1 ] );
             page_header.free_memory_page_count -= __size % PH::page_descriptor_count;
+
             if ( !page_header.free_memory_page_count ) {
                 page_header.flags.state = PH::ALL_FULL;
             }
             else {
                 page_header.flags.state = PH::NORMAL;
             }
-            page_header.bitmap->set( 0, __size % PH::page_descriptor_count );
+
+            if ( __size >= PH::page_descriptor_count ) {
+                page_header.bitmap->set( 0, __size % PH::page_descriptor_count );
+            }
+            else {
+                page_header.bitmap->set( bitmap_index, __size );
+            }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_2M >;
             std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_2M > );
-            return (VOID *)address;
         }
         // 先前开辟的全没符合要求
         // 那么就得开辟新块
@@ -212,16 +228,22 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             auto &page_header = std::get< PHI >( ( (PH::header_t *)node->container )[ index + header_count - 1 ] );
             page_header.free_memory_page_count -= __size % PH::page_descriptor_count;
+
             if ( !page_header.free_memory_page_count ) {
                 page_header.flags.state = PH::ALL_FULL;
             }
             else {
                 page_header.flags.state = PH::NORMAL;
             }
-            page_header.bitmap->set( 0, __size % PH::page_descriptor_count );
+
+            if ( __size >= PH::page_descriptor_count ) {
+                page_header.bitmap->set( 0, __size % PH::page_descriptor_count );
+            }
+            else {
+                page_header.bitmap->set( bitmap_index, __size );
+            }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_1G >;
             std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_1G > );
-            return (VOID *)address;
         }
         // 先前开辟的全没符合要求
         // 那么就得开辟新块
