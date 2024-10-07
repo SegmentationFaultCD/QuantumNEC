@@ -132,7 +132,7 @@ PUBLIC namespace std {
         }
         template < bool value = true >
         auto set( std::size_t pos, std::uint64_t size ) -> bitset & {
-            if ( size ) {
+            if ( !size ) {
                 return *this;
             }
             auto &&bitmap_index = pos / 64;
@@ -221,57 +221,57 @@ PUBLIC namespace std {
             if ( !size || size > N ) {
                 return std::unexpected { bitset_error_code::ScopeStackoverflow };
             }
-            if ( auto &&[ bitmap_index, free_bit_start_index ] = [ this, &size ] -> std::pair< uint64_t, int64_t > {
-                     for ( uint64_t i { }; i < this->length; ++i ) {
-                         for ( uint64_t j { }; j < 64; ++j ) {
-                             if ( !( this->bitmap[ i ] & ( 1ul << j ) ) ) {
-                                 if ( 64 - j >= size ) {
-                                     if ( !( ( this->bitmap[ i ] >> j ) & ( ( 1ul << size ) - 1 ) ) ) {
-                                         return { i, j };
-                                     }
-                                     continue;
-                                 }
-                                 if ( this->bitmap[ i ] >> j ) {
-                                     continue;
-                                 }
-                                 uint64_t used_length { };
-                                 if ( auto tmp = ( size - ( 64 - j ) ); !( tmp % 64 ) ) {
-                                     used_length = tmp / 64;
-                                 }
-                                 else {
-                                     used_length = tmp / 64 + 1;
-                                 }
-                                 bool success { true };
-                                 for ( auto &&_ { i + 1 }; _ < used_length + i; ++_ ) {
-                                     if ( this->bitmap[ _ ] ) {
-                                         success = false;
-                                         break;
-                                     }
-                                 }
-                                 if ( !success ) {
-                                     continue;
-                                 }
-                                 if ( this->bitmap[ used_length + i ] & ( ( 1ul << ( ( size - ( 64 - j ) ) % 64 ) ) - 1 ) ) {
-                                     continue;
-                                 }
-                                 return { i, j };
-                             }
-                         }
-                     }
-                     return { 0, -1 };
-                 }( );
-                 free_bit_start_index != -1 ) {
-                auto pos_in_bitmap = bitmap_index * 64 + free_bit_start_index;
-                this->set< true >( pos_in_bitmap, size );
-                return pos_in_bitmap;
+            if ( auto pos_in_bitmap = this->find< false >( size ); pos_in_bitmap.has_value( ) ) {
+                this->set< true >( pos_in_bitmap.value( ), size );
+                return pos_in_bitmap.value( );
             }
             return std::unexpected { bitset_error_code::NotFound };
         }
         auto free( std::size_t pos, std::size_t size = 1 ) {
             this->set< false >( pos, size );
         }
+        template < bool value >
+        auto find( std::size_t size = 1 ) -> std::expected< uint64_t, bitset_error_code > {
+            for ( uint64_t i { }; i < this->length; ++i ) {
+                for ( uint64_t j { }; j < 64; ++j ) {
+                    if ( !( this->bitmap[ i ] & ( 1ul << j ) ) ) {
+                        if ( 64 - j >= size ) {
+                            if ( !( ( this->bitmap[ i ] >> j ) & ( ( 1ul << size ) - 1 ) ) ) {
+                                return { i * 64 + j };
+                            }
+                            continue;
+                        }
+                        if ( this->bitmap[ i ] >> j ) {
+                            continue;
+                        }
+                        uint64_t used_length { };
+                        if ( auto tmp = ( size - ( 64 - j ) ); !( tmp % 64 ) ) {
+                            used_length = tmp / 64;
+                        }
+                        else {
+                            used_length = tmp / 64 + 1;
+                        }
+                        bool success { true };
+                        for ( auto &&_ { i + 1 }; _ < used_length + i; ++_ ) {
+                            if ( this->bitmap[ _ ] ) {
+                                success = false;
+                                break;
+                            }
+                        }
+                        if ( !success ) {
+                            continue;
+                        }
+                        if ( this->bitmap[ used_length + i ] & ( ( 1ul << ( ( size - ( 64 - j ) ) % 64 ) ) - 1 ) ) {
+                            continue;
+                        }
+                        return { i * 64 + j };
+                    }
+                }
+            }
+            return std::unexpected { bitset_error_code::NotFound };
+        }
 
-    public:
+    private:
         inline static constexpr auto length = ( N % 64 == 0 ? N / 64 : N / 64 + 1 );
         uint64_t bitmap[ length ] { };
     };

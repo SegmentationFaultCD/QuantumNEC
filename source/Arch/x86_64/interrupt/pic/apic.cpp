@@ -126,7 +126,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             entry.mask = APIC_ICR_IOAPIC_MASKED;
             this->write_apic( IOAPIC_REG_TABLE + i * 2, entry, ApicType::IO_APIC );
         }
-
+    
         ASM( "MOVQ %0, %%CR8" ::"r"( 0ull ) );
         println< ostream::HeadLevel::OK >( "Initialize the advanced programmable interrupt controller." );
     }

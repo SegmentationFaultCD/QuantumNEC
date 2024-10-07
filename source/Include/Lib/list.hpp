@@ -9,6 +9,7 @@ PUBLIC namespace QuantumNEC::Lib {
         ListNode *next { }; /* 下一个节点 */
         VOID *container { };
         explicit ListNode( VOID ) noexcept = default;
+
         /**
          * @brief 判断上一节点十分为空
          * @param node 要判断的节点
@@ -36,11 +37,14 @@ PUBLIC namespace QuantumNEC::Lib {
         ListNode head { }; /* 链表头 */
         ListNode end { };  /* 链表尾 */
     public:
-        constexpr ListTable( VOID ) noexcept {
+        auto init( VOID ) {
             this->head.prev = NULL;
             this->head.next = &this->end;
             this->end.prev = &this->head;
             this->end.next = NULL;
+        }
+        ListTable( VOID ) noexcept {
+            this->init( );
         }
 
         ~ListTable( VOID ) noexcept = default;
@@ -114,9 +118,7 @@ PUBLIC namespace QuantumNEC::Lib {
          * @return 找到符合条件的元素返回元素指针，否则返回 NULL
          */
         auto traversal( IN CONST auto func, IN CONST auto arg ) -> ListNode *
-            requires requires {
-                { func( ( ListNode * ) { }, arg ) } -> std::same_as< BOOL >;
-            }
+            requires std::invocable< decltype( func ), ListNode *, decltype( arg ) >
         {
             auto node { this->head.next };
             /* 如果队列为空，就必然没有符合条件的结点，故直接返回 NULL */

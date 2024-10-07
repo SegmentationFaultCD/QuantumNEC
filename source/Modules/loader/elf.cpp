@@ -1,5 +1,7 @@
+#include "Kernel/memory/manager/page/page_manager.hpp"
 #include <Modules/loader/elf.hpp>
 #include <Kernel/kernel.hpp>
+#include <Kernel/memory/memory.hpp>
 using namespace QuantumNEC::Kernel;
 PUBLIC namespace QuantumNEC::Modules {
     auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< uint64_t, ElfErrorCode > {
@@ -20,8 +22,8 @@ PUBLIC namespace QuantumNEC::Modules {
             }
         }
         auto page_count { ( ( high_address - low_address ) >> 12 ) + 1 };
-        auto relocate_base { (uint64_t)physical_to_virtual( Memory::page->allocate( page_count, MemoryPageType::PAGE_4K ) ) };
-        Kernel::Memory::memory_paging_map->map< Kernel::MemoryPageType::PAGE_2M >( (uint64_t)Kernel::virtual_to_physical( relocate_base ), relocate_base, 1, Kernel::PAGE_PRESENT | Kernel::PAGE_RW_W | Kernel::PAGE_US_U );
+        auto relocate_base { (uint64_t)physical_to_virtual( Kernel::__page_allocater { }.__allocate< MemoryPageType::PAGE_4K >( page_count ) ) };
+        Kernel::__mapper { }.__map( (uint64_t)Kernel::virtual_to_physical( relocate_base ), relocate_base, 1, Kernel::PAGE_PRESENT | Kernel::PAGE_RW_W | Kernel::PAGE_US_U, MemoryPageType::PAGE_2M );
 
         auto relocate_offset = relocate_base - low_address;
         auto zero_start = reinterpret_cast< uint64_t * >( relocate_base );

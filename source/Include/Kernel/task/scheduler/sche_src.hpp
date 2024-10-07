@@ -1,6 +1,6 @@
 #pragma once
 #include <Lib/Uefi.hpp>
-#include <Kernel/task/pcb/pcb.hpp>
+#include <Kernel/task/manager/pcb.hpp>
 #include <Libcxx/expected.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     class ScheduleSource
