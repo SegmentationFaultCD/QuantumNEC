@@ -422,12 +422,12 @@ PUBLIC namespace QuantumNEC::Architecture {
         0xfee00290     none         保留                        N/A
         ~
         0xfee002e0     none         保留                        N/A
-        0xfee002f0     0x82f        LTV CMCI寄存器              RW
+        0xfee002f0     0x82f        LVT CMCI寄存器              RW
         0xfee00300     0x830        中断命令寄存器ICR (31：0)     RW
         0xfee00310     0x831        中断命令寄存器ICR (63：32)    RW
-        0xfee00320     0x832        LTV定时器寄存器              RW
-        0xfee00330     0x833        LTV温度传感器寄存器           RW
-        0xfee00340     0x834        LTV性能监控计数器寄存器        RW
+        0xfee00320     0x832        LVT定时器寄存器              RW
+        0xfee00330     0x833        LVT温度传感器寄存器           RW
+        0xfee00340     0x834        LVT性能监控计数器寄存器        RW
         0xfee00350     0x835        LVTLINT0寄存器              RW
         0xfee00360     0x836        LVTLINT1寄存器              RW
         0xfee00370     0x837        LVT错误寄存器                RW
@@ -453,15 +453,15 @@ PUBLIC namespace QuantumNEC::Architecture {
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_SVR { 0x00F0 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ENABLE { 0x00000100 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ESR { 0x0280 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LTV_CMCI { 0x02F0 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_CMCI { 0x02F0 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ICRLO { 0x0300 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ICRLI { 0x0310 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LTV_TIMER { 0x0320 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LTV_TS { 0x0330 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LTV_PMC { 0x0340 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LTV_LINT0 { 0x0350 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LTV_LINT1 { 0x0360 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LTV_ERROR { 0x0370 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_TIMER { 0x0320 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_TS { 0x0330 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_PMC { 0x0340 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_LINT0 { 0x0350 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_LINT1 { 0x0360 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_ERROR { 0x0370 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_TICR { 0x0380 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_TCCR { 0x0390 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_FDCR { 0x03D0 };
@@ -469,15 +469,15 @@ PUBLIC namespace QuantumNEC::Architecture {
 
     PUBLIC constexpr CONST auto LOCAL_APIC_MSR_SVR { 0x80f };
     PUBLIC constexpr CONST auto LOCAL_APIC_MSR_VERSION { 0x803 };
-    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LTV_CMCI { 0x82f };
+    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LVT_CMCI { 0x82f };
     PUBLIC constexpr CONST auto LOCAL_APIC_MSR_ICRL0 { 0x830 };
     PUBLIC constexpr CONST auto LOCAL_APIC_MSR_ICRL1 { 0x831 };
-    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LTV_TIMER { 0x832 };
-    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LTV_TS { 0x833 };
-    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LTV_PMC { 0x834 };
-    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LTV_LINT0 { 0x835 };
-    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LTV_LINT1 { 0x836 };
-    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LTV_ERROR { 0x837 };
+    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LVT_TIMER { 0x832 };
+    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LVT_TS { 0x833 };
+    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LVT_PMC { 0x834 };
+    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LVT_LINT0 { 0x835 };
+    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LVT_LINT1 { 0x836 };
+    PUBLIC constexpr CONST auto LOCAL_APIC_MSR_LVT_ERROR { 0x837 };
     PUBLIC constexpr CONST auto LOCAL_APIC_MSR_ESR { 0x828 };
     PUBLIC constexpr CONST auto LOCAL_APIC_MSR_EOI { 0x80b };
     PUBLIC constexpr CONST auto LOCAL_APIC_MSR_ICRLO { 0x830 };

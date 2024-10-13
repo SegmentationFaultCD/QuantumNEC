@@ -1,58 +1,10 @@
-#include "Lib/Uefi.hpp"
+
 #include <Arch/x86_64/platform/platform.hpp>
 #include <Kernel/print.hpp>
 
 PUBLIC namespace QuantumNEC::Architecture {
     using namespace std;
     auto Apic::enable_xapic( VOID ) -> VOID {
-        // 开启x2apic
-        InterruptCommandRegister icr { CPUs::rdmsr( IA32_APIC_BASE_MSR ) };
-        icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
-        icr.dest_mode = ICR_IOAPIC_DELV_LOGIC;
-        CPUs::wrmsr( IA32_APIC_BASE_MSR, (uint64_t)icr );
-        // 开启SVR
-        ApicLocalVectorTableRegisters lvt { (uint32_t)CPUs::rdmsr( LOCAL_APIC_MSR_SVR ) };
-        lvt.deliver_mode = IOAPIC_ICR_LOWEST_PRIORITY;
-        if ( CPUs::rdmsr( LOCAL_APIC_MSR_VERSION ) >> 24 & 1 ) {
-            lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
-        }
-
-        // 然后屏蔽剩下的LTV寄存器
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
-        lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
-        write_apic( LOCAL_BASE_APIC_LTV_CMCI, lvt, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_LTV_TIMER, lvt, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_LTV_LINT0, lvt, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_LTV_ERROR, lvt, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_LTV_LINT1, lvt, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_LTV_TS, lvt, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_LTV_PMC, lvt, ApicType::LOCAL_APIC );
-
-        lvt.vector = 0x80;
-        lvt.deliver_mode = ICR_ALL_EXCLUDE_SELF;
-        lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
-        lvt.trigger = APIC_ICR_IOAPIC_LEVEL;
-        lvt.resd = 19;
-        write_apic( LOCAL_BASE_APIC_TICR, lvt, ApicType::LOCAL_APIC );
-        lvt = 0;
-        write_apic( LOCAL_BASE_APIC_ESR, lvt, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_EOI, lvt, ApicType::LOCAL_APIC );
-
-        icr.deliver_mode = APIC_ICR_IOAPIC_FIXED;
-        icr.dest_mode = ICR_IOAPIC_DELV_PHYSICAL;
-        icr.deliver_status = APIC_ICR_IOAPIC_IDLE;
-        icr.level = ICR_LEVEL_DE_ASSERT;
-        icr.trigger = APIC_ICR_IOAPIC_EDGE;
-        icr.dest_shorthand = ICR_SELF;
-        icr.destination.x2apic_destination = apic_id( );
-        write_apic( LOCAL_BASE_APIC_ICRLO, icr, ApicType::LOCAL_APIC );
-        write_apic( LOCAL_BASE_APIC_ICRLI, icr, ApicType::LOCAL_APIC );
-
-        lvt = 0;
-        write_apic( LOCAL_BASE_APIC_TPR, lvt, ApicType::LOCAL_APIC );
-        lvt.vector = 0xB;
-        write_apic( LOCAL_BASE_APIC_TDCR, lvt, ApicType::LOCAL_APIC );
     }
     auto Apic::enable_x2apic( VOID ) -> VOID {
         // 开启  xapic
@@ -60,7 +12,6 @@ PUBLIC namespace QuantumNEC::Architecture {
         icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
         icr.dest_mode = ICR_IOAPIC_DELV_LOGIC;
         CPUs::wrmsr( IA32_APIC_BASE_MSR, icr );
-        println< ostream::HeadLevel::OK >( "1." );
         // 开启SVR
         ApicLocalVectorTableRegisters lvt { CPUs::rdmsr( LOCAL_APIC_MSR_SVR ) };
         lvt.deliver_mode = IOAPIC_ICR_LOWEST_PRIORITY;
@@ -68,19 +19,51 @@ PUBLIC namespace QuantumNEC::Architecture {
             lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
         }
         CPUs::wrmsr( LOCAL_APIC_MSR_SVR, lvt );
-        println< ostream::HeadLevel::OK >( "2." );
-        // 屏蔽剩下的LTV寄存器
+        // 屏蔽6个LVT寄存器
+        lvt = read_apic( LOCAL_BASE_APIC_LVT_CMCI, ApicType::LOCAL_APIC );
         lvt.mask = APIC_ICR_IOAPIC_MASKED;
         lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
-        // CPUs::wrmsr( LOCAL_APIC_MSR_LTV_CMCI, lvt );     // 有问题
-        CPUs::wrmsr( LOCAL_APIC_MSR_LTV_TIMER, lvt );
-        CPUs::wrmsr( LOCAL_APIC_MSR_LTV_ERROR, lvt );
-        CPUs::wrmsr( LOCAL_APIC_MSR_LTV_TS, lvt );
-        CPUs::wrmsr( LOCAL_APIC_MSR_LTV_PMC, lvt );
-        CPUs::wrmsr( LOCAL_APIC_MSR_LTV_LINT0, lvt );
-        CPUs::wrmsr( LOCAL_APIC_MSR_LTV_LINT1, lvt );
-        println< ostream::HeadLevel::OK >( "3." );
+        write_apic( LOCAL_BASE_APIC_LVT_CMCI, lvt, ApicType::LOCAL_APIC );
+
+        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_LVT_TIMER );
+        lvt.mask = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        CPUs::wrmsr( LOCAL_APIC_MSR_LVT_TIMER, lvt );
+
+        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_LVT_ERROR );
+        lvt.mask = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        CPUs::wrmsr( LOCAL_APIC_MSR_LVT_ERROR, lvt );
+
+        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_LVT_TS );
+        lvt.mask = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        CPUs::wrmsr( LOCAL_APIC_MSR_LVT_TS, lvt );
+
+        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_LVT_PMC );
+        lvt.mask = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        CPUs::wrmsr( LOCAL_APIC_MSR_LVT_PMC, lvt );
+
+        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_LVT_LINT0 );
+        lvt.mask = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        CPUs::wrmsr( LOCAL_APIC_MSR_LVT_LINT0, lvt );
+
+        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_LVT_LINT1 );
+        lvt.mask = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        CPUs::wrmsr( LOCAL_APIC_MSR_LVT_LINT1, lvt );
+
+        // EOI寄存器
+        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_EOI );
         lvt.mask = APIC_ICR_IOAPIC_UNMASKED;
         CPUs::wrmsr( LOCAL_APIC_MSR_EOI, lvt );
 
