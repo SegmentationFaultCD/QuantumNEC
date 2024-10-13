@@ -19,7 +19,7 @@ PUBLIC namespace QuantumNEC::Architecture {
             lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
         }
         CPUs::wrmsr( LOCAL_APIC_MSR_SVR, lvt );
-        // 屏蔽6个LVT寄存器
+        // 屏蔽7个LVT寄存器
         lvt = read_apic( LOCAL_BASE_APIC_LVT_CMCI, ApicType::LOCAL_APIC );
         lvt.mask = APIC_ICR_IOAPIC_MASKED;
         lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
@@ -63,29 +63,21 @@ PUBLIC namespace QuantumNEC::Architecture {
         CPUs::wrmsr( LOCAL_APIC_MSR_LVT_LINT1, lvt );
 
         // EOI寄存器
-        lvt = CPUs::rdmsr( LOCAL_APIC_MSR_EOI );
-        lvt.mask = APIC_ICR_IOAPIC_UNMASKED;
-        CPUs::wrmsr( LOCAL_APIC_MSR_EOI, lvt );
+        // lvt = CPUs::rdmsr( LOCAL_APIC_MSR_EOI );
+        // lvt.mask = APIC_ICR_IOAPIC_UNMASKED;
+        // CPUs::wrmsr( LOCAL_APIC_MSR_EOI, lvt );
 
-        lvt.vector = 0xB;
-        CPUs::wrmsr( LOCAL_APIC_MSR_TDCR, lvt );
-        println< ostream::HeadLevel::OK >( "5." );
-        lvt.vector = 0x80;
-        lvt.deliver_mode = ICR_ALL_EXCLUDE_SELF;
-        lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
-        lvt.trigger = APIC_ICR_IOAPIC_LEVEL;
-        lvt.resd = 19;
-        CPUs::wrmsr( LOCAL_APIC_MSR_TICR, lvt );
-        println< ostream::HeadLevel::OK >( "6." );
-        icr.deliver_mode = APIC_ICR_IOAPIC_FIXED;
-        icr.dest_mode = ICR_IOAPIC_DELV_PHYSICAL;
-        icr.deliver_status = APIC_ICR_IOAPIC_IDLE;
-        icr.level = ICR_LEVEL_DE_ASSERT;
-        icr.trigger = APIC_ICR_IOAPIC_EDGE;
-        icr.dest_shorthand = ICR_SELF;
-        icr.destination.x2apic_destination = apic_id( );
-        CPUs::wrmsr( LOCAL_APIC_MSR_ICRLO, icr );
-        println< ostream::HeadLevel::OK >( "7." );
+        // IPI初始化
+        // println< ostream::HeadLevel::OK >( "6." );
+        // icr = 0;
+        // icr.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        // icr.dest_mode = ICR_IOAPIC_DELV_PHYSICAL;
+        // icr.deliver_status = APIC_ICR_IOAPIC_IDLE;
+        // icr.level = ICR_LEVEL_DE_ASSERT;
+        // icr.trigger = APIC_ICR_IOAPIC_EDGE;
+        // icr.dest_shorthand = ICR_SELF;
+        // icr.destination.x2apic_destination = apic_id( );
+        // CPUs::wrmsr( LOCAL_APIC_MSR_ICRLO, icr );
     }
     Apic::Apic( VOID ) noexcept {
         // 关闭8259A PIC

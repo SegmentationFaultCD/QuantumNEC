@@ -24,12 +24,12 @@ PUBLIC namespace QuantumNEC::Architecture {
         /**
          * @brief 装载描述符
          */
-        virtual auto load( VOID ) const -> VOID = 0;
+        virtual auto load( IN uint64_t processor_id ) const -> VOID = 0;
         /**
          * @brief 读取
          * @return 指向Descriptor Table的指针
          */
-        virtual auto read( VOID ) const -> DescriptorType * = 0;
+        virtual auto read( IN uint64_t processor_id ) const -> DescriptorType * = 0;
 
     protected:
         /**

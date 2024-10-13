@@ -89,7 +89,6 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     public:
         Lib::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
-        Lib::ListNode running_task_node;     // 运行任务队列 连接running状态任务
 
         MM memory_manager;     // 记录内存分布
 

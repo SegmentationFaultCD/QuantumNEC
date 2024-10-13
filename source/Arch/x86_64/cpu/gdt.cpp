@@ -28,14 +28,14 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept :
     }
     println< ostream::HeadLevel::SYSTEM >( "Loading the global segment descriptor table." );
     // 加载GDT
-    this->load( );
+    this->load( 0 );
     // 加载全局段中的TSS
     println< ostream::HeadLevel::SYSTEM >( "Loading the task state segment in global segment." );
-    this->tss[ Apic::apic_id( ) ].load_tr( SELECTOR_TSS );
+    this->tss[ 0 ].load_tr( SELECTOR_TSS );
     println< ostream::HeadLevel::OK >( "Initialize the global segment descriptor table management." );
 }
-auto GlobalSegmentDescriptorTable::load( VOID ) CONST -> VOID {
-    ASM( "lgdt %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ Apic::apic_id( ) ] ) );
+auto GlobalSegmentDescriptorTable::load( IN uint64_t processor_id ) CONST -> VOID {
+    ASM( "lgdt %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ processor_id ] ) );
     ASM(
         "MOVQ %%RAX, %%DS \n\t"
         "MOVQ %%RAX, %%ES \n\t"
@@ -53,8 +53,8 @@ auto GlobalSegmentDescriptorTable::load( VOID ) CONST -> VOID {
         : );
     return;
 }
-auto GlobalSegmentDescriptorTable::read( VOID ) CONST -> GlobalSegmentDescriptor * {
-    ASM( "sgdt %0" ::"m"( this->xdtr[ Apic::apic_id( ) ] ) );
+auto GlobalSegmentDescriptorTable::read( IN uint64_t processor_id ) CONST -> GlobalSegmentDescriptor * {
+    ASM( "sgdt %0" ::"m"( this->xdtr[ processor_id ] ) );
     return this->xdtr[ Apic::apic_id( ) ].descriptor;
 }
 

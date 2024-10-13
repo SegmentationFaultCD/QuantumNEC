@@ -32,16 +32,16 @@ PUBLIC namespace QuantumNEC::Lib {
         }
     };
     // 双向链表
-    PUBLIC struct ListTable
+    PUBLIC class ListTable
     {
-        ListNode head { }; /* 链表头 */
-        ListNode end { };  /* 链表尾 */
+        ListNode _head { }; /* 链表头 */
+        ListNode _end { };  /* 链表尾 */
     public:
         auto init( VOID ) {
-            this->head.prev = NULL;
-            this->head.next = &this->end;
-            this->end.prev = &this->head;
-            this->end.next = NULL;
+            this->_head.prev = NULL;
+            this->_head.next = &this->_end;
+            this->_end.prev = &this->_head;
+            this->_end.next = NULL;
         }
         ListTable( VOID ) noexcept {
             this->init( );
@@ -49,21 +49,21 @@ PUBLIC namespace QuantumNEC::Lib {
 
         ~ListTable( VOID ) noexcept = default;
         auto operator=( ListTable &lt ) -> ListTable & {
-            this->head = lt.head;
-            this->end = lt.end;
+            this->_head = lt._head;
+            this->_end = lt._end;
             return *this;
         }
 
     public:
         auto begin( ) {
-            return this->head.next;
+            return this->_head.next;
         }
         /**
          * @brief 插入节点到链表末尾
          * @param New 要添加的元素的指针
          */
         auto append( IN OUT ListNode &New ) {
-            this->insert( &New, &this->end );
+            this->insert( &New, &this->_end );
         }
 
         /**
@@ -71,7 +71,7 @@ PUBLIC namespace QuantumNEC::Lib {
          * @param New  要添加的元素的指针
          */
         auto push( IN OUT ListNode &New ) {
-            this->insert( &New, this->head.next );
+            this->insert( &New, this->_head.next );
         }
         /**
          * @brief 删除节点
@@ -86,7 +86,7 @@ PUBLIC namespace QuantumNEC::Lib {
          * @return 第一个元素
          */
         auto pop( VOID ) {
-            auto node { this->head.next };
+            auto node { this->_head.next };
             this->remove( *node );
             return node;
         }
@@ -94,7 +94,7 @@ PUBLIC namespace QuantumNEC::Lib {
          * @brief 判断链表是否为空
          */
         auto is_empty( VOID ) {
-            return this->head.next == &this->end ? TRUE : FALSE;
+            return this->_head.next == &this->_end ? TRUE : FALSE;
         }
         /**
          * @brief 在链表中查找节点
@@ -103,8 +103,8 @@ PUBLIC namespace QuantumNEC::Lib {
          * @retval true  找到元素
          */
         auto find( IN ListNode &objnode ) {
-            auto node { this->head.next };
-            while ( node != &( this->end ) ) {
+            auto node { this->_head.next };
+            while ( node != &( this->_end ) ) {
                 if ( node == &objnode )
                     return TRUE;
                 node = node->next;
@@ -120,11 +120,11 @@ PUBLIC namespace QuantumNEC::Lib {
         auto traversal( IN CONST auto func, IN CONST auto arg ) -> ListNode *
             requires std::invocable< decltype( func ), ListNode *, decltype( arg ) >
         {
-            auto node { this->head.next };
+            auto node { this->_head.next };
             /* 如果队列为空，就必然没有符合条件的结点，故直接返回 NULL */
             if ( this->is_empty( ) )
                 return NULL;
-            while ( node != &this->end ) {
+            while ( node != &this->_end ) {
                 if ( func(
                          node,
                          arg ) )     // func 返回
@@ -137,7 +137,7 @@ PUBLIC namespace QuantumNEC::Lib {
         }
         auto length( VOID ) {
             uint64_t length { };
-            for ( auto node { this->head.next }; node != &this->end; ++length ) {
+            for ( auto node { this->_head.next }; node != &this->_end; ++length ) {
                 node = node->next;
             }
             return length;
@@ -149,8 +149,10 @@ PUBLIC namespace QuantumNEC::Lib {
             in_before->prev = node;
         };
         auto back( VOID ) {
-            auto node { this->end.prev };
-            return node;
+            return this->_end.prev;
+        }
+        auto end( VOID ) {
+            return this->_end.prev;
         }
     };
 }

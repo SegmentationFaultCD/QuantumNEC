@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Kernel/task/manager/pcb.hpp"
 #include <Lib/Uefi.hpp>
 #include <Lib/list.hpp>
 #include <Lib/spin_lock.hpp>
@@ -155,10 +156,16 @@ PUBLIC namespace QuantumNEC::Kernel {
                 }
             }
             if ( index < 100 ) {
-                this->global_lock.acquire( );
                 // 实时任务，直接弹出首位
                 auto pcb = (PCB *)this->task_queue[ index ].pop( )->container;
+                this->global_lock.acquire( );
                 pcb->flags.state = PCB::State::RUNNING;
+                // 直接抢占当前任务
+                auto current = get_current( );
+                pcb->cpu_id = current->cpu_id;
+                this->running_queue.remove( current->general_task_node );
+                current->flags.state = PCB::State::READY;
+                this->running_queue.push( pcb->general_task_node );
                 this->global_lock.release( );
                 return pcb;
             }
@@ -181,6 +188,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                         while ( num-- )               // 内层循环,次数跟数组冒泡排序一样
                         {
                             if ( ( (PCB *)q->container )->virtual_deadline < Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies ) {
+                                // deadline小于当前进程则直接抢占
                             }
                             if ( ( (PCB *)q->container )->virtual_deadline > ( (PCB *)p->container )->virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
                             {

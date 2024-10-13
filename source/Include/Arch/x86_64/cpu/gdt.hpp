@@ -55,8 +55,8 @@ PUBLIC namespace QuantumNEC::Architecture {
         }
 
     public:
-        auto get( VOID ) noexcept -> CONST TaskStateSegmentDescriptor64 & {
-            return *this;
+        auto get_rsp0( VOID ) noexcept -> uint64_t {
+            return this->rsp[ 0 ];
         }
         auto set_rsp0( uint64_t stack_top ) noexcept {
             this->rsp[ 0 ] = stack_top;
@@ -84,12 +84,12 @@ PUBLIC namespace QuantumNEC::Architecture {
         /**
          * @brief 载入GDT
          */
-        virtual auto load( VOID ) CONST->VOID override;
+        virtual auto load( IN uint64_t processor_id ) CONST -> VOID override;
         /**
          * @brief 读取GDT
          * @return 指向全局描述符表开头的地址
          */
-        virtual auto read( VOID ) CONST->GlobalSegmentDescriptor * override;
+        virtual auto read( IN uint64_t processor_id ) CONST -> GlobalSegmentDescriptor * override;
 
     public:
         TaskStateSegmentDescriptor64 tss[ TASK_STATE_SEGMENT_DESCRIPTOR_COUNT ];

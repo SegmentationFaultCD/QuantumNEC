@@ -91,6 +91,10 @@ PUBLIC namespace QuantumNEC::Architecture {
             explicit InterruptCommandRegister( uint64_t value ) {
                 *this = *reinterpret_cast< decltype( this ) >( &value );
             }
+            auto operator=( IN uint64_t value ) -> CONST InterruptCommandRegister & {
+                *reinterpret_cast< uint64_t * >( this ) = value;
+                return *this;
+            }
         } _packed;
 
         struct IOApicRedirectionEntry

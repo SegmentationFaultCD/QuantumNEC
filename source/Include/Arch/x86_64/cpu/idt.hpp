@@ -98,12 +98,12 @@ PUBLIC namespace QuantumNEC::Architecture {
         /**
          * @brief 载入IDT
          */
-        virtual auto load( VOID ) const -> VOID override;
+        virtual auto load( IN uint64_t processor_id ) const -> VOID override;
         /**
          * @brief 读取IDT
          * @return 中断描述表开头地址
          */
-        virtual auto read( VOID ) const -> InterruptDescriptor * override;
+        virtual auto read( IN uint64_t processor_id ) const -> InterruptDescriptor * override;
 
     public:
         /**

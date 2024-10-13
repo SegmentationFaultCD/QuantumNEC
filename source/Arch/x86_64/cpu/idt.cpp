@@ -350,16 +350,16 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept :
     /* 挂载 idt*/
     println< ostream::HeadLevel::SYSTEM >( "Loading the interrupt descriptor table." );
 
-    this->load( );
+    this->load( 0 );
 
     println< ostream::HeadLevel::OK >( "Initialize the interrupt descriptor table management." );
 }
 
-auto InterruptDescriptorTable::load( VOID ) CONST -> VOID {
+auto InterruptDescriptorTable::load( [[maybe_unused]] IN uint64_t processor_id ) CONST -> VOID {
     ASM( "lidt %0" ::"m"( *this->xdtr ) );
     return;
 }
-auto InterruptDescriptorTable::read( VOID ) CONST -> InterruptDescriptor * {
+auto InterruptDescriptorTable::read( [[maybe_unused]] IN uint64_t processor_id ) CONST -> InterruptDescriptor * {
     // 获取idt地址并返回
     ASM( "sidt %0" ::"m"( *this->xdtr ) );
     return this->xdtr->descriptor;

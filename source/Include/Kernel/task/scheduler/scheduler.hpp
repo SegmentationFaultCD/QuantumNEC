@@ -5,12 +5,12 @@
 #include <Kernel/task/scheduler/bfs.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     template < typename SchedulerType >
-        requires std::is_compound_v< SchedulerType > && requires( SchedulerType &sche ) {
-            { sche.wake_up( (PCB *)0 ) } -> std::same_as< PCB * >;
-            { sche.sleep( ) } -> std::same_as< PCB * >;
-            { sche.schedule( ) } -> std::same_as< PCB * >;
-            { sche.insert( (PCB *)0 ) } -> std::same_as< PCB * >;
-        } && std::derived_from< SchedulerType, ScheduleSource >
+        requires std::is_compound_v< SchedulerType >
+                 && std::derived_from< SchedulerType, ScheduleSource >
+                 && std::invocable< decltype( SchedulerType::wake_up ), PCB * >
+                 && std::invocable< decltype( SchedulerType::sleep ) >
+                 && std::invocable< decltype( SchedulerType::scheduler ) >
+                 && std::invocable< decltype( SchedulerType::insert ), PCB * >
     class Scheduler : public SchedulerType
     {
     public:

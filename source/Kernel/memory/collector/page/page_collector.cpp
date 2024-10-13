@@ -1,6 +1,8 @@
+#include "Lib/Uefi.hpp"
 #include <Kernel/memory/collector/page/page_collector.hpp>
 #include <Kernel/memory/manager/page/page_header.hpp>
 #include <Kernel/memory/allocater/page/page_allocater.hpp>
+
 PUBLIC namespace QuantumNEC::Kernel {
     inline static Lib::SpinLock lock { };
     template <>
@@ -31,7 +33,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         PH page_headers { (PHI *)node->container };
 
         auto &header = std::get< PHI >( page_headers.get( base_index ) );
-        if ( ( index + __size ) <= PH::page_descriptor_count ) {
+        uint64_t end_remainder = index + __size;
+        if ( end_remainder <= PH::page_descriptor_count ) {
             // 所释放的不超过一个大组控制的大小
             header.bitmap->free( index, __size );
             header.free_memory_page_count += __size;
@@ -42,34 +45,40 @@ PUBLIC namespace QuantumNEC::Kernel {
                 header.flags.state = PH::NORMAL;
             }
         }
-        else {                                                                           // 超过了，那就属于多个组处理范围
-            uint64_t end_remainder = ( index + __size ) % PH::page_descriptor_count;     // 结尾要释放根数量
+        else {
+            // 超过了，那就属于多个组处理范围
+            end_remainder %= PH::page_descriptor_count;
             // 头
-            auto head_free_remainder = PH::page_descriptor_count - ( index + 1 );     // 头的要释放根数量
+            auto head_free_remainder = PH::page_descriptor_count - index;     // 头的要释放根数量
             header.free_memory_page_count += head_free_remainder;
+
             if ( header.free_memory_page_count == PH::page_descriptor_count ) {
                 header.flags.state = PH::ALL_FREE;
             }
             else {
                 header.flags.state = PH::NORMAL;
             }
+
             header.bitmap->free( index, head_free_remainder );
+
             // 中
             auto page_header_count = ( __size - head_free_remainder - end_remainder ) % PH::page_descriptor_count;
-            for ( auto i = base_index + 1; i < page_header_count - 1; ++i ) {
-                auto &header = std::get< PHI >( page_headers.get( i ) );
-                header.free_memory_page_count = PH::page_descriptor_count;
-                header.flags.state = PH::ALL_FREE;
-                header.bitmap->free( 0, PH::page_descriptor_count );
+            for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
+                auto &middle_header = std::get< PHI >( page_headers.get( i ) );
+                middle_header.free_memory_page_count = PH::page_descriptor_count;
+                middle_header.flags.state = PH::ALL_FREE;
+                middle_header.bitmap->free( 0, PH::page_descriptor_count );
+                std::println< std::ostream::HeadLevel::DEBUG >( "{}", middle_header.bitmap->count( ) );
             }
+
             // 尾
-            auto &header = std::get< PHI >( page_headers.get( page_header_count - 1 ) );
-            header.flags.state = PH::NORMAL;
-            header.free_memory_page_count += end_remainder;
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PH::ALL_FREE;
+            auto &end_header = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
+            end_header.flags.state = PH::NORMAL;
+            end_header.free_memory_page_count += end_remainder;
+            if ( end_header.free_memory_page_count == PH::page_descriptor_count ) {
+                end_header.flags.state = PH::ALL_FREE;
             }
-            header.bitmap->free( 0, end_remainder );
+            end_header.bitmap->free( 0, end_remainder );
         }
         std::memset( physical_to_virtual( __physical_address ), 0, __size * __page_allocater::__page_size< PAGE_2M > );     // 清空之前废弃的数据
         lock.release( );
@@ -102,7 +111,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         PH page_headers { (PHI *)node->container };
 
         auto &header = std::get< PHI >( page_headers.get( base_index ) );
-        if ( ( index + __size ) <= PH::page_descriptor_count ) {
+        uint64_t end_remainder = index + __size;
+        if ( end_remainder <= PH::page_descriptor_count ) {
             // 所释放的不超过一个大组控制的大小
             header.bitmap->free( index, __size );
             header.free_memory_page_count += __size;
@@ -113,34 +123,40 @@ PUBLIC namespace QuantumNEC::Kernel {
                 header.flags.state = PH::NORMAL;
             }
         }
-        else {                                                                           // 超过了，那就属于多个组处理范围
-            uint64_t end_remainder = ( index + __size ) % PH::page_descriptor_count;     // 结尾要释放根数量
+        else {
+            // 超过了，那就属于多个组处理范围
+            end_remainder %= PH::page_descriptor_count;
             // 头
-            auto head_free_remainder = PH::page_descriptor_count - ( index + 1 );     // 头的要释放根数量
+            auto head_free_remainder = PH::page_descriptor_count - index;     // 头的要释放根数量
             header.free_memory_page_count += head_free_remainder;
+
             if ( header.free_memory_page_count == PH::page_descriptor_count ) {
                 header.flags.state = PH::ALL_FREE;
             }
             else {
                 header.flags.state = PH::NORMAL;
             }
+
             header.bitmap->free( index, head_free_remainder );
+
             // 中
             auto page_header_count = ( __size - head_free_remainder - end_remainder ) % PH::page_descriptor_count;
-            for ( auto i = base_index + 1; i < page_header_count - 1; ++i ) {
-                auto &header = std::get< PHI >( page_headers.get( i ) );
-                header.free_memory_page_count = PH::page_descriptor_count;
-                header.flags.state = PH::ALL_FREE;
-                header.bitmap->free( 0, PH::page_descriptor_count );
+            for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
+                auto &middle_header = std::get< PHI >( page_headers.get( i ) );
+                middle_header.free_memory_page_count = PH::page_descriptor_count;
+                middle_header.flags.state = PH::ALL_FREE;
+                middle_header.bitmap->free( 0, PH::page_descriptor_count );
+                std::println< std::ostream::HeadLevel::DEBUG >( "{}", middle_header.bitmap->count( ) );
             }
+
             // 尾
-            auto &header = std::get< PHI >( page_headers.get( page_header_count - 1 ) );
-            header.flags.state = PH::NORMAL;
-            header.free_memory_page_count += end_remainder;
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PH::ALL_FREE;
+            auto &end_header = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
+            end_header.flags.state = PH::NORMAL;
+            end_header.free_memory_page_count += end_remainder;
+            if ( end_header.free_memory_page_count == PH::page_descriptor_count ) {
+                end_header.flags.state = PH::ALL_FREE;
             }
-            header.bitmap->free( 0, end_remainder );
+            end_header.bitmap->free( 0, end_remainder );
         }
         std::memset( physical_to_virtual( __physical_address ), 0, __size * __page_allocater::__page_size< PAGE_1G > );     // 清空之前废弃的数据
         lock.release( );
@@ -173,7 +189,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         PH page_headers { (PHI *)node->container };
 
         auto &header = std::get< PHI >( page_headers.get( base_index ) );
-        if ( ( index + __size ) <= PH::page_descriptor_count ) {
+        uint64_t end_remainder = index + __size;
+        if ( end_remainder <= PH::page_descriptor_count ) {
             // 所释放的不超过一个大组控制的大小
             header.bitmap->free( index, __size );
             header.free_memory_page_count += __size;
@@ -184,34 +201,40 @@ PUBLIC namespace QuantumNEC::Kernel {
                 header.flags.state = PH::NORMAL;
             }
         }
-        else {                                                                           // 超过了，那就属于多个组处理范围
-            uint64_t end_remainder = ( index + __size ) % PH::page_descriptor_count;     // 结尾要释放根数量
+        else {
+            // 超过了，那就属于多个组处理范围
+            end_remainder %= PH::page_descriptor_count;
             // 头
-            auto head_free_remainder = PH::page_descriptor_count - ( index + 1 );     // 头的要释放根数量
+            auto head_free_remainder = PH::page_descriptor_count - index;     // 头的要释放根数量
             header.free_memory_page_count += head_free_remainder;
+
             if ( header.free_memory_page_count == PH::page_descriptor_count ) {
                 header.flags.state = PH::ALL_FREE;
             }
             else {
                 header.flags.state = PH::NORMAL;
             }
+
             header.bitmap->free( index, head_free_remainder );
+
             // 中
             auto page_header_count = ( __size - head_free_remainder - end_remainder ) % PH::page_descriptor_count;
-            for ( auto i = base_index + 1; i < page_header_count - 1; ++i ) {
-                auto &header = std::get< PHI >( page_headers.get( i ) );
-                header.free_memory_page_count = PH::page_descriptor_count;
-                header.flags.state = PH::ALL_FREE;
-                header.bitmap->free( 0, PH::page_descriptor_count );
+            for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
+                auto &middle_header = std::get< PHI >( page_headers.get( i ) );
+                middle_header.free_memory_page_count = PH::page_descriptor_count;
+                middle_header.flags.state = PH::ALL_FREE;
+                middle_header.bitmap->free( 0, PH::page_descriptor_count );
+                std::println< std::ostream::HeadLevel::DEBUG >( "{}", middle_header.bitmap->count( ) );
             }
+
             // 尾
-            auto &header = std::get< PHI >( page_headers.get( page_header_count - 1 ) );
-            header.flags.state = PH::NORMAL;
-            header.free_memory_page_count += end_remainder;
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PH::ALL_FREE;
+            auto &end_header = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
+            end_header.flags.state = PH::NORMAL;
+            end_header.free_memory_page_count += end_remainder;
+            if ( end_header.free_memory_page_count == PH::page_descriptor_count ) {
+                end_header.flags.state = PH::ALL_FREE;
             }
-            header.bitmap->free( 0, end_remainder );
+            end_header.bitmap->free( 0, end_remainder );
         }
         std::memset( physical_to_virtual( __physical_address ), 0, __size * __page_allocater::__page_size< PAGE_4K > );     // 清空之前废弃的数据
         lock.release( );
