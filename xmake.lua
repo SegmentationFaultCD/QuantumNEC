@@ -23,7 +23,7 @@ add_cxxflags ("-fdata-sections")
 -- add_cxxflags("-Werror")
 add_cxxflags("-fPIE")
 add_cxxflags("-Wno-reorder")
-add_includedirs("source/Include", "source/Boot/limine")
+add_includedirs("./include", "source/boot/limine")
 
 set_optimize("none")
 set_languages("c17", "c++23")
@@ -31,17 +31,16 @@ set_languages("c17", "c++23")
 target("build")
     set_kind("binary")
     add_files( 
-        "source/Kernel/*.cpp",
-        "source/Kernel/*/*.cpp",
-        "source/Kernel/*/*/*.cpp",
-        "source/Kernel/*/*/*/*.cpp",
-        "source/Arch/x86_64/*/*/*.cpp",
-        "source/Arch/x86_64/*/*/*.S",
-        "source/Arch/x86_64/*/*.S",
-        "source/Arch/x86_64/*/*.cpp",
-        "source/Arch/x86_64/*.cpp",
-        "source/Modules/*.cpp",
-        "source/Modules/loader/*.cpp"
+        "source/kernel/*.cpp",
+        "source/kernel/*/*.cpp",
+        "source/kernel/*/*/*.cpp",
+        "source/kernel/*/*/*/*.cpp",
+        "source/kernel/*/*/*/*/*.cpp",
+        "source/kernel/*/*/*/*/*/*.cpp",
+        "source/kernel/*/*/*/*/*.S",
+
+        "source/modules/*.cpp",
+        "source/modules/loader/*.cpp"
     )
     
     before_build(function (target) 
@@ -52,9 +51,9 @@ target("build")
         os.mkdir("vm/QuantumNEC")
         os.mkdir("vm/QuantumNEC/SYSTEM64")
         print("复制所需要的文件")
-        os.exec("cp ./source/Boot/limine.conf ./vm/EFI/Boot/ -r")
-        os.exec("cp ./source/Boot/limine/BOOTX64.EFI ./vm/EFI/Boot/ -r")
-        os.exec("cp ./source/Boot/OVMF.fd ./vm/ -r")
+        os.exec("cp ./source/boot/limine.conf ./vm/EFI/Boot/ -r")
+        os.exec("cp ./source/boot/limine/BOOTX64.EFI ./vm/EFI/Boot/ -r")
+        os.exec("cp ./source/boot/OVMF.fd ./vm/ -r")
     end)
     on_link(function (target)
         run_dir = target:rundir()
@@ -63,7 +62,7 @@ target("build")
             object_string = object_string..val.." "
         end
         print("编译链接内核文件")
-        os.exec("ld -m elf_x86_64 --allow-multiple-definition --no-warn-rwx-segments -z muldefs -flto -s "..object_string.." "..run_dir.."/libcxx.a "..run_dir.."/libsys.a -o "..run_dir.."/micro_kernel.elf -T source/Arch/x86_64/System.lds")
+        os.exec("ld -m elf_x86_64 --allow-multiple-definition --no-warn-rwx-segments -z muldefs -flto -s "..object_string.." "..run_dir.."/libcxx.a "..run_dir.."/libsys.a -o "..run_dir.."/micro_kernel.elf -T source/kernel/System.lds")
     end)
     after_build(function (target)
         run_dir = target:rundir()
