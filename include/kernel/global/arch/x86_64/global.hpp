@@ -159,7 +159,13 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         ControlRegisters::CR3 cr3;
         ControlRegisters::CR4 cr4;
         ControlRegisters::CR8 cr8;
-        explicit ControlRegisterFrame( VOID ) noexcept;
+        explicit ControlRegisterFrame( VOID ) noexcept {
+            ASM( "movq %%cr0, %0\n\t" : "=r"( this->cr0 ) );
+            ASM( "movq %%cr2, %0\n\t" : "=r"( this->cr2 ) );
+            ASM( "movq %%cr3, %0\n\t" : "=r"( this->cr3 ) );
+            ASM( "movq %%cr4, %0\n\t" : "=r"( this->cr4 ) );
+            ASM( "movq %%cr8, %0\n\t" : "=r"( this->cr8 ) );
+        }
         // CR1，CR5~CR7, CR9~CR15为保留，无法访问
     };
     PUBLIC struct GeneralPurposeRegistersFrame

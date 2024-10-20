@@ -36,7 +36,6 @@ target("build")
         "source/kernel/*/*/*.cpp",
         "source/kernel/*/*/*/*.cpp",
         "source/kernel/*/*/*/*/*.cpp",
-        "source/kernel/*/*/*/*/*/*.cpp",
         "source/kernel/*/*/*/*/*.S",
 
         "source/modules/*.cpp",
