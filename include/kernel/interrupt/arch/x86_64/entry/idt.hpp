@@ -96,6 +96,9 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         class _IDT : public Descriptor< InterruptDescriptor, INTERRUPT_DESCRIPTOR_TABLE_COUNT, INTERRUPT_DESCRIPTOR_COUNT >
         {
         public:
+            explicit _IDT( VOID ) = default;
+
+        public:
             /**
              * @brief 载入IDT
              */
@@ -113,8 +116,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
          * @brief 输出寄存器状态
          * @param regs 寄存器数据
          */
-        STATIC auto
-        display_registers( IN CONST RegisterFrame *registers ) -> VOID;
+        STATIC auto display_registers( IN CONST RegisterFrame *registers ) -> VOID;
         /**
          * @brief 设置中断入口函数
          */

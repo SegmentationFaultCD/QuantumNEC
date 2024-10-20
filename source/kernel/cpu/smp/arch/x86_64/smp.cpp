@@ -8,7 +8,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         // uint64_t stack_start = 0;
         Lib::SpinLock lock { };
         using namespace QuantumNEC::Kernel;
-        for ( auto i { 1 }; i < __config.smp.cpu_count; ++i ) {
+        for ( auto i { 1ul }; i < __config.smp.cpu_count; ++i ) {
             lock.acquire( );
             __config.smp.cpus[ i ]->goto_address = apu_entry;
             auto stack_start = address;

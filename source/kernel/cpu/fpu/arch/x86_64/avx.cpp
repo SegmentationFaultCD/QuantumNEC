@@ -1,9 +1,9 @@
-#include <kernel/driver/fpu/fpu.hpp>
+#include <kernel/cpu/fpu/arch/x86_64/avx.hpp>
 #include <kernel/print.hpp>
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
 using namespace std;
-using namespace QuantumNEC::Kernel;
+using namespace QuantumNEC::Kernel::x86_64;
 
 Avx::Avx( VOID ) noexcept {
     // ASM(

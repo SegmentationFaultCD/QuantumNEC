@@ -1,4 +1,4 @@
-#include <kernel/driver/fpu/fpu.hpp>
+#include <kernel/cpu/fpu/arch/x86_64/sse.hpp>
 #include <kernel/print.hpp>
 #include <kernel/cpu/cpu.hpp>
 using namespace QuantumNEC;

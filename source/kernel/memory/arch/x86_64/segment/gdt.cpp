@@ -3,12 +3,13 @@
 #include <kernel/print.hpp>
 #include <libcxx/cstring.hpp>
 #include <lib/spin_lock.hpp>
-using namespace QuantumNEC::Kernel::x86_64;
+
 using namespace std;
-inline static byte_t buffer[ sizeof( GlobalSegmentDescriptorTable::_GDT ) ] { };
+namespace QuantumNEC::Kernel::x86_64 {
+inline static GlobalSegmentDescriptorTable::_GDT _gdt { };
 GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept {
-    this->gdt = new ( buffer ) GlobalSegmentDescriptorTable::_GDT { };
-    for ( size_t i { }, tss_base_low { }, tss_base_high { }; i < __config.smp.cpu_count; ++i ) {
+    this->gdt = new ( &_gdt ) GlobalSegmentDescriptorTable::_GDT { };
+    for ( size_t i { }, tss_base_low { }, tss_base_high { }; i < GLOBAL_SEGMENT_DESCRIPTOR_TABLE_COUNT; ++i ) {
         tss_base_low = ( reinterpret_cast< uint64_t >( &this->gdt->tss[ i ] ) ) & 0xffffffff;
         tss_base_high = ( reinterpret_cast< uint64_t >( &this->gdt->tss[ i ] ) >> 32 ) & 0xffffffff;
         this->gdt->tss[ i ].set_io_map_base_address( static_cast< uint16_t >( sizeof( TaskStateSegmentDescriptor ) << 16 ) );
@@ -52,11 +53,12 @@ auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) CONST 
         : [SELECTOR_CODE64] "i"( SELECTOR_CODE64_KERNEL ),
           [SELECTOR_DATA64] "a"( SELECTOR_DATA64_KERNEL )
         : );
+
     return;
 }
 auto GlobalSegmentDescriptorTable::_GDT::read( IN uint64_t processor_id ) CONST -> GlobalSegmentDescriptor * {
     ASM( "sgdt %0" ::"m"( this->xdtr[ processor_id ] ) );
-    return this->xdtr[ Apic::apic_id( ) ].descriptor;
+    return this->xdtr[ processor_id ].descriptor;
 }
 
 auto GlobalSegmentDescriptor::make( IN uint64_t base,
@@ -71,3 +73,4 @@ auto GlobalSegmentDescriptor::make( IN uint64_t base,
     this->base_high = ( base >> 24 ) & 0xff;
     return *this;
 }
+}     // namespace QuantumNEC::Kernel::x86_64

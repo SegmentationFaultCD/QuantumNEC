@@ -122,7 +122,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         Lib::ListTable thread_queue;     // 进程持有的线程队列
         uint64_t number_of_threads;      // 线程数量，最少为1（也就是进程本身）
 
-        FPU::FpuFrame *fpu_frame;
+        FloatPointUnit::FpuFrame *fpu_frame;
         uint64_t stack_magic;     // 用于检测栈的溢出
 
         explicit PCB( IN std::tuple< const char_t *, uint64_t, VOID *, State, std::pair< FpuEnable, FpuUsed >, Type > group, IN uint64_t _arg ) noexcept {
@@ -161,7 +161,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 this->context.pcontext->rsp = USER_STACK_VIRTUAL_ADDRESS_TOP;
             }
             // SSE
-            this->fpu_frame = reinterpret_cast< FPU::FpuFrame * >( this + 1 );
+            this->fpu_frame = reinterpret_cast< FloatPointUnit::FpuFrame * >( this + 1 );
             // 分配PID
             this->PID = pid_pool.allocate( );
             // 设置进程名

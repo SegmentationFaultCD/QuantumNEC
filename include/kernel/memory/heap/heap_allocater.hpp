@@ -4,7 +4,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC class HeapAllocater
     {
     public:
-        explicit HeapAllocater( VOID ) noexcept;
+        explicit HeapAllocater( VOID ) noexcept = default;
         virtual ~HeapAllocater( VOID ) noexcept = default;
 
     public:

@@ -367,7 +367,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PUBLIC constexpr CONST auto INTERRUPT_DESCRIPTOR_TABLE_COUNT { 1 };
     PUBLIC constexpr CONST auto INTERRUPT_DESCRIPTOR_COUNT { 256 };
     PUBLIC constexpr CONST auto GLOBAL_SEGMENT_DESCRIPTOR_TABLE_COUNT { NR_CPUS };
-    PUBLIC constexpr CONST auto SEGMENT_DESCRIPTOR_COUNT { 8192 };
+    PUBLIC constexpr CONST auto SEGMENT_DESCRIPTOR_COUNT { 32 };
     PUBLIC constexpr CONST auto TASK_STATE_SEGMENT_DESCRIPTOR_COUNT { NR_CPUS };
 
     /** @brief -------------最大CORE数量 **/

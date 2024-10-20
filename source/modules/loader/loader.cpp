@@ -25,9 +25,12 @@ PUBLIC namespace QuantumNEC::Modules {
         case PE: {
             return { };
         }
+        default:
+            break;
         }
+        return { };
     }
-    auto Modules::ModuleLoader::ModuleLoader::load( IN VOID * path, IN ModuleFileType type ) -> std::expected< uint64_t, void > {
+    auto Modules::ModuleLoader::ModuleLoader::load( IN VOID *, IN ModuleFileType ) -> std::expected< uint64_t, void > {
         // TODO :
         // 动态挂载
         return { };

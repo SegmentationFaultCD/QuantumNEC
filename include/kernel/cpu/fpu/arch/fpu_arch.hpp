@@ -1,11 +1,9 @@
 #pragma once
 #include <lib/Uefi.hpp>
 #if defined( __x86_64__ )
-#include <kernel/driver/fpu/arch/x86_64/avx.hpp>
-#include <kernel/driver/fpu/arch/x86_64/sse.hpp>
+#include <kernel/cpu/fpu/arch/x86_64/avx.hpp>
+#include <kernel/cpu/fpu/arch/x86_64/sse.hpp>
 #elif defined( __aarch64__ )
-#include <kernel/driver/fpu/arch/aarch64/avx.hpp>
-#include <kernel/driver/fpu/arch/aarch64/sse.hpp>
 #endif
 
 PUBLIC namespace QuantumNEC::Kernel {
@@ -14,7 +12,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 #elif defined( __aarch64__ )
     using namespace aarch64;
 #endif
-    class FpuArch :
+    class FloatPointUnit :
 #if defined( __x86_64__ )
         public Sse,
         public Avx
@@ -23,9 +21,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 #endif
     {
     public:
-        explicit FpuArch( VOID ) noexcept :
-            Sse { }, Avx { } {
-        }
+        explicit FloatPointUnit( VOID ) noexcept = default;
 
     public:
         using FpuFrame = SSE;

@@ -15,11 +15,9 @@ PUBLIC namespace QuantumNEC::Kernel {
         using PHI = PH::__page_information;
         uint64_t *info_address { };     // 找到一块空闲内存
         for ( auto i = 0ul; i < __config.memory_map.entry_count; ++i ) {
-            auto entry = memory_descriptor->entries[ i ];
-            auto start { entry->base }, end { start + PageAllocater::__page_size< MemoryPageType::PAGE_2M > };
-            if ( entry->type == LIMINE_MEMMAP_USABLE ) {
-                if ( start / PageAllocater::__page_size< MemoryPageType::PAGE_2M > > 0 ) {
-                    info_address = new ( physical_to_virtual( start ) ) uint64_t { };
+            if ( memory_descriptor->entries[ i ]->type == LIMINE_MEMMAP_USABLE ) {
+                if ( memory_descriptor->entries[ i ]->base / PageAllocater::__page_size< MemoryPageType::PAGE_2M > > 0 ) {
+                    info_address = new ( physical_to_virtual( memory_descriptor->entries[ i ]->base ) ) uint64_t { };
                     break;
                 }
             }

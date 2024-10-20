@@ -15,7 +15,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     // HeapManager
     {
     public:
-        explicit Memory( VOID ) noexcept;
+        explicit Memory( VOID ) noexcept = default;
 
     public:
         virtual ~Memory( VOID ) noexcept = default;

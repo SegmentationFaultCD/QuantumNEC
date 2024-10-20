@@ -7,7 +7,7 @@ PUBLIC namespace QuantumNEC::Modules {
         auto Elf_header { reinterpret_cast< ElfHeader * >( address ) };
         if ( !check_elf_magic( Elf_header ) )
             return std::unexpected { ElfErrorCode::MAGIC_IS_NOT_STANDARD };
-        ProgramHeaderTable *P_header = (ProgramHeaderTable *)( address + Elf_header->e_Phoff );
+        auto P_header = (ProgramHeaderTable *)( address + Elf_header->e_Phoff );
         auto low_address { 0xFFFFFFFFFFFFFFFFull };
         auto high_address { 0ull };
         for ( uint64_t i { }; i < Elf_header->e_PHeadCount; ++i ) {

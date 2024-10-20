@@ -8,6 +8,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         p += sizeof( Xsdp );
         this->xsdt = new ( p ) Xsdt { *this->xsdp };
         p += sizeof( Xsdt );
+        this->madt = new ( p ) Madt { *this->xsdt };
+        p += sizeof( Madt );
         this->fadt = new ( p ) Fadt { *this->xsdt };
         p += sizeof( Fadt );
         this->dsdt = new ( p ) Dsdt { *this->xsdt };

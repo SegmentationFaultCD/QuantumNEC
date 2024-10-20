@@ -1,4 +1,4 @@
-#include <kernel/cpu/arch/x86_64/smp.hpp>
+#include <kernel/cpu/smp/arch/x86_64/smp.hpp>
 #include <lib/spin_lock.hpp>
 #include <kernel/print.hpp>
 #include <kernel/interrupt/interrupt.hpp>
@@ -13,11 +13,11 @@ PUBLIC [[noreturn]] auto x86_64::apu_entry( IN limine_smp_info *cpu ) -> VOID {
     // 挂载这个核心的GDT IDT TSS
     // 很重要所以必须加上锁
     lock.acquire( );
-    // 减一是因为limine给的不是0，1，2号而是1，2，3号
     Interrupt::idt->load( cpu->processor_id );
     Memory::gdt->load( cpu->processor_id );
     Memory::gdt->tss[ cpu->processor_id ].load_tr( SELECTOR_TSS );
     Interrupt::enable_x2apic( );
+    Sse::activate_sse( );     // 激活FPU
     lock.release( );
     while ( TRUE ) {
         CPU::hlt( );

@@ -10,7 +10,7 @@ PUBLIC namespace QuantumNEC::Modules {
         // 首先将所有limine读入的文件进行解析
         // 使用limine读入的模块文件一律视为servicer
         ModuleLoader loader { };
-        for ( auto i { 0 }; i < Kernel::__config.modules.module_count; ++i ) {
+        for ( auto i { 0ul }; i < Kernel::__config.modules.module_count; ++i ) {
             auto file_entry = loader.load( Kernel::__config.modules.modules[ i ], ModuleLoader::ModuleFileType::ELF );
             auto j = strlen( Kernel::__config.modules.modules[ i ]->path ), k = 0ul;
             memset( name, 0, Kernel::TASK_NAME_SIZE );

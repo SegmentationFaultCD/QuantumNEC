@@ -50,9 +50,9 @@ using namespace std;
         ist,                                          \
         static_cast< uint8_t >( InterruptDescriptorAttribute::INTERRUPT ) )
 
-STATIC byte_t buffer[ sizeof( InterruptDescriptorTable::_IDT ) ] { };
+inline static InterruptDescriptorTable::_IDT _idt { };
 InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
-    this->idt = new ( buffer ) _IDT { };
+    this->idt = new ( &_idt ) _IDT { };
     CPU::cli( );     // 关中断
     memset( this->idt->xdtr->descriptor, 0, INTERRUPT_DESCRIPTOR_COUNT * sizeof( InterruptDescriptor ) );
     for ( uint16_t i { }; i < INTERRUPT_DESCRIPTOR_COUNT; ++i ) {

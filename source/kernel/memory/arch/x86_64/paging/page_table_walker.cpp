@@ -243,7 +243,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         }
         lock.release( );
     }
-    auto PageTableWalker::copy( OUT pmlxt & to, IN pmlxt & from ) -> VOID {
+    auto PageTableWalker::copy( OUT pmlxt &, IN pmlxt & ) -> VOID {
         // auto page_table = (uint64_t *)physical_to_virtual( Memory::page->allocate( 1, MemoryPageType::PAGE_4K ) );
         // memcpy( page_table + 256, from.get_table( ) + 256, PT_SIZE / 2 );
         // to = (uint64_t)page_table;

@@ -158,23 +158,21 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     QuantumNEC::Kernel::__config.paging_mode = *paging_mode_request.response;
     QuantumNEC::Kernel::__config.modules = *modules_request.response;
 
-    Kernel::Graphics { };
-    Kernel::Interrupt { };
-    Kernel::Memory memory { };     // 内存管理初始化
-    Kernel::Apic { };
-    Kernel::FPU { };
-    Kernel::Sound { };
-    Kernel::Time { };
+    Kernel::Graphics grap { };
+    Kernel::Acpi acp { };
+    Kernel::Interrupt intr { };
+    Kernel::Memory mem { };     // 内存管理初始化
+    Kernel::Sound soun { };
+    Kernel::Time tim { };
     // Kernel::Task task { };                                                 // 进程管理初始化
+    Kernel::Syscall sysc { };
+    Kernel::CPU cpu { };
     Modules::Module modules { };
-    Kernel::Syscall { };
-    Kernel::CPU { };
     println< ostream::HeadLevel::DEBUG >( "Test 1 : Memory allocate--------------------------------" );
 
     Kernel::PageAllocater allocater { };
     Kernel::PageCollector collector { };
     using namespace QuantumNEC::Kernel;
-
     auto s = allocater.allocate< MemoryPageType::PAGE_2M >( 1028 );
     println< ostream::HeadLevel::DEBUG >( "{}", s );
     collector.free< MemoryPageType::PAGE_2M >( s, 1028 );
@@ -182,6 +180,7 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     s = allocater.allocate< MemoryPageType::PAGE_2M >( 1028 );
     println< ostream::HeadLevel::DEBUG >( "{}", s );
     collector.free< MemoryPageType::PAGE_2M >( s, 1028 );
+
     // char buf[] { "hello world\0" };
     // auto w { new char[ 12 ] };
     // strcpy( w, buf );

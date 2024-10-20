@@ -21,6 +21,7 @@ add_cxxflags("-Wextra")
 add_cxxflags ("-ffunction-sections")
 add_cxxflags ("-fdata-sections")
 -- add_cxxflags("-Werror")
+add_cxxflags("-D APIC")
 add_cxxflags("-fPIE")
 add_cxxflags("-Wno-reorder")
 add_includedirs("./include", "source/boot/limine")
@@ -37,7 +38,6 @@ target("build")
         "source/kernel/*/*/*/*.cpp",
         "source/kernel/*/*/*/*/*.cpp",
         "source/kernel/*/*/*/*/*.S",
-
         "source/modules/*.cpp",
         "source/modules/loader/*.cpp"
     )

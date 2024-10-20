@@ -5,6 +5,6 @@ PUBLIC namespace QuantumNEC::Kernel {
     class Sound : public SoundArch
     {
     public:
-        explicit Sound( VOID ) noexcept;
+        explicit Sound( VOID ) noexcept = default;
     };
 }

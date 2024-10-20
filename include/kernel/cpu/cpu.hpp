@@ -1,9 +1,13 @@
 #pragma once
 #include <lib/Uefi.hpp>
 #include <kernel/cpu/arch/cpu_arch.hpp>
+#include <kernel/cpu/fpu/arch/fpu_arch.hpp>
+#include <kernel/cpu/smp/arch/smp_arch.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     class CPU :
-        public CpuArch
+        public CpuArch,
+        public FloatPointUnit,
+        public SymmetricMultiprocessingArch
     {
     public:
         explicit CPU( VOID ) noexcept = default;

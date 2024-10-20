@@ -26,7 +26,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         };
 
     public:
-        auto activate_sse( VOID ) noexcept -> VOID;
+        STATIC auto activate_sse( VOID ) noexcept -> VOID;
 
     public:
         explicit Sse( VOID ) noexcept;
