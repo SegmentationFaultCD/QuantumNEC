@@ -1,3 +1,3 @@
-[submodule "edk2"]
-	path = edk2
-	url = https://github.com/tianocore/edk2
+[submodule "source/boot/limine"]
+	path = source/boot/limine
+	url = https://github.com/limine-bootloader/limine

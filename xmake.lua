@@ -1,178 +1,198 @@
+set_project("QuantumNEC")
+
 add_rules("mode.debug", "mode.release")
 
-add_cxxflags(" -I source/Include/ \
-               -c \
-               -g \
-               -m64 \
-               -fno-builtin \
-               -mcmodel=large \
-               -ffreestanding \
-               -fno-stack-protector \
-               -static \
-               -nostdlib \
-               -nostartfiles \
-               -fstrength-reduce \
-               -falign-loops \
-               -falign-jumps \
-               -fno-strict-aliasing \
-               -fno-common \
-               -Wall \
-               -Werror \
-               -Wextra \
-               -fno-rtti \
-               -fno-exceptions \
-               -D APIC \
-               "
-               )
-
+-- limine的和自己的头文件路径
+add_includedirs("./include", "source/boot/limine")
+-- 架构自选
+set_arch("x86-64")
+-- 不优化
 set_optimize("none")
-set_languages("c17", "c++23")
-target("build")
-    set_kind("binary")
-    add_files( 
-        "source/Kernel/*.cpp", "source/Kernel/*/*.cpp",
-        "source/Lib/*/*.cpp", "source/Lib/*/*/*.cpp",
-        "source/Utils/*.cpp"
+
+set_languages("c23", "c++26") 
+
+target("sys")
+    add_cxxflags(
+            "-fno-builtin", -- 不要内建函数
+            "-mcmodel=large", -- 大内存模式
+            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+            "-fno-stack-protector", -- 不要栈保护
+            "-nostdlib", -- 不要标准库
+            "-nostartfiles", -- 不要默认启动文件
+            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+            "-fno-common", -- 共享全局变量
+            "-fno-rtti", -- 不要运行时类型信息鉴别
+            "-fno-exceptions", -- 不需要异常
+            "-mno-red-zone", -- 禁用红色区域
+            "-fno-stack-check", -- 不要栈检查
+            "-Wall", 
+            "-Wextra",
+            "-Werror",
+            "-fno-lto",
+            "-fPIC", {force = true}
     )
-    architecture_dir = "source/Arch/x86_64"
-    ld_architecture = "elf_x86_64"
-    architecture = "x86_64"
+    set_kind("static")
+    add_files("source/lib/*.cpp")
     before_build(function (target) 
-        print("创建虚拟机文件夹")
+        print("开始编译静态库<libsys>")
+        end)
+    after_build(function (target) 
+        run_dir = target:rundir()
+        os.cp(""..run_dir.."/libsys.a", "./library/")
+        print("静态库<libsys>编译完成，在"..run_dir)
+    end)
+target("c")
+    add_cxxflags(
+            "-fno-builtin", -- 不要内建函数
+            "-mcmodel=large", -- 大内存模式
+            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+            "-fno-stack-protector", -- 不要栈保护
+            "-nostdlib", -- 不要标准库
+            "-nostartfiles", -- 不要默认启动文件
+            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+            "-fno-common", -- 共享全局变量
+            "-fno-rtti", -- 不要运行时类型信息鉴别
+            "-fno-exceptions", -- 不需要异常
+            "-mno-red-zone", -- 禁用红色区域
+            "-fno-stack-check", -- 不要栈检查
+            "-Wall", 
+            "-Wextra",
+            "-Werror",
+            "-fno-lto",
+            "-fPIC", {force = true}
+    )
+    set_kind("static")
+    add_files("source/libc/*.cpp")
+    before_build(function (target) 
+        print("开始编译静态库<libc>")
+        end)
+    after_build(function (target) 
+        run_dir = target:rundir()
+        os.cp(""..run_dir.."/libc.a", "./library/")
+        print("静态库<libc>编译完成，在"..run_dir)
+    end)
+target("cxx")
+    add_deps("c")
+    add_cxxflags(
+            "-fno-builtin", -- 不要内建函数
+            "-mcmodel=large", -- 大内存模式
+            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+            "-fno-stack-protector", -- 不要栈保护
+            "-nostdlib", -- 不要标准库
+            "-nostartfiles", -- 不要默认启动文件
+            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+            "-fno-common", -- 共享全局变量
+            "-fno-rtti", -- 不要运行时类型信息鉴别
+            "-fno-exceptions", -- 不需要异常
+            "-mno-red-zone", -- 禁用红色区域
+            "-fno-stack-check", -- 不要栈检查
+            "-Wall", 
+            "-Wextra",
+            "-Werror",
+            "-fno-lto",
+            "-fPIC", {force = true}
+    )
+    set_kind("static")
+    
+    add_files("source/libcxx/*.cpp")
+ 
+    before_build(function (target) 
+        print("开始编译静态库<libcxx>")
+        end)
+    after_build(function (target) 
+        run_dir = target:rundir()
+        os.cp(""..run_dir.."/libcxx.a", "./library/")
+        print("静态库<libcxx>编译完成，在"..run_dir)
+    end)
+target("micro_kernel")
+    add_deps("sys", "c", "cxx")
+
+    set_kind("binary")
+    add_cxxflags(
+            "-fno-builtin", -- 不要内建函数
+            "-mcmodel=large", -- 大内存模式
+            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+            "-fno-stack-protector", -- 不要栈保护
+            "-nostdlib", -- 不要标准库
+            "-nostartfiles", -- 不要默认启动文件
+            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+            "-fno-common", -- 共享全局变量
+            "-fno-rtti", -- 不要运行时类型信息鉴别
+            "-fno-exceptions", -- 不需要异常
+            "-mno-red-zone", -- 禁用红色区域
+            "-fno-stack-check", -- 不要栈检查
+            "-Wall", 
+            "-Wextra",
+           -- "-Werror",
+            "-ffunction-sections",-- 优化
+            "-fdata-sections", -- 优化
+            "-D APIC",
+            "-fPIE",        
+            "-fno-lto",
+            "-Wno-reorder", {force = true} -- 构造函数的初始化顺序不固定
+    )
+ 
+    add_linkdirs("library")
+    add_links("sys", "cxx", "c")
+
+    add_files(
+        "source/kernel/**/*.cpp",
+        "source/kernel/*.cpp",
+        "source/kernel/**/*.S",
+        "source/modules/loader/*.cpp",
+        "source/modules/*.cpp"
+    )
+ 
+    before_build(function (target) 
+        print("开始编译内核")
         os.mkdir("vm")
         os.mkdir("vm/EFI")
         os.mkdir("vm/EFI/Boot")
         os.mkdir("vm/QuantumNEC")
         os.mkdir("vm/QuantumNEC/SYSTEM64")
-        print("复制所需要的文件")
-        os.exec("cp source/Boot/Info/target.txt edk2/Conf/ -r")
-        os.exec("cp source edk2/QuantumNECPkg -r")
-        os.exec("cp source/Boot/Logo/SystemLogo.bmp vm/EFI/Boot/Logo.BMP -r")
-        os.exec("cp source/Boot/Logo/SystemLogo(4-3).bmp vm/EFI/Boot/Narrow.BMP -r")
-        os.exec("cp source/Boot/Info/SystemLog.log vm/QuantumNEC/SYSTEM64/SystemLogger.log -r")
-        os.exec("cp resource/Unicode.dll vm/QuantumNEC/SYSTEM64/Unicode.dll -r")
-        os.exec("cp source/Boot/Info/Config.ini vm/EFI/Boot/Config.ini -r")
-        print("依靠EDK2制作UEFI引导文件")
-        os.exec("bash source/build.sh")
-        print("引导文件制作完成")
+        os.cp("source/boot/limine.conf", "./vm/EFI/Boot/")
+        os.cp("source/boot/limine/BOOTX64.EFI", "vm/EFI/Boot/")
+        os.cp("source/boot/OVMF.fd", "vm/")
     end)
-    add_files("source/Arch/x86_64/*/*.cpp","source/Arch/x86_64/*/*.S", "source/Arch/x86_64/*/*/*.cpp" )
-    on_link(function(target)
-        print("编译与链接内核文件")
-        object_dir = target:objectdir()
-        run_dir = target:rundir()
-        object_string = ""
+    on_build(function (target)
+        local object_dir = target:objectdir()
+        local run_dir = target:rundir()
+        local ldfiles = ""
         for key,val in pairs(target:objectfiles()) do 
-            object_string = object_string..val.." "
+            ldfiles = ldfiles..val.." "
         end
-        if target:is_arch("x86_64") then
-            os.exec("cp edk2/Build/DEBUG_GCC5/X64/BootX64.efi vm/EFI/Boot/ -r")
-        end
-        os.mkdir(run_dir)
-        os.exec("ld -m elf_x86_64 --allow-multiple-definition --no-warn-rwx-segments -z muldefs -flto -s "..object_string.." -o "..run_dir.."/microKernel.elf  -T source/Arch/x86_64/System.lds")
-        os.exec("cp "..run_dir.."/microKernel.elf vm/QuantumNEC/ -r")
+        local ldflags = "-L./library"
+        local libs = "-lsys -lcxx -lc"
+        local lds = "source/kernel/System.lds"
+        os.exec("ld "..ldflags.." -o "..run_dir.."/micro_kernel.elf "..ldfiles.." "..libs.." -T "..lds)
+        os.cp(run_dir.."/micro_kernel.elf", "vm/QuantumNEC/")
     end)
-    before_build(function (target) 
-        print("运行Qemu")
-        os.exec(
-            "qemu-system-x86_64 \
-            -drive if=pflash,format=raw,readonly=on,file=source/Boot/Info/OVMF.fd \
-            -m 8G \
-            -smp 2,cores=2,threads=1,sockets=1 \
-            -drive file=fat:rw:vm,index=0,format=vvfat \
-            -device nec-usb-xhci,id=xhci \
-            -no-shutdown \
-            -chardev stdio,mux=on,id=com1  \
-            -serial chardev:com1 \
-            -device qxl-vga,vgamem_mb=128 \
-            -device ich9-intel-hda \
-            -device virtio-serial-pci \
-            -nic user,model=virtio-net-pci \
-            -device virtio-mouse-pci \
-            -device virtio-keyboard-pci \
-            -name QuantumNEC \
-            -boot order=dc \
-            -net none \
-            -rtc base=localtime \
-            "
-        )
+    after_build(function (target)
+        run_dir = target:rundir()
+        print("编译内核完成")
     end)
-
-target("clean")
-    before_build(function (target) 
-        print("开始清除不必要的文件")
-        os.exec("rm -rf vm")
-        os.exec("rm -rf build.sh")
-        os.exec("rm -rf build")
-        os.exec("rm -rf edk2/Build")
-        os.exec("rm -rf edk2/QuantumNECPkg")
-     end)
---
--- If you want to known more usage about xmake, please see https://xmake.io
---
--- ## FAQ
---
--- You can enter the project directory firstly before building project.
---
---   $ cd projectdir
---
--- 1. How to build project?
---
---   $ xmake
---
--- 2. How to configure project?
---
---   $ xmake f -p [macosx|linux|iphoneos ..] -a [x86_64|i386|arm64 ..] -m [debug|release]
---
--- 3. Where is the build output directory?
---
---   The default output directory is `./build` and you can configure the output directory.
---
---   $ xmake f -o outputdir
---   $ xmake
---
--- 4. How to run and debug target after building project?
---
---   $ xmake run [targetname]
---   $ xmake run -d [targetname]
---
--- 5. How to install target to the system directory or other output directory?
---
---   $ xmake install
---   $ xmake install -o installdir
---
--- 6. Add some frequently-used compilation flags in xmake.lua
---
--- @code
---    -- add debug and release modes
---    add_rules("mode.debug", "mode.release")
---
---    -- add macro definition
---    add_defines("NDEBUG", "_GNU_SOURCE=1")
---
---    -- set warning all as error
---    set_warnings("all", "error")
---
---    -- set language: c99, c++11
---    set_languages("c99", "c++11")
---
---    -- set optimization: none, faster, fastest, smallest
---    set_optimize("fastest")
---
---    -- add include search directories
---    add_includedirs("/usr/include", "/usr/local/include")
---
---    -- add link libraries and search directories
---    add_links("tbox")
---    add_linkdirs("/usr/local/lib", "/usr/lib")
---
---    -- add system link libraries
---    add_syslinks("z", "pthread")
---
---    -- add compilation and link flags
---    add_cxflags("-stdnolib", "-fno-strict-aliasing")
---    add_ldflags("-L/usr/local/lib", "-lpthread", {force = true})
---
--- @endcode
---
+target("qemu")
+    set_kind("phony")
+    add_deps("micro_kernel")
+    set_default(true)
+    on_build(function (target)
+        local qemu_flags = "-cpu qemu64,x2apic \
+                      -m 8G \
+                      -smp 4,cores=4,threads=1,sockets=1 \
+                      -device nec-usb-xhci,id=xhci \
+                      -no-shutdown \
+                      -chardev stdio,mux=on,id=com1  \
+                      -serial chardev:com1 \
+                      -device qxl-vga,vgamem_mb=128 \
+                      -device ich9-intel-hda \
+                      -device virtio-serial-pci \
+                      -nic user,model=virtio-net-pci \
+                      -device virtio-mouse-pci \
+                      -device virtio-keyboard-pci \
+                      -name QuantumNEC \
+                      -boot order=dc \
+                      -net none \
+                      -rtc base=localtime"
+        os.exec("qemu-system-x86_64 -drive if=pflash,format=raw,readonly=on,file=vm/OVMF.fd -drive file=fat:rw:vm,index=0,format=vvfat "..qemu_flags)
+    end)
 
