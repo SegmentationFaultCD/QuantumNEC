@@ -11,8 +11,8 @@ PUBLIC namespace QuantumNEC::Kernel {
             return;
         }
         // 遍历销毁SLAB内存池
-        while ( slab_cache->cache_pool->list.is_empty( ) ) {
-            auto slab = reinterpret_cast< Slab * >( slab_cache->cache_pool->list.pop( )->container );
+        while ( slab_cache->pool_list.is_empty( ) ) {
+            auto slab = reinterpret_cast< Slab * >( slab_cache->pool_list.pop( )->container );
             HeapCollector { }.free( slab->color_map );
             PageCollector { }.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
             HeapCollector { }.free( slab );

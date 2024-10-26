@@ -9,6 +9,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual ~SlabDestroyer( VOID ) noexcept = default;
 
     public:
-        auto destory( IN SlabCache *slab_cache ) -> VOID *;
+        auto destory( IN SlabCache *slab_cache ) -> VOID;
     };
 }

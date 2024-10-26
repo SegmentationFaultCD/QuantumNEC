@@ -9,6 +9,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual ~SlabAllocater( VOID ) noexcept = default;
 
     public:
-        auto allocate( IN uint64_t size ) -> VOID *;
+        auto allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> VOID *;
     };
 }

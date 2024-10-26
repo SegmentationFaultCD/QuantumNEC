@@ -12,9 +12,11 @@ PUBLIC namespace QuantumNEC::Kernel {
         uint64_t color_length;
         uint64_t color_count;
         uint64_t *color_map;
+        explicit Slab( VOID ) = default;
     };
     struct SlabCache
     {
+        Lib::ListTable pool_list;
         uint64_t size;
         uint64_t total_using;
         uint64_t total_free;
@@ -22,7 +24,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         Slab *cache_dma_pool;
 
     public:
-        auto constructor( IN VOID *address, IN uint64_t arg ) -> VOID *;
-        auto destructor( IN VOID *address, IN uint64_t arg ) -> VOID *;
+        SlabCache( IN VOID *address, IN uint64_t arg );
+        ~SlabCache( VOID );
     };
 }

@@ -9,6 +9,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual ~SlabCreater( VOID ) noexcept = default;
 
     public:
-        auto create( IN uint64_t size, IN uint64_t arg ) -> SlabCache *;
+        auto create( IN uint64_t size ) -> SlabCache *;
     };
 }
