@@ -19,7 +19,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
          * @param mode 映射页的模式 (4K/2M/1G)
          * @param pmlx_t 页表
          */
-        auto map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::__kernel_page_table ) -> VOID;
+        auto map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::kernel_page_table ) -> VOID;
         /**
          * @brief 取消映射页
          * @param virtual_address 将取消映射的指定虚拟地址
@@ -27,7 +27,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
          * @param mode 内存页模式
          * @param pmlx_t 页表地址
          */
-        auto unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::__kernel_page_table ) -> VOID;
+        auto unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::kernel_page_table ) -> VOID;
         /**
          * @brief 控制页保护开关
          * @param flags 如果为true那么开启页保护，如果为false那么关闭页保护
@@ -40,7 +40,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
          * @param mode 内存页模式
          * @return 制作的页目录地址
          */
-        auto make( IN uint64_t flags, IN Level level, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::__kernel_page_table ) -> pmlxt &;
+        auto make( IN uint64_t flags, IN Level level, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::kernel_page_table ) -> pmlxt &;
         /**
          * @brief 激活页表
          * @param pmlx_t 页表地址
@@ -52,10 +52,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
          * @param mode 内存页模式
          * @param pmlx_t 页表地址
          */
-        auto VTP_from( IN VOID *virtual_address, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::__kernel_page_table ) -> VOID *;
+        auto VTP_from( IN VOID *virtual_address, IN MemoryPageType mode, IN pmlxt &pmlx_t = *Paging::kernel_page_table ) -> VOID *;
         /**
          * @brief 复制页表
          */
-        auto copy( OUT pmlxt &to, IN pmlxt &from = *Paging::__kernel_page_table ) -> VOID;
+        auto copy( OUT pmlxt &to, IN pmlxt &from = *Paging::kernel_page_table ) -> VOID;
     };
 }

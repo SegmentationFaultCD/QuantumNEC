@@ -7,9 +7,6 @@ auto operator delete( void * ) noexcept -> void {
 auto operator delete[]( void * ) noexcept -> void {
 }
 extern "C" {
-int __cxa_atexit( void ( * )( void * ), void *, void * ) {
-    return 0;
-}
 void hcf( ) {
     for ( ;; ) {
 #if defined( __x86_64__ )
@@ -21,8 +18,22 @@ void hcf( ) {
 #endif
     }
 }
-void __cxa_pure_virtual( ) {
+int __cxa_atexit( void ( * )( void * ), void *, void * ) {
     hcf( );
+    return 0;
 }
+
+// void __cxa_pure_virtual( ) {
+//     hcf( );
+// }
 void *__dso_handle;
+// void __cxa_finalize( void ) {
+//     hcf( );
+// }
+// void _ITM_deregisterTMCloneTable( void ) {
+//     hcf( );
+// }
+// void _ITM_registerTMCloneTable( void ) {
+//     hcf( );
+// }
 }

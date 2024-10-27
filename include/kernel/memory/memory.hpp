@@ -11,6 +11,7 @@
 PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC class Memory :
         public PageManager,
+        public HeapManager,
         public MemoryArch
     // HeapManager
     {

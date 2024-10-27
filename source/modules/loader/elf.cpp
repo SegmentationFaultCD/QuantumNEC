@@ -8,8 +8,8 @@ PUBLIC namespace QuantumNEC::Modules {
         if ( !check_elf_magic( Elf_header ) )
             return std::unexpected { ElfErrorCode::MAGIC_IS_NOT_STANDARD };
         auto P_header = (ProgramHeaderTable *)( address + Elf_header->e_Phoff );
-        auto low_address { 0xFFFFFFFFFFFFFFFFull };
-        auto high_address { 0ull };
+        auto low_address { 0xFFFFFFFFFFFFFFFFul };
+        auto high_address { 0ul };
         for ( uint64_t i { }; i < Elf_header->e_PHeadCount; ++i ) {
             if ( P_header[ i ].p_type == ELF_PT_LOAD ) {
                 if ( low_address > P_header[ i ].p_paddr ) {
@@ -21,7 +21,9 @@ PUBLIC namespace QuantumNEC::Modules {
             }
         }
         auto page_count { ( ( high_address - low_address ) >> 12 ) + 1 };
+
         auto relocate_base { (uint64_t)physical_to_virtual( Kernel::PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( page_count ) ) };
+
         Kernel::PageTableWalker { }.map( (uint64_t)Kernel::virtual_to_physical( relocate_base ), relocate_base, 1, Kernel::PAGE_PRESENT | Kernel::PAGE_RW_W | Kernel::PAGE_US_U, MemoryPageType::PAGE_2M );
 
         auto relocate_offset = relocate_base - low_address;

@@ -81,7 +81,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             end_header.bitmap->free( 0, end_remainder );
         }
-        std::memset( physical_to_virtual( __physical_address ), 0, __size * PageAllocater::__page_size< PAGE_2M > );     // 清空之前废弃的数据
+
         lock.release( );
     }
     template <>
@@ -159,7 +159,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             end_header.bitmap->free( 0, end_remainder );
         }
-        std::memset( physical_to_virtual( __physical_address ), 0, __size * PageAllocater::__page_size< PAGE_1G > );     // 清空之前废弃的数据
+
         lock.release( );
     }
     template <>
@@ -237,7 +237,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             end_header.bitmap->free( 0, end_remainder );
         }
-        std::memset( physical_to_virtual( __physical_address ), 0, __size * PageAllocater::__page_size< PAGE_4K > );     // 清空之前废弃的数据
+
         lock.release( );
     }
 }

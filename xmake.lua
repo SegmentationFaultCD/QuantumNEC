@@ -1,4 +1,4 @@
-set_project("QuantumNEC")
+-- set_project("QuantumNEC")
 
 add_rules("mode.debug", "mode.release")
 
@@ -104,8 +104,45 @@ target("cxx")
         os.cp(""..run_dir.."/libcxx.a", "./library/")
         print("静态库<libcxx>编译完成，在"..run_dir)
     end)
+target("servicer.elf")
+    add_deps("c", "cxx")
+    add_cxxflags(
+            "-fno-builtin", -- 不要内建函数
+            "-mcmodel=large", -- 大内存模式
+            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+            "-fno-stack-protector", -- 不要栈保护
+            "-nostdlib", -- 不要标准库
+            "-nostartfiles", -- 不要默认启动文件
+            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+            "-fno-common", -- 共享全局变量
+            "-fno-rtti", -- 不要运行时类型信息鉴别
+            "-fno-exceptions", -- 不需要异常
+            "-mno-red-zone", -- 禁用红色区域
+            "-fno-stack-check", -- 不要栈检查
+            "-Wall", 
+            "-Wextra",
+            "-Werror",
+            "-fno-lto",
+            "-fPIE", {force = true}
+    )
+    set_kind("binary")
+    
+    add_files("source/modules/service/*.cpp")
+    add_linkdirs("library")
+    add_links("c", "cxx")
+    add_ldflags("-ffreestanding")
+ 
+    before_build(function (target) 
+        print("开始编译模块文件servicer.elf")
+        end)
+    after_build(function (target) 
+        run_dir = target:rundir()
+        print("模块文件servicer.elf编译完成，在"..run_dir)
+    end)
+    
 target("micro_kernel")
     add_deps("sys", "c", "cxx")
+    add_deps("servicer.elf")
 
     set_kind("binary")
     add_cxxflags(
@@ -129,6 +166,16 @@ target("micro_kernel")
             "-D APIC",
             "-fPIE",        
             "-fno-lto",
+    
+            "-Wpointer-arith",
+             "-Wwrite-strings",
+            -- "-Wcast-align",
+            -- "-Wmissing-prototypes",
+            -- "-Wmissing-declarations",
+            -- "-Wredundant-decls",
+            -- "-Wnested-externs",
+            
+            -- "-Wstrict-prototypes", 
             "-Wno-reorder", {force = true} -- 构造函数的初始化顺序不固定
     )
  
@@ -142,7 +189,7 @@ target("micro_kernel")
         "source/modules/loader/*.cpp",
         "source/modules/*.cpp"
     )
- 
+    
     before_build(function (target) 
         print("开始编译内核")
         os.mkdir("vm")
@@ -153,8 +200,9 @@ target("micro_kernel")
         os.cp("source/boot/limine.conf", "./vm/EFI/Boot/")
         os.cp("source/boot/limine/BOOTX64.EFI", "vm/EFI/Boot/")
         os.cp("source/boot/OVMF.fd", "vm/")
+        os.cp("images/background.jpeg", "vm/EFI/")
     end)
-    on_build(function (target)
+    on_link(function (target)
         local object_dir = target:objectdir()
         local run_dir = target:rundir()
         local ldfiles = ""
@@ -170,6 +218,8 @@ target("micro_kernel")
     after_build(function (target)
         run_dir = target:rundir()
         print("编译内核完成")
+        print("复制模块文件到VM文件夹")
+        os.cp(run_dir.."/servicer.elf", "vm/QuantumNEC/SYSTEM64/")
     end)
 target("qemu")
     set_kind("phony")
@@ -177,7 +227,7 @@ target("qemu")
     set_default(true)
     on_build(function (target)
         local qemu_flags = "-cpu qemu64,x2apic \
-                      -m 8G \
+                      -m 20G \
                       -smp 4,cores=4,threads=1,sockets=1 \
                       -device nec-usb-xhci,id=xhci \
                       -no-shutdown \

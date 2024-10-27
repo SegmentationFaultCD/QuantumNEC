@@ -5,7 +5,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC class SlabAllocater
     {
     public:
-        explicit SlabAllocater( VOID ) noexcept;
+        explicit SlabAllocater( VOID ) noexcept = default;
         virtual ~SlabAllocater( VOID ) noexcept = default;
 
     public:

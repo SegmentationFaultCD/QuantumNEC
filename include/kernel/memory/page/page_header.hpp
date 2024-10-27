@@ -5,6 +5,7 @@
 #include <kernel/memory/arch/memory_arch.hpp>
 #include <concepts>
 #include <utility>
+#include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     template < MemoryPageType __allocater_to_bind, MemoryPageType _prev_info_block_allocater, MemoryPageType _mmap_allocater >
     PUBLIC class __page_header
@@ -52,6 +53,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     public:
         explicit __page_header( IN uint64_t group_count, IN std::pair< uint64_t, int64_t > __header_start_address, IN std::pair< uint64_t, int64_t > __base_address ) {
             auto &table = allocate_information_list[ __allocater_to_bind ];
+
             if ( std::get< 1 >( __header_start_address ) == -1 ) {
                 this->group = reinterpret_cast< header_t * >( physical_to_virtual( allocater.allocate< _prev_info_block_allocater >( group_count ) ) );
             }
@@ -92,7 +94,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             if ( std::get< 1 >( __base_address ) == -1 ) {
                 if constexpr ( _mmap_allocater != MemoryPageType::NONE ) {
-                    base_address = (uint64_t)allocater.allocate< _mmap_allocater >( (( this->page_descriptor_count * PageAllocater::__page_size< __allocater_to_bind > * this->all_memory_header_count ) / PageAllocater::__page_size< _mmap_allocater >));
+                    base_address = (uint64_t)allocater.allocate< _mmap_allocater >( (( PageAllocater::__page_size< __allocater_to_bind > * this->all_memory_page_desvriptor_count ) / PageAllocater::__page_size< _mmap_allocater >));
                 }
             }
 

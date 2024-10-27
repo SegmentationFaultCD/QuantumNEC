@@ -4,21 +4,19 @@
 #include <kernel/global/arch/x86_64/global.hpp>
 #include <kernel/cpu/cpu.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    pml1t kernel_l1_page_table { };
-    pml2t kernel_l2_page_table { MemoryPageType::PAGE_2M };
-    pml3t kernel_l3_page_table { MemoryPageType::PAGE_2M };
-    pml4t kernel_l4_page_table { };
-    pml5t kernel_l5_page_table { };
     Paging::Paging( VOID ) noexcept {
+        this->pml5_t = new ( physical_to_virtual( PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) ) pml5t { };
+        this->pml4_t = new ( physical_to_virtual( PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) ) pml4t { };
+
         if ( __config.paging_mode.mode == LIMINE_PAGING_MODE_X86_64_5LVL ) {
-            kernel_l5_page_table = (pml5t_entry *)physical_to_virtual( CPU::get_page_table( ) );
-            this->__kernel_page_table = &kernel_l5_page_table;
+            *this->pml5_t = (pml5t_entry *)physical_to_virtual( CPU::get_page_table( ) );
             this->support_5level_paging = TRUE;
+            this->kernel_page_table = pml5_t;
         }
         else {
-            kernel_l4_page_table = (pml4t_entry *)physical_to_virtual( CPU::get_page_table( ) );
-            this->__kernel_page_table = &kernel_l4_page_table;
+            *this->pml4_t = (pml4t_entry *)physical_to_virtual( CPU::get_page_table( ) );
             this->support_5level_paging = FALSE;
+            this->kernel_page_table = pml4_t;
         }
         PageTableWalker { }.page_protect( FALSE );
     }

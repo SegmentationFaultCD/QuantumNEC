@@ -168,18 +168,6 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::Syscall sysc { };
     Kernel::CPU cpu { };
     Modules::Module modules { };
-    println< ostream::HeadLevel::DEBUG >( "Test 1 : Memory allocate--------------------------------" );
-
-    Kernel::PageAllocater allocater { };
-    Kernel::PageCollector collector { };
-    using namespace QuantumNEC::Kernel;
-    auto s = allocater.allocate< MemoryPageType::PAGE_2M >( 1028 );
-    println< ostream::HeadLevel::DEBUG >( "{}", s );
-    collector.free< MemoryPageType::PAGE_2M >( s, 1028 );
-
-    s = allocater.allocate< MemoryPageType::PAGE_2M >( 1028 );
-    println< ostream::HeadLevel::DEBUG >( "{}", s );
-    collector.free< MemoryPageType::PAGE_2M >( s, 1028 );
 
     // char buf[] { "hello world\0" };
     // auto w { new char[ 12 ] };

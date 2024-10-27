@@ -11,11 +11,15 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
      *   Pointer to the source data.
      */
     PUBLIC _C_LINK auto mov16( OUT uint8_t * dst, IN CONST uint8_t * src ) -> VOID {
+#if defined( __x86_64__ )
         ASM( "movdqu (%[src]), %%xmm0\n\t"
              "movdqu %%xmm0, (%[dst])\n\r"
              :
              : [src] "r"( src ), [dst] "r"( dst )
              : "xmm0", "memory" );
+#elif defined( __aarch64__ ) || defined( __riscv )
+#elif defined( __loongarch64 )
+#endif
     }
 
     /**
@@ -28,6 +32,7 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
      *   Pointer to the source data.
      */
     PUBLIC _C_LINK auto mov32( OUT uint8_t * dst, IN CONST uint8_t * src ) -> VOID {
+#if defined( __x86_64__ )
         ASM( "movdqu (%[src]), %%xmm0\n\t"
              "movdqu 16(%[src]), %%xmm1\n\t"
              "movdqu %%xmm0, (%[dst])\n\t"
@@ -35,6 +40,9 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
              :
              : [src] "r"( src ), [dst] "r"( dst )
              : "xmm0", "xmm1", "memory" );
+#elif defined( __aarch64__ ) || defined( __riscv )
+#elif defined( __loongarch64 )
+#endif
     }
 
     /**
@@ -47,6 +55,7 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
      *   Pointer to the source data.
      */
     PUBLIC _C_LINK auto mov48( OUT uint8_t * dst, IN CONST uint8_t * src ) -> VOID {
+#if defined( __x86_64__ )
         ASM( "movdqu (%[src]), %%xmm0\n\t"
              "movdqu 16(%[src]), %%xmm1\n\t"
              "movdqu 32(%[src]), %%xmm2\n\t"
@@ -56,6 +65,9 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
              :
              : [src] "r"( src ), [dst] "r"( dst )
              : "xmm0", "xmm1", "memory" );
+#elif defined( __aarch64__ ) || defined( __riscv )
+#elif defined( __loongarch64 )
+#endif
     }
 
     /**
@@ -68,6 +80,7 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
      *   Pointer to the source data.
      */
     PUBLIC _C_LINK auto mov64( OUT uint8_t * dst, IN CONST uint8_t * src ) -> VOID {
+#if defined( __x86_64__ )
         ASM( "movdqu (%[src]), %%xmm0\n\t"
              "movdqu 16(%[src]), %%xmm1\n\t"
              "movdqu 32(%[src]), %%xmm2\n\t"
@@ -79,6 +92,9 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
              :
              : [src] "r"( src ), [dst] "r"( dst )
              : "xmm0", "xmm1", "xmm2", "xmm3", "memory" );
+#elif defined( __aarch64__ ) || defined( __riscv )
+#elif defined( __loongarch64 )
+#endif
     }
 
     /**
@@ -91,6 +107,7 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
      *   Pointer to the source data.
      */
     PUBLIC _C_LINK auto mov128( OUT uint8_t * dst, IN CONST uint8_t * src ) -> VOID {
+#if defined( __x86_64__ )
         ASM( "movdqu (%[src]), %%xmm0\n\t"
              "movdqu 16(%[src]), %%xmm1\n\t"
              "movdqu 32(%[src]), %%xmm2\n\t"
@@ -111,6 +128,10 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
              : [src] "r"( src ), [dst] "r"( dst )
              : "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
                "memory" );
+
+#elif defined( __aarch64__ ) || defined( __riscv )
+#elif defined( __loongarch64 )
+#endif
     }
 
     /**
@@ -123,6 +144,7 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
      *   Pointer to the source data.
      */
     PUBLIC _C_LINK auto mov256( OUT uint8_t * dst, IN CONST uint8_t * src ) -> VOID {
+#if defined( __x86_64__ )
         /*
          * There are 16XMM registers, but this function does not use
          * them all so that it can still be compiled as 32bit
@@ -131,5 +153,9 @@ PUBLIC namespace QuantumNEC::Architecture::ABI {
          */
         mov128( dst, src );
         mov128( dst + 128, src + 128 );
+
+#elif defined( __aarch64__ ) || defined( __riscv )
+#elif defined( __loongarch64 )
+#endif
     }
 }

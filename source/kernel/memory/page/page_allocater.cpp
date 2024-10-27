@@ -3,6 +3,7 @@
 #include <lib/spin_lock.hpp>
 #include <kernel/memory/arch/memory_arch.hpp>
 #include <libcxx/cstring.hpp>
+#include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     inline static Lib::SpinLock lock { };
     inline static uint64_t global_memory_address { };
@@ -16,6 +17,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto bitmap_index = 0ul;
         auto header_count = !__size % PH::page_descriptor_count ? __size / PH::page_descriptor_count : Lib::DIV_ROUND_UP( __size, PH::page_descriptor_count );
         Lib::ListNode *node { };
+        lock.acquire( );
         if ( __size < PH::page_descriptor_count ) {
             // 不超过一个header可控制的，那就找到1个内存大小足够的任意状态块
             node = list.traversal(
@@ -77,20 +79,21 @@ PUBLIC namespace QuantumNEC::Kernel {
                 page_header.bitmap->set( bitmap_index, __size );
             }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_4K >;
-            std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_4K > );
+            lock.release( );
             return (VOID *)address;
         }
         // 先前开辟的全没符合要求
         // 那么就得开辟新块
         // 组数
         auto group_header_count = header_count % PH::page_header_count ? header_count / PH::page_header_count + 1 : header_count / PH::page_header_count;
+
         PH page_headers { group_header_count, { 0, -1 }, { 0, -1 } };
+
         // 开块
         page_headers.__allocate_headers( __size );
         // 拿第一个头的base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).base_adderess;
-        std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_4K > );
-
+        lock.release( );
         return (void *)address;
     }
     template <>
@@ -103,6 +106,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto bitmap_index = 0ul;
         auto header_count = !__size % PH::page_descriptor_count ? __size / PH::page_descriptor_count : Lib::DIV_ROUND_UP( __size, PH::page_descriptor_count );
         Lib::ListNode *node { };
+        lock.acquire( );
         if ( __size < PH::page_descriptor_count ) {
             node = list.traversal(
                 [ &index, &bitmap_index ]( Lib::ListNode *node, uint64_t size ) -> BOOL {
@@ -160,7 +164,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 page_header.bitmap->set( bitmap_index, __size );
             }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_2M >;
-            std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_2M > );
+            lock.release( );
             return (void *)address;
         }
         // 先前开辟的全没符合要求
@@ -172,8 +176,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         page_headers.__allocate_headers( __size );
         // 拿第一个头的base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).base_adderess;
-        std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_2M > );
-
+        lock.release( );
         return (void *)address;
     }
 
@@ -187,6 +190,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto bitmap_index = 0ul;
         auto header_count = !__size % PH::page_descriptor_count ? __size / PH::page_descriptor_count : Lib::DIV_ROUND_UP( __size, PH::page_descriptor_count );
         Lib::ListNode *node { };
+        lock.acquire( );
         if ( __size < PH::page_descriptor_count ) {
             node = list.traversal(
                 [ &index, &bitmap_index ]( Lib::ListNode *node, uint64_t size ) -> BOOL {
@@ -244,7 +248,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 page_header.bitmap->set( bitmap_index, __size );
             }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size< PAGE_1G >;
-            std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_1G > );
+            lock.release( );
             return (void *)address;
         }
         // 先前开辟的全没符合要求
@@ -257,8 +261,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         page_headers.__allocate_headers( __size );
         // 拿第一个头的base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).base_adderess;
-        std::memset( (VOID *)physical_to_virtual( address ), 0, __size * this->__page_size< PAGE_1G > );
-
+        lock.release( );
         return (void *)address;
     }
 }

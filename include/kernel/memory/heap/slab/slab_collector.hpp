@@ -5,10 +5,10 @@ PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC class SlabCollector
     {
     public:
-        explicit SlabCollector( VOID ) noexcept;
+        explicit SlabCollector( VOID ) noexcept = default;
         virtual ~SlabCollector( VOID ) noexcept = default;
 
     public:
-        auto free( IN uint64_t size ) -> VOID *;
+        auto free( IN SlabCache *slab_cache, IN VOID *address, IN uint64_t arg ) -> VOID;
     };
 }

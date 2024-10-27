@@ -512,7 +512,6 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         explicit pml3t( IN pml3t_entry *pml3t_address, IN MemoryPageType _mode ) noexcept :
             pmlxt { Level::PDPT }, mode { _mode } {
             this->pmlx_entry[ Level::PDPT ] = (uint64_t *)pml3t_address;
-            this->pmlx_entry[ Level::PT ] = (uint64_t *)pml3t_address;
         }
         explicit pml3t( IN MemoryPageType _mode ) noexcept :
             pmlxt { Level::PDPT }, mode { _mode } {
@@ -850,8 +849,12 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     class Paging
     {
     public:
-        inline static pmlxt *__kernel_page_table { };
+        inline static pmlxt *kernel_page_table { };
         inline static bool support_5level_paging { };
+
+    private:
+        inline static pml4t *pml4_t { };
+        inline static pml5t *pml5_t { };
 
     public:
         explicit Paging( VOID ) noexcept;

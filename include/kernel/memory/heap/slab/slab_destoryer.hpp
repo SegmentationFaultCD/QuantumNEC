@@ -5,7 +5,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC class SlabDestroyer
     {
     public:
-        explicit SlabDestroyer( VOID ) noexcept;
+        explicit SlabDestroyer( VOID ) noexcept = default;
         virtual ~SlabDestroyer( VOID ) noexcept = default;
 
     public:

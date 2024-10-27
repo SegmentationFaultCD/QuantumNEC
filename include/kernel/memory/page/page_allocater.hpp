@@ -6,6 +6,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     {
     public:
         template < MemoryPageType __type >
+            requires( __type != MemoryPageType::NONE )
         constexpr static auto __page_size = ( [] consteval -> uint64_t {
             if constexpr ( __type == MemoryPageType::PAGE_2M ) {
                 return 2_MB;
@@ -19,8 +20,10 @@ PUBLIC namespace QuantumNEC::Kernel {
             return 0ul;
         } )( );
         template < MemoryPageType __type >
+            requires( __type != MemoryPageType::NONE )
         constexpr static auto __page_mask = ~( __page_size< __type > - 1 );
         template < MemoryPageType __type >
+            requires( __type != MemoryPageType::NONE )
         constexpr static auto __page_aligned( auto address ) {
             return ( (uint64_t)address + __page_size< __type > - 1 ) & __page_mask< __type >;
         };
@@ -34,6 +37,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         template < MemoryPageType __type >
             requires( __type != MemoryPageType::NONE )
         auto allocate( IN uint64_t __size ) -> VOID *;
+        // 这个操作不会初始化分配的空间，需要手动清零
     };
 
     PUBLIC inline Lib::ListTable allocate_information_list[ 4 ] { };

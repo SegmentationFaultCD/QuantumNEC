@@ -28,8 +28,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
             return *page_table[ level - 1 ];
         };
+
         auto page_size = pml4t.check_page_size( mode );     // 确认每页大小
-        flags |= pml4t.is_huge( mode );                     // 如果为huge页那么设置ps位为1
+
+        flags |= pml4t.is_huge( mode );     // 如果为huge页那么设置ps位为1
 
         auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
             auto index = pmlx_t.get_address_index_in( reinterpret_cast< VOID * >( virtual_address ) );     // 拿到虚拟地址所在页表入口的index
@@ -40,6 +42,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                 // 换句话说，就是舍去1级页表
                 // 4K分页，那么就是查到1级页表为止
                 // 1G分页，就是查到3级页表为止
+
                 pmlx_t = { index, physics_address & ~0x7FF, flags & 0x7FF };
                 CPU::invlpg( reinterpret_cast< VOID * >( virtual_address ) );     // 刷新快表
                 physics_address += page_size;
@@ -54,6 +57,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             // 这种情况下，那么就是继续迭代既可
             else if ( !pmlx_t.flags_p( index ) ) {
                 // 这个页要是是一个不存在的那么就弄出一个4k大小表给他
+
                 auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
                 pmlx_t = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FF ), flags };
                 std::memset( physical_to_virtual( new_ ), 0, page_size );
@@ -63,6 +67,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             self( level - 1, get_table( level - 1 ) );
         };
         while ( size-- ) {     // 重复循环映射
+
             map_helper( _level, _pmlxt );
         }
         lock.release( );
