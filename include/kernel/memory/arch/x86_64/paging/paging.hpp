@@ -1,7 +1,7 @@
 #pragma once
-#include <lib/Uefi.hpp>
-#include <kernel/memory/page/page_manager.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
+#include <kernel/memory/page/page_manager.hpp>
+#include <lib/Uefi.hpp>
 #include <tuple>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PUBLIC constexpr CONST auto PT_SIZE { 0x1000 };
@@ -30,8 +30,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PUBLIC constexpr auto PAGE_2M_SHIFT { 21 };
     PUBLIC constexpr auto PAGE_4K_SHIFT { 12 };
     PUBLIC constexpr auto USER_STACK_VIRTUAL_ADDRESS_TOP { 0x00007fffffffffffUL };
-    PUBLIC struct pml1t_entry
-    {
+    PUBLIC struct pml1t_entry {
         uint64_t p : 1;     // 页是否存在，1为在，0为不在
         uint64_t rw : 1;
         uint64_t us : 1;
@@ -48,8 +47,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         uint64_t xd : 1;
         explicit pml1t_entry( VOID ) noexcept = default;
     };
-    PUBLIC struct pml2t_entry
-    {
+    PUBLIC struct pml2t_entry {
         uint64_t p : 1;     // 页是否存在，1为在，0为不在
         uint64_t rw : 1;
         uint64_t us : 1;
@@ -66,8 +64,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         uint64_t xd : 1;
         explicit pml2t_entry( VOID ) noexcept = default;
     };
-    PUBLIC struct pml2t_huge_entry
-    {
+    PUBLIC struct pml2t_huge_entry {
         uint64_t p : 1;     // 页是否存在，1为在，0为不在
         uint64_t rw : 1;
         uint64_t us : 1;
@@ -86,8 +83,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         uint64_t xd : 1;
         explicit pml2t_huge_entry( VOID ) noexcept = default;
     };
-    PUBLIC struct pml3t_entry
-    {
+    PUBLIC struct pml3t_entry {
         uint64_t p : 1;     // 页是否存在，1为在，0为不在
         uint64_t rw : 1;
         uint64_t us : 1;
@@ -104,8 +100,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         uint64_t xd : 1;
         explicit pml3t_entry( VOID ) noexcept = default;
     };
-    PUBLIC struct pml3t_huge_entry
-    {
+    PUBLIC struct pml3t_huge_entry {
         uint64_t p : 1;     // 页是否存在，1为在，0为不在
         uint64_t rw : 1;
         uint64_t us : 1;
@@ -124,8 +119,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         uint64_t xd : 1;
         explicit pml3t_huge_entry( VOID ) noexcept = default;
     };
-    PUBLIC struct pml4t_entry
-    {
+    PUBLIC struct pml4t_entry {
         uint64_t p : 1;     // 页是否存在，1为在，0为不在
         uint64_t rw : 1;
         uint64_t us : 1;
@@ -140,8 +134,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         uint64_t xd : 1;
         explicit pml4t_entry( VOID ) noexcept = default;
     };
-    PUBLIC struct pml5t_entry
-    {
+    PUBLIC struct pml5t_entry {
         uint64_t p : 1;     // 页是否存在，1为在，0为不在
         uint64_t rw : 1;
         uint64_t us : 1;
@@ -161,12 +154,11 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         PML5 = 5,
         PML4 = 4,
         PDPT = 3,
-        PD = 2,
-        PT = 1,
+        PD   = 2,
+        PT   = 1,
 
     };
-    class pmlxt
-    {
+    class pmlxt {
     public:
         explicit pmlxt( IN Level _level ) noexcept :
             level { _level } {
@@ -174,24 +166,24 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual ~pmlxt( VOID ) noexcept = default;
 
     public:
-        virtual auto flags_p( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_rw( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_us( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_pcd( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_pwt( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_a( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_xd( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_base( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t = 0;
-        virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
-        virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
-        virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
-        virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
-        virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
-        virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
-        virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
+        virtual auto flags_p( IN uint64_t index ) -> uint64_t                   = 0;
+        virtual auto flags_rw( IN uint64_t index ) -> uint64_t                  = 0;
+        virtual auto flags_us( IN uint64_t index ) -> uint64_t                  = 0;
+        virtual auto flags_pcd( IN uint64_t index ) -> uint64_t                 = 0;
+        virtual auto flags_pwt( IN uint64_t index ) -> uint64_t                 = 0;
+        virtual auto flags_a( IN uint64_t index ) -> uint64_t                   = 0;
+        virtual auto flags_xd( IN uint64_t index ) -> uint64_t                  = 0;
+        virtual auto flags_base( IN uint64_t index ) -> uint64_t                = 0;
+        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t              = 0;
+        virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID            = 0;
+        virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID           = 0;
+        virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID           = 0;
+        virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID          = 0;
+        virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID          = 0;
+        virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID            = 0;
+        virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID           = 0;
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID = 0;
-        virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID = 0;
+        virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID       = 0;
 
     public:
         /**
@@ -213,11 +205,11 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             using enum MemoryPageType;
             switch ( mode ) {
             case PAGE_2M:
-                return PageAllocater::__page_size< PAGE_2M >;
+                return PageAllocater::__page_size__< PAGE_2M >;
             case PAGE_4K:
-                return PageAllocater::__page_size< PAGE_4K >;
+                return PageAllocater::__page_size__< PAGE_4K >;
             case PAGE_1G:
-                return PageAllocater::__page_size< PAGE_1G >;
+                return PageAllocater::__page_size__< PAGE_1G >;
             default:
                 return 0ul;
             }
@@ -229,7 +221,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         };
 
         virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID = 0;
-        virtual auto operator=( IN uint64_t table_address ) -> VOID = 0;
+        virtual auto operator=( IN uint64_t table_address ) -> VOID                           = 0;
 
         virtual auto get_address_index_in( IN VOID *address ) -> uint64_t = 0;
 
@@ -239,8 +231,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         const Level level;
 
     protected:
-        struct PmlxEntry
-        {
+        struct PmlxEntry {
         private:
             uint64_t *nul { };
 
@@ -269,8 +260,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             }
         } pmlx_entry;
     };
-    PUBLIC class pml1t : public pmlxt
-    {
+    PUBLIC class pml1t : public pmlxt {
         friend pmlxt;
 
     public:
@@ -378,8 +368,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             return *this;
         };
     };
-    PUBLIC class pml2t : public pmlxt
-    {
+    PUBLIC class pml2t : public pmlxt {
         friend pmlxt;
         // 三级页表有两种情况
         // 一种是当分页模式为2M时继续找二级页表
@@ -502,8 +491,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     private:
         const MemoryPageType mode;     // 2M或者4K
     };
-    PUBLIC class pml3t : public pmlxt
-    {
+    PUBLIC class pml3t : public pmlxt {
         friend pmlxt;
         // 三级页表有两种情况
         // 一种是当分页模式为2M时继续找二级页表
@@ -625,8 +613,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     private:
         const MemoryPageType mode;
     };
-    PUBLIC class pml4t : public pmlxt
-    {
+    PUBLIC class pml4t : public pmlxt {
         friend pmlxt;
         // 五级页表是最大的了
     public:
@@ -736,8 +723,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             return *this;
         };
     };
-    PUBLIC class pml5t : public pmlxt
-    {
+    PUBLIC class pml5t : public pmlxt {
         friend pmlxt;
         // 五级页表是最大的了
     public:
@@ -846,11 +832,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         };
     };
 
-    class Paging
-    {
+    class Paging {
     public:
         inline static pmlxt *kernel_page_table { };
-        inline static bool support_5level_paging { };
+        inline static bool   support_5level_paging { };
 
     private:
         inline static pml4t *pml4_t { };

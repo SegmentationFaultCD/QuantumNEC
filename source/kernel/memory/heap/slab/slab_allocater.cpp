@@ -39,8 +39,8 @@ PUBLIC namespace QuantumNEC::Kernel {
                 HeapCollector { }.free( slab );
                 return NULL;
             }
-            std::memset( slab->page, 0, PageAllocater::__page_size< MemoryPageType::PAGE_2M > );
-            slab->using_count = PageAllocater::__page_size< MemoryPageType::PAGE_2M > / slab_cache->size;
+            std::memset( slab->page, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+            slab->using_count = PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / slab_cache->size;
             slab->color_count = slab->using_count;
             slab->free_count  = slab->color_count;
 

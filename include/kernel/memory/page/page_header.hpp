@@ -1,37 +1,34 @@
 #pragma once
-#include <lib/Uefi.hpp>
-#include <kernel/memory/page/page_manager.hpp>
-#include <kernel/memory/page/page_allocater.hpp>
-#include <kernel/memory/arch/memory_arch.hpp>
 #include <concepts>
-#include <utility>
+#include <kernel/memory/arch/memory_arch.hpp>
+#include <kernel/memory/heap/heap_allocater.hpp>
+#include <kernel/memory/page/page_allocater.hpp>
+#include <kernel/memory/page/page_manager.hpp>
 #include <kernel/print.hpp>
+#include <lib/Uefi.hpp>
+#include <utility>
 PUBLIC namespace QuantumNEC::Kernel {
-    template < MemoryPageType __allocater_to_bind, MemoryPageType _prev_info_block_allocater, MemoryPageType _mmap_allocater >
-    PUBLIC class __page_header
-    {
+    template < MemoryPageType __allocater_to_bind__, MemoryPageType __prev_info_block_allocater__, MemoryPageType __mmap_allocater__ >
+    PUBLIC class __page_header__ {
     public:
         constexpr static auto page_information_block_size { 128 };
         constexpr static auto page_bitmap_size { 128 };
         constexpr static auto page_descriptor_count { page_bitmap_size << 3 };     // 一个bitmap所有bit
-        constexpr static auto page_header_count { PageAllocater::__page_size< _prev_info_block_allocater > / ( page_information_block_size + page_bitmap_size ) };
 
-        enum __page_state : uint64_t {
-            ALL_FULL = 0,
-            ALL_FREE = 1,
-            NORMAL = 2
-        };
-        struct alignas( page_information_block_size ) __page_information
-        {
+        struct alignas( page_information_block_size ) __page_information__ {
             Lib::ListNode group_node;     // 连接每个页头
 
-            struct __page_flags
-            {
-                __page_state state : 2;
-                uint64_t type : 2;
-                uint64_t reserved : 60;
+            struct __page_flags__ {
+                enum class __page_state__ : uint64_t {
+                    ALL_FULL = 0,
+                    ALL_FREE = 1,
+                    NORMAL   = 2
+                };
+                __page_state__ state : 2;
+                uint64_t       type : 2;
+                uint64_t       reserved : 60;
 
-                explicit __page_flags( VOID ) noexcept = default;
+                explicit __page_flags__( VOID ) noexcept = default;
 
             } flags;     // 标志
 
@@ -41,81 +38,111 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             std::bitset< page_descriptor_count > *bitmap;
 
-            __page_information *owner;
+            __page_information__ *owner;
+
             uint64_t header_count;
 
-            explicit __page_information( VOID ) = default;
+            explicit __page_information__( VOID ) = default;
         };
-        using header_t = std::pair< __page_information, std::bitset< page_descriptor_count > >;
+        using header_t = std::pair< __page_information__, std::bitset< page_descriptor_count > >;
+
+        constexpr static auto header_size { sizeof( header_t ) };
+
         uint64_t all_memory_header_count;
         uint64_t all_memory_page_desvriptor_count;
 
-    public:
-        explicit __page_header( IN uint64_t group_count, IN std::pair< uint64_t, int64_t > __header_start_address, IN std::pair< uint64_t, int64_t > __base_address ) {
-            auto &table = allocate_information_list[ __allocater_to_bind ];
+    private:
+        class __address__ : PageAllocater, HeapAllocater {
+        public:
+            enum __address_type__ {
+                BASE_ADDRESS,
+                HEADER_START_ADDRESS
+            };
 
-            if ( std::get< 1 >( __header_start_address ) == -1 ) {
-                this->group = reinterpret_cast< header_t * >( physical_to_virtual( allocater.allocate< _prev_info_block_allocater >( group_count ) ) );
+        public:
+            __address__( VOID ) :
+                has_val { FALSE },
+                address { 0 } {
             }
-            else {
-                this->group = reinterpret_cast< header_t * >( std::get< 0 >( __header_start_address ) );
+            __address__( uint64_t address ) :
+                has_val { TRUE },
+                address { address } {
             }
-            this->all_memory_header_count = this->page_header_count * group_count;
-            this->all_memory_page_desvriptor_count = all_memory_header_count * this->page_descriptor_count;
+            template < __address_type__ __type__ >
+            auto get_address( IN uint64_t header_count ) {
+                if ( has_val ) {
+                    if constexpr ( __type__ == HEADER_START_ADDRESS ) {
+                        return reinterpret_cast< header_t * >( address );
+                    }
+                    else {
+                        return address;
+                    }
+                }
+                if constexpr ( __type__ == HEADER_START_ADDRESS ) {
+                    return reinterpret_cast< header_t * >( physical_to_virtual( this->allocate( header_count * header_size ) ) );
+                }
+                else {
+                    return (uint64_t)this->allocate< __mmap_allocater__ >(
+                        (( this->__page_size__< __allocater_to_bind__ > * header_count * page_descriptor_count ) / this->__page_size__< __mmap_allocater__ >));
+                }
+            }
+
+        private:
+            BOOL     has_val;
+            uint64_t address;
+        };
+
+    private:
+        using __page_state__ = __page_information__::__page_flags__::__page_state__;
+
+    public:
+        explicit __page_header__( IN uint64_t header_count, IN __address__ header_start_address, IN __address__ base_address ) {
+            auto &table = allocate_information_list[ __allocater_to_bind__ ];
+
+            this->group        = header_start_address.get_address< __address__::HEADER_START_ADDRESS >( 0 );
+            auto base_address_ = base_address.get_address< __address__::BASE_ADDRESS >( header_count );
+
+            this->all_memory_header_count          = header_count;
+            this->all_memory_page_desvriptor_count = all_memory_header_count * header_count;
 
             auto &[ start_info, start_bitmap ] = this->group[ 0 ];
 
             table.append( start_info.group_node );
-
-            start_info.header_count = this->all_memory_header_count;
-            start_info.owner = &start_info;
-            start_info.group_node.container = &start_info;
-            start_info.flags.state = __page_state::ALL_FREE;
-            start_info.flags.type = __allocater_to_bind;
+            start_info.header_count           = this->all_memory_header_count;
+            start_info.owner                  = NULL;     // 头不能指向自己否则变成死循环
+            start_info.group_node.container   = &start_info;
+            start_info.flags.state            = __page_state__::ALL_FREE;
+            start_info.flags.type             = __allocater_to_bind__;
             start_info.free_memory_page_count = this->page_descriptor_count;
-            start_info.bitmap = &start_bitmap;
+            start_info.bitmap                 = &start_bitmap;
+            start_info.base_address           = base_address_;
 
-            for ( auto i = 0ul; i < this->all_memory_header_count / page_header_count; ++i ) {
-                auto info = std::get< __page_information >( this->group[ i ] );
-                table.append( info.group_node );
-                info.group_node.container = &info;
-            }
-
-            for ( auto j = 1ul; j < this->all_memory_header_count; ++j ) {
-                auto &[ end_info, end_bitmap ] = this->group[ j ];
-                end_info.header_count = this->all_memory_header_count;
-                end_info.owner = &start_info;
-                end_info.flags.state = __page_state::ALL_FREE;
-                end_info.flags.type = __allocater_to_bind;
-                end_info.free_memory_page_count = this->page_descriptor_count;
-                end_info.bitmap = &end_bitmap;
-            }
-            auto base_address = std::get< 0 >( __base_address );
-
-            if ( std::get< 1 >( __base_address ) == -1 ) {
-                if constexpr ( _mmap_allocater != MemoryPageType::NONE ) {
-                    base_address = (uint64_t)allocater.allocate< _mmap_allocater >( (( PageAllocater::__page_size< __allocater_to_bind > * this->all_memory_page_desvriptor_count ) / PageAllocater::__page_size< _mmap_allocater >));
-                }
-            }
-
-            for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {     // 对每个块的base_adderess进行初始化
-                std::get< __page_information >( this->group[ i ] ).base_adderess = base_address + this->page_descriptor_count * PageAllocater::__page_size< __allocater_to_bind > * i;
+            for ( auto i = 1ul; i < this->all_memory_header_count; ++i ) {
+                auto &[ info, bitmap ]      = std::get< __page_information__ >( this->group[ i ] );
+                info.owner                  = &start_info;
+                info.flags.state            = __page_state__::ALL_FREE;
+                info.flags.type             = __allocater_to_bind__;
+                info.free_memory_page_count = this->page_descriptor_count;
+                info.bitmap                 = &bitmap;
+                start_info.base_address     = base_address_ + this->page_descriptor_count * PageAllocater::__page_size__< __allocater_to_bind__ > * i;
             }
         }
-        explicit __page_header( IN __page_information *phis ) {
+        explicit __page_header__( IN __page_information__ *phis ) {
             this->group = reinterpret_cast< header_t * >( phis->owner );
-            this->all_memory_header_count = phis->owner->header_count;
+
+            this->all_memory_header_count          = phis->owner->header_count;
             this->all_memory_page_desvriptor_count = phis->owner->header_count * page_descriptor_count;
         }
-        auto __allocate_headers( IN uint64_t __size ) {
-            auto &&remainder = __size % this->page_descriptor_count;
-            auto &&end = remainder ? __size / this->page_descriptor_count + 1 : __size / this->page_descriptor_count;
+        auto __allocate_headers__( IN uint64_t __size__ ) {
+            auto &&remainder = __size__ % this->page_descriptor_count;
+            auto &&end       = remainder ? __size__ / this->page_descriptor_count + 1 : __size__ / this->page_descriptor_count;
+
             uint64_t i { };
             while ( i < this->all_memory_header_count ) {
-                auto &header = std::get< __page_information >( this->group[ i ] );
-                if ( header.flags.type != __page_state::ALL_FREE ) {
+                auto &header = std::get< __page_information__ >( this->group[ i ] );
+                if ( header.flags.state != __page_state__::ALL_FREE ) {
                     for ( auto j = i; j < i + end; ++j ) {
-                        if ( std::get< __page_information >( group[ j ] ).flags.type != __page_state::ALL_FREE ) {
+                        if ( std::get< __page_information__ >( group[ j ] ).flags.state != __page_state__::ALL_FREE ) {
                             goto out;
                         }
                     }
@@ -127,13 +154,13 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             for ( ; i < end - 1; ++i ) {
                 // 把开头到结尾前一个都算进去
-                auto &info = std::get< __page_information >( this->group[ i ] );
-                info.flags.state = __page_state::ALL_FULL;
+                auto &info                  = std::get< __page_information__ >( this->group[ i ] );
+                info.flags.state            = __page_state__::ALL_FULL;
                 info.free_memory_page_count = 0;
                 info.bitmap->set( 0, this->page_descriptor_count );
             }
-            auto &end_info = std::get< __page_information >( this->group[ end - 1 ] );
-            end_info.flags.state = __page_state::NORMAL;
+            auto &end_info       = std::get< __page_information__ >( this->group[ end - 1 ] );
+            end_info.flags.state = __page_state__::NORMAL;
             end_info.free_memory_page_count -= remainder;
             end_info.bitmap->set( 0, remainder );
         }
@@ -143,6 +170,5 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     private:
         header_t *group;
-        PageAllocater allocater { };
     };
 }

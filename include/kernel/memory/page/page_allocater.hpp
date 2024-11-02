@@ -1,31 +1,30 @@
 #pragma once
-#include <lib/Uefi.hpp>
 #include <kernel/memory/page/page_manager.hpp>
+#include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC class PageAllocater
-    {
+    PUBLIC class PageAllocater {
     public:
-        template < MemoryPageType __type >
-            requires( __type != MemoryPageType::NONE )
-        constexpr static auto __page_size = ( [] consteval -> uint64_t {
-            if constexpr ( __type == MemoryPageType::PAGE_2M ) {
+        template < MemoryPageType __type__ >
+            requires( __type__ != MemoryPageType::NONE )
+        constexpr static auto __page_size__ = ( [] consteval -> uint64_t {
+            if constexpr ( __type__ == MemoryPageType::PAGE_2M ) {
                 return 2_MB;
             }
-            else if constexpr ( __type == MemoryPageType::PAGE_1G ) {
+            else if constexpr ( __type__ == MemoryPageType::PAGE_1G ) {
                 return 1_GB;
             }
-            else if constexpr ( __type == MemoryPageType::PAGE_4K ) {
+            else if constexpr ( __type__ == MemoryPageType::PAGE_4K ) {
                 return 4_KB;
             }
             return 0ul;
         } )( );
-        template < MemoryPageType __type >
-            requires( __type != MemoryPageType::NONE )
-        constexpr static auto __page_mask = ~( __page_size< __type > - 1 );
-        template < MemoryPageType __type >
-            requires( __type != MemoryPageType::NONE )
-        constexpr static auto __page_aligned( auto address ) {
-            return ( (uint64_t)address + __page_size< __type > - 1 ) & __page_mask< __type >;
+        template < MemoryPageType __type__ >
+            requires( __type__ != MemoryPageType::NONE )
+        constexpr static auto __page_mask__ = ~( __page_size__< __type__ > - 1 );
+        template < MemoryPageType __type__ >
+            requires( __type__ != MemoryPageType::NONE )
+        constexpr static auto __page_aligned__( auto address ) {
+            return ( (uint64_t)address + __page_size__< __type__ > - 1 ) & __page_mask__< __type__ >;
         };
 
     public:
@@ -34,17 +33,17 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     public:
         // 分配器
-        template < MemoryPageType __type >
-            requires( __type != MemoryPageType::NONE )
-        auto allocate( IN uint64_t __size ) -> VOID *;
+        template < MemoryPageType __type__ >
+            requires( __type__ != MemoryPageType::NONE )
+        auto allocate( IN uint64_t __size__ ) -> VOID *;
         // 这个操作不会初始化分配的空间，需要手动清零
     };
 
     PUBLIC inline Lib::ListTable allocate_information_list[ 4 ] { };
     template <>
-    auto PageAllocater::allocate< MemoryPageType::PAGE_2M >( IN uint64_t __size ) -> VOID *;
+    auto PageAllocater::allocate< MemoryPageType::PAGE_2M >( IN uint64_t __size__ ) -> VOID *;
     template <>
-    auto PageAllocater::allocate< MemoryPageType::PAGE_1G >( IN uint64_t __size ) -> VOID *;
+    auto PageAllocater::allocate< MemoryPageType::PAGE_1G >( IN uint64_t __size__ ) -> VOID *;
     template <>
-    auto PageAllocater::allocate< MemoryPageType::PAGE_4K >( IN uint64_t __size ) -> VOID *;
+    auto PageAllocater::allocate< MemoryPageType::PAGE_4K >( IN uint64_t __size__ ) -> VOID *;
 }
