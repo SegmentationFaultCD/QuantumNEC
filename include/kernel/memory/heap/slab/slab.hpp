@@ -46,10 +46,24 @@ PUBLIC namespace QuantumNEC::Kernel {
             524288,
             1048576,
         };
-        constexpr static auto   cache_size_count = sizeof( cache_size ) / sizeof( uint64_t );
+
+    public:
+        constexpr static auto cache_size_count = sizeof( cache_size ) / sizeof( uint64_t );
+
+    private:
         inline static SlabCache slab_caches[ cache_size_count ];
 
     public:
         explicit SlabManager( VOID ) noexcept;
+
+        STATIC auto get_slab_from_caches( IN uint64_t size ) -> SlabCache & {
+            auto i = 0ul;
+            for ( ; i < cache_size_count; ++i ) {
+                if ( slab_caches[ i ].size >= size ) {
+                    return slab_caches[ i ];
+                }
+            }
+            return slab_caches[ i ];
+        }
     };
 }

@@ -4,25 +4,22 @@
 #include <libcxx/bitset.hpp>
 
 PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC constexpr auto operator""_KB( IN CONST unsigned long long kib )->size_t {
+    PUBLIC consteval auto operator""_KB( IN CONST unsigned long long kib ) {
         return kib * 1024;
     }
-
-    PUBLIC constexpr auto operator""_MB( IN CONST unsigned long long mib )->size_t {
+    PUBLIC consteval auto operator""_MB( IN CONST unsigned long long mib ) {
         return mib * 1024_KB;
     }
-
-    PUBLIC constexpr auto operator""_GB( IN CONST unsigned long long gib )->size_t {
+    PUBLIC consteval auto operator""_GB( IN CONST unsigned long long gib ) {
         return gib * 1024_MB;
     }
     PUBLIC enum MemoryPageType : uint64_t {
-        NONE = 0,
+        NONE    = 0,
         PAGE_4K = 1,     // 01
         PAGE_2M = 2,     // 10
         PAGE_1G = 3,     // 11
     };
-    PUBLIC class PageManager
-    {
+    PUBLIC class PageManager {
     public:
         explicit PageManager( VOID ) noexcept;
         virtual ~PageManager( VOID ) noexcept = default;

@@ -24,7 +24,8 @@ PUBLIC namespace QuantumNEC::Kernel {
             this->slab_caches[ i ].total_using                 = 0;
             this->slab_caches[ i ].cache_pool->page            = PageAllocater { }.allocate< MemoryPageType::PAGE_2M >( 1 );
             this->slab_caches[ i ].cache_pool->virtual_address = physical_to_virtual( this->slab_caches[ i ].cache_pool->page );
-            std::memset( this->slab_caches[ i ].cache_pool->virtual_address, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+            std::memset( this->slab_caches[ i ].cache_pool->virtual_address, 0xff, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+            this->slab_caches[ i ].pool_list.append( this->slab_caches[ i ].cache_pool->list );
         }
     }
 }

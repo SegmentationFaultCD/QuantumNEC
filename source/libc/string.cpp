@@ -1,5 +1,5 @@
-#include <libc/string.h>
 #include <lib/Uefi.hpp>
+#include <libc/string.h>
 
 using namespace QuantumNEC;
 /**
@@ -8,7 +8,7 @@ using namespace QuantumNEC;
  * @param Src 修改Dest的字符串
  * @return 返回一个指向最终的目标字符串Dest的指针
  */
-PUBLIC _C_LINK auto strcpy( IN OUT char_t *Dest,
+PUBLIC _C_LINK auto strcpy( IN OUT char_t   *Dest,
                             IN CONST char_t *Src )
     -> char_t * {
     auto tmp { Dest };
@@ -24,7 +24,7 @@ PUBLIC _C_LINK auto strcpy( IN OUT char_t *Dest,
  * @param Count 要复制的字符数
  * @return 返回一个指向最终的目标字符串Dest的指针
  */
-PUBLIC _C_LINK auto strncpy( IN OUT char_t *Dest,
+PUBLIC _C_LINK auto strncpy( IN OUT char_t   *Dest,
                              IN CONST char_t *Src,
                              IN CONST int64_t Count )
     -> char_t * {
@@ -40,7 +40,7 @@ PUBLIC _C_LINK auto strncpy( IN OUT char_t *Dest,
  * @param Src 修改Dest的字符串
  * @return 返回一个指向最终的目标字符串Dest的指针
  */
-PUBLIC _C_LINK auto strcat( IN OUT char_t *Dest,
+PUBLIC _C_LINK auto strcat( IN OUT char_t   *Dest,
                             IN CONST char_t *Src )
     -> char_t * {
     auto tmp { Dest };
@@ -57,7 +57,7 @@ PUBLIC _C_LINK auto strcat( IN OUT char_t *Dest,
  * @param Count 要复制的字符数
  * @return 返回一个指向最终的目标字符串Dest的指针
  */
-PUBLIC _C_LINK auto strncat( IN OUT char_t *Dest,
+PUBLIC _C_LINK auto strncat( IN OUT char_t   *Dest,
                              IN CONST char_t *Src,
                              IN CONST int64_t Count )
     -> char_t * {
@@ -170,7 +170,7 @@ PUBLIC _C_LINK auto strrchr( IN CONST char_t *dest, IN int32_t ch ) -> char_t * 
  * @param needle 要搜索的字符串
  * @return 返回在haystack中第一次出现needle字符串的地址，如果未找到则返回NULL
  */
-PUBLIC _C_LINK auto strstr( IN char_t *haystack,
+PUBLIC _C_LINK auto strstr( IN char_t       *haystack,
                             IN CONST char_t *needle )
     -> char_t * {
     if ( *needle ) {
@@ -194,9 +194,9 @@ PUBLIC _C_LINK auto strstr( IN char_t *haystack,
  * @param size 字节数
  * @return 返回指向dest的指针
  */
-PUBLIC _C_LINK auto memcpy( IN OUT VOID *dest,
+PUBLIC _C_LINK auto memcpy( IN OUT VOID   *dest,
                             IN CONST VOID *src,
-                            IN uint64_t size )
+                            IN uint64_t    size )
     -> VOID * {
     auto ret { dest };
     /*
@@ -204,8 +204,8 @@ PUBLIC _C_LINK auto memcpy( IN OUT VOID *dest,
      */
     while ( size-- ) {
         *reinterpret_cast< char_t * >( dest ) = *reinterpret_cast< char_t * >( const_cast< VOID * >( src ) );
-        dest = reinterpret_cast< char_t * >( dest ) + 1;
-        src = reinterpret_cast< char_t * >( const_cast< VOID * >( src ) ) + 1;
+        dest                                  = reinterpret_cast< char_t                                  *>( dest ) + 1;
+        src                                   = reinterpret_cast< char_t                                   *>( const_cast< VOID                                   *>( src ) ) + 1;
     }
     return reinterpret_cast< VOID * >( ret );
 }
@@ -243,8 +243,8 @@ PUBLIC _C_LINK auto memchr( IN OUT VOID *buf,
  * @return 当buf1 = buf2时，返回值 = 0;
  * @return 当buf1 > buf2时，返回值 > 0
  */
-PUBLIC _C_LINK auto memcmp( IN VOID *buf1,
-                            IN VOID *buf2,
+PUBLIC _C_LINK auto memcmp( IN VOID          *buf1,
+                            IN VOID          *buf2,
                             IN CONST uint64_t size )
     -> int16_t {
     auto pdest1 { (char *)buf1 }, pdest2 { (char *)buf2 };
@@ -264,9 +264,9 @@ PUBLIC _C_LINK auto memcmp( IN VOID *buf1,
  * @param size 字节数
  * @return 返回指向dest的指针
  */
-PUBLIC _C_LINK auto memmove( IN OUT VOID *dest,
+PUBLIC _C_LINK auto memmove( IN OUT VOID       *dest,
                              IN OUT CONST VOID *src,
-                             IN size_t size )
+                             IN size_t          size )
     -> VOID * {
     auto __src { const_cast< VOID * >( src ) };
     auto ret { dest };
@@ -275,19 +275,19 @@ PUBLIC _C_LINK auto memmove( IN OUT VOID *dest,
          * 从较低的地址复制到较高的地址 */
         while ( size-- ) {
             *reinterpret_cast< char_t * >( dest ) = *reinterpret_cast< char_t * >( __src );
-            dest = reinterpret_cast< char_t * >( dest ) + 1;
-            __src = reinterpret_cast< char_t * >( __src ) + 1;
+            dest                                  = reinterpret_cast< char_t                                  *>( dest ) + 1;
+            __src                                 = reinterpret_cast< char_t                                 *>( __src ) + 1;
         }
     }
     else {
         /* 重叠缓冲区
          * 从较高的地址复制到较低的地址 */
-        dest = reinterpret_cast< char_t * >( dest ) + size - 1;
+        dest  = reinterpret_cast< char_t  *>( dest ) + size - 1;
         __src = reinterpret_cast< char_t * >( __src ) + size - 1;
         while ( size-- ) {
             *reinterpret_cast< char_t * >( dest ) = *reinterpret_cast< char_t * >( __src );
-            dest = reinterpret_cast< char_t * >( dest ) - 1;
-            __src = reinterpret_cast< char_t * >( __src ) - 1;
+            dest                                  = reinterpret_cast< char_t                                  *>( dest ) - 1;
+            __src                                 = reinterpret_cast< char_t                                 *>( __src ) - 1;
         }
     }
     return ret;
@@ -300,14 +300,45 @@ PUBLIC _C_LINK auto memmove( IN OUT VOID *dest,
  * @param size dest前几个的字节
  */
 PUBLIC _C_LINK auto memset( IN OUT CONST VOID *dest,
-                            IN CONST uint8_t value,
-                            IN CONST uint64_t size )
+                            IN CONST uint8_t   value,
+                            IN CONST uint64_t  size )
     -> VOID * {
-    auto pdest { (char *)dest };
-    auto n { size };
-    while ( n-- > 0 )
-        *pdest++ = value;
-    return const_cast< VOID * >( dest );
+    unsigned char *ptr   = (unsigned char *)dest;
+    unsigned char  val   = (unsigned char)value;
+    auto           count = size;
+    // 处理未对齐的字节
+    while ( count > 0 && ( (size_t)ptr & ( sizeof( size_t ) - 1 ) ) ) {
+        *ptr++ = val;
+        count--;
+    }
+
+    // 如果还有足够的字节要处理
+    if ( count >= sizeof( size_t ) ) {
+        size_t  val_word;
+        size_t *word_ptr;
+
+        // 构造填充字
+        val_word = ( val << 24 ) | ( val << 16 ) | ( val << 8 ) | val;
+#if SIZE_MAX > 0xffffffff
+        val_word = ( val_word << 32 ) | val_word;
+#endif
+
+        // 按字填充
+        word_ptr = (size_t *)ptr;
+        while ( count >= sizeof( size_t ) ) {
+            *word_ptr++ = val_word;
+            count -= sizeof( size_t );
+        }
+
+        ptr = (unsigned char *)word_ptr;
+    }
+
+    // 处理剩余字节
+    while ( count-- ) {
+        *ptr++ = val;
+    }
+
+    return (VOID *)dest;
 }
 
 /**
@@ -336,8 +367,8 @@ PUBLIC _C_LINK auto itoa( IN int64_t num, IN char_t *str, IN uint32_t base ) -> 
         i++;
     }
     str[ i ] = '\0'; /* 加上字符串结尾 */
-    auto *p { str };
-    auto *q { str };
+    auto  *p { str };
+    auto  *q { str };
     char_t tmp { };
     while ( *q != '\0' ) {
         q++;
@@ -346,7 +377,7 @@ PUBLIC _C_LINK auto itoa( IN int64_t num, IN char_t *str, IN uint32_t base ) -> 
     /* 把字符串倒过来 */
     while ( q > p ) {
         tmp = *p;
-        *p = *q;
+        *p  = *q;
         p++;
         *q = tmp;
         q--;
@@ -368,8 +399,8 @@ PUBLIC _C_LINK auto utoa( IN uint64_t num, IN char_t *str, IN uint32_t base ) ->
         num = num / base;
     } while ( num > 0 );
     str[ i ] = '\0'; /* 加上字符串结尾 */
-    auto p { str };
-    auto q { str };
+    auto   p { str };
+    auto   q { str };
     char_t tmp { };
     while ( *q != '\0' ) {
         q++;
@@ -378,7 +409,7 @@ PUBLIC _C_LINK auto utoa( IN uint64_t num, IN char_t *str, IN uint32_t base ) ->
     /* 把字符串倒过来 */
     while ( q > p ) {
         tmp = *p;
-        *p = *q;
+        *p  = *q;
         p++;
         *q = tmp;
         q--;

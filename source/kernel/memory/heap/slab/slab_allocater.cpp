@@ -53,7 +53,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 HeapCollector { }.free( slab );
                 return NULL;
             }
-            slab_cache->pool_list.append( slab->list );
+            slab_cache->pool_list.insert( &slab->list, &slab_cache->cache_pool->list );
             slab_cache->total_free += slab->color_count;
             for ( auto i = 0ul; i < slab->color_count; ++i ) {
                 if ( auto pool = set_slab( i ); pool ) {

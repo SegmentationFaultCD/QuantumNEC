@@ -10,7 +10,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     public:
         template < MemoryPageType __type__ >
             requires( __type__ != MemoryPageType::NONE )
-        auto free( IN VOID *__physical_addres__s, IN uint64_t __size__ ) -> VOID;
+        auto free( IN VOID *__physical_address__, IN uint64_t __size__ ) -> VOID;
         // 这个操作会清空内存地址指向的空间中所有数据
     };
     template <>

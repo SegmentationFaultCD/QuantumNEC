@@ -9,5 +9,6 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     public:
         auto allocate( IN uint64_t size ) -> VOID *;
+        
     };
 }
