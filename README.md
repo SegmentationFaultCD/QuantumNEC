@@ -28,19 +28,9 @@
 git submodule update --init
 ```
  并且，编写**limine.conf**，或者就用我写的<br>
- 然后，进入QuantumNEC文件夹，编译静态库
+ 然后，进入QuantumNEC文件夹，编译
 ```bash
-xmake -F source/Libc/xmake.lua        # 编译C库
-xmake -F source/Libcxx/xmake.lua      # 编译C++库
-xmake -F source/Lib/xmake.lua         # 编译系统库
-```
- 等待编译完成后，开始编译链接内核
-```bash
-xmake -F source/xmake.lua build # 编译内核文件
-```
- 然后，开始编译链接模块驱动
-```bash
-xmake -F source/Modules/xmake.lua # 编译模块驱动文件
+    xmake
 ```
  等待所有文件编译链接完成后，在主文件夹下得到vm文件，目录如下
 - EFI
@@ -50,10 +40,6 @@ xmake -F source/Modules/xmake.lua # 编译模块驱动文件
 - QuantumNEC
     - micro_kernel.elf 此为内核文件
     - SYSTEM64
-      - Unicode.bin
-      - switch.elf
-      - servicer.elf
-      - to_process.elf
       - ...所有模块文件<br>
 ### Windows(以Windows 10为例)
  这里什么也没有啊（悲
