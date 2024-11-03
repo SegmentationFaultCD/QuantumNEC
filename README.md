@@ -30,7 +30,7 @@ git submodule update --init
  并且，编写**limine.conf**，或者就用我写的<br>
  然后，进入QuantumNEC文件夹，编译
 ```bash
-    xmake
+xmake
 ```
  等待所有文件编译链接完成后，在主文件夹下得到vm文件，目录如下
 - EFI
