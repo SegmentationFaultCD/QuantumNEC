@@ -170,15 +170,13 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::__config.paging_mode   = *paging_mode_request.response;
     Kernel::__config.modules       = *modules_request.response;
 
-    // Kernel::Graphics grap { };
-    Kernel::Memory mem { };     // 内存管理初始化
-
+    Kernel::Graphics  grap { };
     Kernel::Acpi      acp { };
     Kernel::Interrupt intr { };
-
-    Kernel::Sound soun { };
-    Kernel::Time  tim { };
-    // Kernel::Task task { };                                                 // 进程管理初始化
+    Kernel::Memory    mem { };
+    Kernel::Sound     soun { };
+    Kernel::Time      tim { };
+    // Kernel::Task task { };
     Kernel::Syscall sysc { };
 
     Kernel::CPU cpu { };
@@ -220,7 +218,8 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     // strcpy( g, buf );
     // println< ostream::HeadLevel::DEBUG >( "{} {:x}", g, (void *)g );
 
-    // println< ostream::HeadLevel::DEBUG >( "Test 2 : Make 2 processes-------------------------------" );
+    println< ostream::HeadLevel::DEBUG >( "Test 2 : Make 2 processes-------------------------------" );
+    terminal_advance_state( "1145141919810" );
 
     // task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
     // task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
