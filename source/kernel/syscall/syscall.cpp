@@ -1,6 +1,6 @@
-#include <kernel/syscall/syscall.hpp>
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/print.hpp>
+#include <kernel/syscall/syscall.hpp>
 #include <libcxx/string.hpp>
 
 PUBLIC QuantumNEC::Kernel::Syscall::SyscallEntry syscall_table[ QuantumNEC::Kernel::NR_SYS_CALL ] { };
@@ -18,7 +18,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         this->set_syscall_table( static_cast< uint64_t >( Syscall::Function::SYSCALL_MESSAGE_SEND ), syscall_send_receive );
         this->set_syscall_table( static_cast< uint64_t >( Syscall::Function::SYSCALL_MESSAGE_RECEIVE ), syscall_send_receive );
         this->set_syscall_table( static_cast< uint64_t >( Syscall::Function::SYSCALL_MESSAGE_SEND_RECEIVE ), syscall_send_receive );
-        println< ostream::HeadLevel::OK >( "Initialize the system call." );
+        //  println< ostream::HeadLevel::OK >( "Initialize the system call." );
     }
     auto Syscall::get_syscall_table( VOID ) -> SyscallEntry * {
         return syscall_table;

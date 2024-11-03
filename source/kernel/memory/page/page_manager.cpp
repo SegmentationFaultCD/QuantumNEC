@@ -23,7 +23,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
         }
 
-        PH page_header { 1, (uint64_t)info_address, 0 };
+        PH page_header { PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / PH::header_size, (uint64_t)info_address, 0 };
 
         auto *bitmap = std::get< PHI >( page_header.get( 0 ) ).bitmap;
 
@@ -54,10 +54,9 @@ PUBLIC namespace QuantumNEC::Kernel {
             case LIMINE_MEMMAP_BAD_MEMORY:             // 错误内存
             case LIMINE_MEMMAP_KERNEL_AND_MODULES:     // 模块文件内存
             case LIMINE_MEMMAP_FRAMEBUFFER:            // 显存占用的
-                // 如果是以上这几类，那么将其所在的bitmap中的位置设置为1
-                auto base_address = (uint64_t)start & ~( PageAllocater::__page_size__< MemoryPageType::PAGE_2M > * PH::page_descriptor_count - 1 );
+
                 // 计算取得所在组的块的编号
-                auto base_index = ( (uint64_t)start - base_address ) / ( PH::page_descriptor_count * PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+                auto base_index = start / ( PH::page_descriptor_count * PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
                 // 取得处于所在组的块的bitmap中的编号
                 auto index = (((uint64_t)start & PageAllocater::__page_mask__< MemoryPageType::PAGE_2M >) / PageAllocater::__page_size__< MemoryPageType::PAGE_2M >) % PH::page_descriptor_count;
 
@@ -70,6 +69,6 @@ PUBLIC namespace QuantumNEC::Kernel {
                 break;
             }
         }
-        println< ostream::HeadLevel::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
+        // println< ostream::HeadLevel::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
     }
 }

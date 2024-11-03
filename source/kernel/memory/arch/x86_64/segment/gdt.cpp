@@ -1,8 +1,8 @@
-#include <kernel/memory/arch/x86_64/segment/gdt.hpp>
 #include <kernel/interrupt/interrupt.hpp>
+#include <kernel/memory/arch/x86_64/segment/gdt.hpp>
 #include <kernel/print.hpp>
-#include <libcxx/cstring.hpp>
 #include <lib/spin_lock.hpp>
+#include <libcxx/cstring.hpp>
 
 using namespace std;
 namespace QuantumNEC::Kernel::x86_64 {
@@ -10,7 +10,7 @@ inline static GlobalSegmentDescriptorTable::_GDT _gdt { };
 GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept {
     this->gdt = new ( &_gdt ) GlobalSegmentDescriptorTable::_GDT { };
     for ( size_t i { }, tss_base_low { }, tss_base_high { }; i < GLOBAL_SEGMENT_DESCRIPTOR_TABLE_COUNT; ++i ) {
-        tss_base_low = ( reinterpret_cast< uint64_t >( &this->gdt->tss[ i ] ) ) & 0xffffffff;
+        tss_base_low  = ( reinterpret_cast< uint64_t >( &this->gdt->tss[ i ] ) ) & 0xffffffff;
         tss_base_high = ( reinterpret_cast< uint64_t >( &this->gdt->tss[ i ] ) >> 32 ) & 0xffffffff;
         this->gdt->tss[ i ].set_io_map_base_address( static_cast< uint16_t >( sizeof( TaskStateSegmentDescriptor ) << 16 ) );
         // 设置GDT里的LDT
@@ -28,13 +28,13 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept {
         memcpy( &this->gdt->descriptor_table[ i ][ 11 ], &tss_base_high, 8 );
         // 还剩下13 ~ 8192个描述符保留
     }
-    println< ostream::HeadLevel::SYSTEM >( "Loading the global segment descriptor table." );
+    //  println< ostream::HeadLevel::SYSTEM >( "Loading the global segment descriptor table." );
     // 加载GDT
     this->gdt->load( 0 );
     // 加载全局段中的TSS
-    println< ostream::HeadLevel::SYSTEM >( "Loading the task state segment in global segment." );
+    // println< ostream::HeadLevel::SYSTEM >( "Loading the task state segment in global segment." );
     this->gdt->tss[ 0 ].load_tr( SELECTOR_TSS );
-    println< ostream::HeadLevel::OK >( "Initialize the global segment descriptor table management." );
+    // println< ostream::HeadLevel::OK >( "Initialize the global segment descriptor table management." );
 }
 auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) CONST -> VOID {
     ASM( "lgdt %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ processor_id ] ) );
@@ -65,12 +65,12 @@ auto GlobalSegmentDescriptor::make( IN uint64_t base,
                                     IN uint64_t limit,
                                     IN uint64_t access )
     -> GlobalSegmentDescriptor & {
-    this->limit_low = limit & 0xffff;
-    this->base_low = base & 0xffff;
-    this->base_middle = ( base & 0xff0000 ) >> 16;
+    this->limit_low    = limit & 0xffff;
+    this->base_low     = base & 0xffff;
+    this->base_middle  = ( base & 0xff0000 ) >> 16;
     this->access_right = access & 0xff;
-    this->limit_high = ( ( limit >> 16 ) & 0xf ) | ( ( access >> 8 ) & 0xf0 );
-    this->base_high = ( base >> 24 ) & 0xff;
+    this->limit_high   = ( ( limit >> 16 ) & 0xf ) | ( ( access >> 8 ) & 0xf0 );
+    this->base_high    = ( base >> 24 ) & 0xff;
     return *this;
 }
 }     // namespace QuantumNEC::Kernel::x86_64

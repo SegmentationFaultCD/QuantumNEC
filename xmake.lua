@@ -161,14 +161,12 @@ target("micro_kernel")
             "-Wall", 
             "-Wextra",
            -- "-Werror",
-            "-ffunction-sections",-- 优化
-            "-fdata-sections", -- 优化
             "-D APIC",
             "-fPIE",        
             "-fno-lto",
     
             "-Wpointer-arith",
-             "-Wwrite-strings",
+            "-Wwrite-strings",
             -- "-Wcast-align",
             -- "-Wmissing-prototypes",
             -- "-Wmissing-declarations",
@@ -210,7 +208,7 @@ target("micro_kernel")
             ldfiles = ldfiles..val.." "
         end
         local ldflags = "-L./library"
-        local libs = "-lsys -lcxx -lc"
+        local libs = "-lsys -lcxx -lc -los_terminal"
         local lds = "source/kernel/System.lds"
         os.exec("ld "..ldflags.." -o "..run_dir.."/micro_kernel.elf "..ldfiles.." "..libs.." -T "..lds)
         os.cp(run_dir.."/micro_kernel.elf", "vm/QuantumNEC/")
@@ -227,7 +225,7 @@ target("qemu")
     set_default(true)
     on_build(function (target)
         local qemu_flags = "-cpu qemu64,x2apic \
-                      -m 20G \
+                      -m 32G \
                       -smp 4,cores=4,threads=1,sockets=1 \
                       -device nec-usb-xhci,id=xhci \
                       -no-shutdown \
@@ -242,7 +240,7 @@ target("qemu")
                       -name QuantumNEC \
                       -boot order=dc \
                       -net none \
-                      -rtc base=localtime"
+                      -rtc base=localtime" --  -d in_asm
         os.exec("qemu-system-x86_64 -drive if=pflash,format=raw,readonly=on,file=vm/OVMF.fd -drive file=fat:rw:vm,index=0,format=vvfat "..qemu_flags)
     end)
 

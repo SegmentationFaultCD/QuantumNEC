@@ -1,21 +1,21 @@
-#include <kernel/memory/arch/x86_64/paging/page_table_walker.hpp>
-#include <lib/spin_lock.hpp>
 #include <kernel/cpu/cpu.hpp>
+#include <kernel/memory/arch/x86_64/paging/page_table_walker.hpp>
 #include <kernel/memory/arch/x86_64/paging/ptv.hpp>
 #include <kernel/print.hpp>
+#include <lib/spin_lock.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     inline static Lib::SpinLock lock { };
     inline static PageAllocater allocater { };
-    inline static uint64_t address { };
+    inline static uint64_t      address { };
     using namespace std;
     auto PageTableWalker::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode, IN pmlxt & _pmlxt ) -> VOID {
         lock.acquire( );
 
-        pml1t pml1t { };
-        pml2t pml2t { mode };
-        pml3t pml3t { mode };
-        pml4t pml4t { };
-        pml5t pml5t { };
+        pml1t  pml1t { };
+        pml2t  pml2t { mode };
+        pml3t  pml3t { mode };
+        pml4t  pml4t { };
+        pml5t  pml5t { };
         pmlxt *page_table[] { // 这里用指针数组是为了可扩展性
                               &pml1t,
                               &pml2t,
@@ -24,7 +24,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                               &pml5t
         };
         // 从最高级别页表开始遍历
-        auto _level = Paging::support_5level_paging ? 5 : 4;
+        auto _level    = Paging::support_5level_paging ? 5 : 4;
         auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
             return *page_table[ level - 1 ];
         };
@@ -59,7 +59,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                 // 这个页要是是一个不存在的那么就弄出一个4k大小表给他
 
                 auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
-                pmlx_t = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FF ), flags };
+                pmlx_t    = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FF ), flags };
                 std::memset( physical_to_virtual( new_ ), 0, page_size );
             }
 
@@ -74,11 +74,11 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     }
     auto PageTableWalker::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageType mode, IN pmlxt & _pmlxt ) -> VOID {
         lock.acquire( );
-        pml1t pml1t { };
-        pml2t pml2t { mode };
-        pml3t pml3t { mode };
-        pml4t pml4t { };
-        pml5t pml5t { };
+        pml1t  pml1t { };
+        pml2t  pml2t { mode };
+        pml3t  pml3t { mode };
+        pml4t  pml4t { };
+        pml5t  pml5t { };
         pmlxt *page_table[] {
             &pml1t,
             &pml2t,
@@ -86,7 +86,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             &pml4t,
             &pml5t
         };
-        auto _level = Paging::support_5level_paging ? 5 : 4;
+        auto _level    = Paging::support_5level_paging ? 5 : 4;
         auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
             return *page_table[ level - 1 ];
         };
@@ -121,11 +121,11 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     auto PageTableWalker::VTP_from( IN VOID * virtual_address, IN MemoryPageType mode, IN pmlxt & pmlx_t ) -> VOID * {
         lock.acquire( );
-        pml1t pml1t { };
-        pml2t pml2t { mode };
-        pml3t pml3t { mode };
-        pml4t pml4t { };
-        pml5t pml5t { };
+        pml1t  pml1t { };
+        pml2t  pml2t { mode };
+        pml3t  pml3t { mode };
+        pml4t  pml4t { };
+        pml5t  pml5t { };
         pmlxt *page_table[] {
             &pml1t,
             &pml2t,
@@ -133,7 +133,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             &pml4t,
             &pml5t
         };
-        auto level = Paging::support_5level_paging ? 5 : 4;
+        auto level     = Paging::support_5level_paging ? 5 : 4;
         auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
             return *page_table[ level - 1 ];
         };
@@ -167,22 +167,22 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         if ( !flags ) {
             cr0.WP = 1;
             CPU::write_cr0( cr0 );
-            println< ostream::HeadLevel::SYSTEM >( "Disable the page protection." );
+            //  println< ostream::HeadLevel::SYSTEM >( "Disable the page protection." );
         }
         else {
             cr0.WP = 0;
             CPU::write_cr0( cr0 );
-            println< ostream::HeadLevel::SYSTEM >( "Enable the page protection." );
+            //   println< ostream::HeadLevel::SYSTEM >( "Enable the page protection." );
         }
         lock.release( );
     };
     auto PageTableWalker::make( IN uint64_t flags, IN Level level, IN MemoryPageType mode, IN pmlxt & pmlx_t ) -> pmlxt & {
         lock.acquire( );
-        pml1t pml1t { };
-        pml2t pml2t { mode };
-        pml3t pml3t { mode };
-        pml4t pml4t { };
-        pml5t pml5t { };
+        pml1t  pml1t { };
+        pml2t  pml2t { mode };
+        pml3t  pml3t { mode };
+        pml4t  pml4t { };
+        pml5t  pml5t { };
         pmlxt *page_table[] {
             &pml1t,
             &pml2t,
@@ -207,9 +207,9 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             // 舍去2级页表和1级页表
         }
         // 外部只是丢进来一个放页表地址的容器而已，他不指向任何页表，所以我们要先给他一个4k内存页当成页表
-        pmlx_t = (uint64_t)allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
+        pmlx_t           = (uint64_t)allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
         auto later_flags = flags | pmlx_t.is_huge( mode );
-        auto page_size = pmlx_t.check_page_size( mode );
+        auto page_size   = pmlx_t.check_page_size( mode );
         auto make_helper = [ & ]( this auto &self, IN pmlxt &pmlx_t ) -> VOID {
             if ( ( tlevel - offset ) - 1 ) {
                 // 只要没到底，那么就给一块2M内存，存512个4k页表
@@ -225,7 +225,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                     address += page_size;
                 }
                 else {
-                    pmlx_t = { i, taddress, flags };
+                    pmlx_t                = { i, taddress, flags };
                     get_table( --tlevel ) = taddress;
                     taddress += 512;
                     // 还没到底，那么说明还要继续迭代，到低一级页表

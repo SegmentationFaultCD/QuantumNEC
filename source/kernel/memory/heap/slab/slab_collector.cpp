@@ -8,8 +8,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto slab = slab_cache->cache_pool;
 
         auto node = slab_cache->pool_list.traversal(
-            [ &slab ]( Lib::ListNode *node, VOID *address ) -> BOOL {
-                if ( slab->virtual_address <= address && address < (VOID *)((uint64_t)slab->virtual_address + PageAllocater::__page_size__< MemoryPageType::PAGE_2M >)) {
+            []( Lib::ListNode *node, VOID *address ) -> BOOL {
+                if ( ( (Slab *)node )->virtual_address <= address && address < (VOID *)((uint64_t)( ( (Slab *)node )->virtual_address ) + PageAllocater::__page_size__< MemoryPageType::PAGE_2M >)) {
                     return TRUE;
                 }
                 return FALSE;

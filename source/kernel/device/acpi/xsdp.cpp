@@ -1,6 +1,6 @@
 #include <kernel/driver/acpi/acpi.hpp>
-#include <kernel/print.hpp>
 #include <kernel/interrupt/interrupt.hpp>
+#include <kernel/print.hpp>
 
 using namespace QuantumNEC;
 using namespace QuantumNEC::Kernel;

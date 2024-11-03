@@ -1,8 +1,8 @@
-#include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
 #include <kernel/cpu/cpu.hpp>
+#include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
 #include <kernel/print.hpp>
-#include <libcxx/cstring.hpp>
 #include <lib/spin_lock.hpp>
+#include <libcxx/cstring.hpp>
 using namespace QuantumNEC::Kernel::x86_64;
 using namespace std;
 /**
@@ -58,16 +58,16 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     for ( uint16_t i { }; i < INTERRUPT_DESCRIPTOR_COUNT; ++i ) {
         interrupt_name[ i ] = "unknown";     // 先统一赋值为unknown
     }
-    interrupt_name[ 0 ] = "#DE Divide-by-zero";
-    interrupt_name[ 1 ] = "#DB Debug";
-    interrupt_name[ 2 ] = "--- Non Maskable Interrupt(NMI)";
-    interrupt_name[ 3 ] = "#BP Breakpoint";
-    interrupt_name[ 4 ] = "#OF Overflow";
-    interrupt_name[ 5 ] = "#BR Bound Range Exceeded";
-    interrupt_name[ 6 ] = "#UD Invalid Opcode";
-    interrupt_name[ 7 ] = "#NM Device Not Available";
-    interrupt_name[ 8 ] = "#DF Double Fault";
-    interrupt_name[ 9 ] = "--- Coprocessor Segment Overrun";
+    interrupt_name[ 0 ]  = "#DE Divide-by-zero";
+    interrupt_name[ 1 ]  = "#DB Debug";
+    interrupt_name[ 2 ]  = "--- Non Maskable Interrupt(NMI)";
+    interrupt_name[ 3 ]  = "#BP Breakpoint";
+    interrupt_name[ 4 ]  = "#OF Overflow";
+    interrupt_name[ 5 ]  = "#BR Bound Range Exceeded";
+    interrupt_name[ 6 ]  = "#UD Invalid Opcode";
+    interrupt_name[ 7 ]  = "#NM Device Not Available";
+    interrupt_name[ 8 ]  = "#DF Double Fault";
+    interrupt_name[ 9 ]  = "--- Coprocessor Segment Overrun";
     interrupt_name[ 10 ] = "#TS Invalid TSS";
     interrupt_name[ 11 ] = "#NP Segment Not Present";
     interrupt_name[ 12 ] = "#SS Stack-Segment Fault";
@@ -89,7 +89,7 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     interrupt_name[ 31 ] = "--- System Reserved";
 
     /* 注册所有入口函数到中断描述符表 */
-    println< ostream::HeadLevel::INFO >( "Setting the interrupt handler entry for the interrupt descriptor table" );
+    //  println< ostream::HeadLevel::INFO >( "Setting the interrupt handler entry for the interrupt descriptor table" );
     uint64_t function { };
     SET_TRAP_HANDLER( 0x00, 0 );
     SET_TRAP_HANDLER( 0x01, 0 );
@@ -348,11 +348,11 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     SET_INTERRUPT_HANDLER( 0xfe, 0 );
     SET_INTERRUPT_HANDLER( 0xff, 0 );
     /* 挂载 idt*/
-    println< ostream::HeadLevel::SYSTEM >( "Loading the interrupt descriptor table." );
+    // println< ostream::HeadLevel::SYSTEM >( "Loading the interrupt descriptor table." );
 
     this->idt->load( 0 );
 
-    println< ostream::HeadLevel::OK >( "Initialize the interrupt descriptor table management." );
+    // println< ostream::HeadLevel::OK >( "Initialize the interrupt descriptor table management." );
 }
 
 auto InterruptDescriptorTable::_IDT::load( [[maybe_unused]] IN uint64_t processor_id ) CONST -> VOID {
@@ -374,18 +374,19 @@ auto InterruptDescriptorTable::display_registers( IN CONST RegisterFrame *regist
     println< ostream::HeadLevel::INFO >( "CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}", *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ) );
     return;
 }
-auto InterruptDescriptorTable::register_irq( IN uint64_t irq,
-                                             IN VOID *arg,
-                                             IN InterruptEntry handler,
-                                             IN uint64_t parameter,
-                                             IN CONST char_t *irq_name,
+auto InterruptDescriptorTable::register_irq( IN uint64_t                     irq,
+                                             IN VOID                        *arg,
+                                             IN InterruptEntry               handler,
+                                             IN uint64_t                     parameter,
+                                             IN CONST char_t                *irq_name,
                                              IN InterruptFunctionController *controller )
     -> VOID {
-    if ( irq > IDT_IRQ_SMP_INTERRUPT_0 ) return;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].handler = handler;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].irq_name = irq_name;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].parameter = parameter;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].flags = 0;
+    if ( irq > IDT_IRQ_SMP_INTERRUPT_0 )
+        return;
+    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].handler    = handler;
+    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].irq_name   = irq_name;
+    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].parameter  = parameter;
+    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].flags      = 0;
     interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].controller = *controller;
     if ( controller ) {
         if ( controller->install )
@@ -395,18 +396,19 @@ auto InterruptDescriptorTable::register_irq( IN uint64_t irq,
     }
     return;
 }
-auto InterruptDescriptorTable::register_IPI( IN uint64_t irq,
-                                             IN VOID *arg,
-                                             IN InterruptEntry handler,
-                                             IN uint64_t parameter,
-                                             IN CONST char_t *irq_name,
+auto InterruptDescriptorTable::register_IPI( IN uint64_t                     irq,
+                                             IN VOID                        *arg,
+                                             IN InterruptEntry               handler,
+                                             IN uint64_t                     parameter,
+                                             IN CONST char_t                *irq_name,
                                              IN InterruptFunctionController *controller )
     -> VOID {
-    if ( irq < IDT_IRQ_SMP_INTERRUPT_0 ) return;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].irq_name = irq_name;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].parameter = parameter;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].flags = 0;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].handler = handler;
+    if ( irq < IDT_IRQ_SMP_INTERRUPT_0 )
+        return;
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].irq_name   = irq_name;
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].parameter  = parameter;
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].flags      = 0;
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].handler    = handler;
     SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].controller = *controller;
     if ( controller ) {
         if ( controller && controller->install )
@@ -418,14 +420,14 @@ auto InterruptDescriptorTable::register_IPI( IN uint64_t irq,
 }
 auto InterruptDescriptor::make( IN CONST uint64_t entry_point,
                                 IN CONST uint16_t selector,
-                                IN CONST uint8_t ist,
-                                IN CONST uint8_t attributes )
+                                IN CONST uint8_t  ist,
+                                IN CONST uint8_t  attributes )
     -> InterruptDescriptor & {
-    this->offset_low = ( entry_point & 0xffff );
-    this->selector = selector;
-    this->ist = ist;
-    this->attribute = attributes;
+    this->offset_low    = ( entry_point & 0xffff );
+    this->selector      = selector;
+    this->ist           = ist;
+    this->attribute     = attributes;
     this->offset_middle = static_cast< decltype( this->offset_middle ) >( ( entry_point >> 16 ) & 0xffff );
-    this->offset_high = static_cast< decltype( this->offset_high ) >( ( entry_point >> 32 ) & 0xffffffff );
+    this->offset_high   = static_cast< decltype( this->offset_high ) >( ( entry_point >> 32 ) & 0xffffffff );
     return *this;
 }

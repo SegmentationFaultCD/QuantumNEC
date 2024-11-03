@@ -1,5 +1,5 @@
-#include <kernel/interrupt/arch/x86_64/pic/8259a.hpp>
 #include <kernel/cpu/cpu.hpp>
+#include <kernel/interrupt/arch/x86_64/pic/8259a.hpp>
 #include <kernel/print.hpp>
 #include <lib/spin_lock.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
@@ -10,7 +10,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         CPU::io_out8( PIC_M_DATA, 0xfc );
         CPU::io_out8( PIC_S_DATA, 0xff );
 
-        println< ostream::HeadLevel::OK >( "Initialize the 8259a programmable interrupt controller." );
+        // println< ostream::HeadLevel::OK >( "Initialize the 8259a programmable interrupt controller." );
     }
     PIC8259A::~PIC8259A( VOID ) noexcept {
     }

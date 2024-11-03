@@ -22,6 +22,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             HeapCollector { }.free( slab_cache );
             return NULL;
         }
+
         slab_cache->pool_list.append( slab_cache->cache_pool->list );
         slab_cache->cache_pool->list.container = slab_cache->cache_pool;
 

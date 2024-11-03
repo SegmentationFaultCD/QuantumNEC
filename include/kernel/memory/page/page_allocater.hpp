@@ -5,18 +5,17 @@ PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC class PageAllocater {
     public:
         template < MemoryPageType __type__ >
-            requires( __type__ != MemoryPageType::NONE )
-        constexpr static auto __page_size__ = ( [] consteval -> uint64_t {
+            requires( __type__ != NONE )
+        constexpr static auto __page_size__ = ( [] consteval {
             if constexpr ( __type__ == MemoryPageType::PAGE_2M ) {
                 return 2_MB;
             }
             else if constexpr ( __type__ == MemoryPageType::PAGE_1G ) {
                 return 1_GB;
             }
-            else if constexpr ( __type__ == MemoryPageType::PAGE_4K ) {
+            else {
                 return 4_KB;
             }
-            return 0ul;
         } )( );
         template < MemoryPageType __type__ >
             requires( __type__ != MemoryPageType::NONE )
@@ -26,6 +25,10 @@ PUBLIC namespace QuantumNEC::Kernel {
         constexpr static auto __page_aligned__( auto address ) {
             return ( (uint64_t)address + __page_size__< __type__ > - 1 ) & __page_mask__< __type__ >;
         };
+        template < MemoryPageType __type__ >
+        constexpr static auto __page_base__( IN auto address ) {
+            return (uint64_t)address & __page_mask__< __type__ >;
+        }
 
     public:
         explicit PageAllocater( VOID ) noexcept = default;

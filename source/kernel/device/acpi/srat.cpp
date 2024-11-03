@@ -6,7 +6,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     Srat::Srat( IN Xsdt & xsdt ) noexcept {
         this->srat = xsdt.find_table< Srat >( );
         if ( !this->srat ) {
-            println< ostream::HeadLevel::ERROR >( "Can not find Srat." );
+            //  println< ostream::HeadLevel::ERROR >( "Can not find Srat." );
         }
     }
 }

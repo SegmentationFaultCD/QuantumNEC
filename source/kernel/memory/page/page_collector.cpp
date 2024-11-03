@@ -19,7 +19,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         lock.acquire( );
         auto node = list.traversal(
             []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
-                return ( (PHI *)node->container )->base_adderess == base_address;
+                return ( (PHI *)node->container )->base_address == base_address;
             },
             base_address );     // 找到属于的组
         if ( !node ) {
@@ -97,7 +97,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         lock.acquire( );
         auto node = list.traversal(
             []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
-                return ( (PHI *)node->container )->base_adderess == base_address;
+                return ( (PHI *)node->container )->base_address == base_address;
             },
             base_address );     // 找到属于的组
         if ( !node ) {
@@ -175,7 +175,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         lock.acquire( );
         auto node = list.traversal(
             []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
-                return ( (PHI *)node->container )->base_adderess == base_address;
+                return ( (PHI *)node->container )->base_address == base_address;
             },
             base_address );     // 找到属于的组
         if ( !node ) {

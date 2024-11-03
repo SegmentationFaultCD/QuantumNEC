@@ -1,6 +1,6 @@
+#include <kernel/cpu/cpu.hpp>
 #include <kernel/driver/time/arch/x86_64/cmos.hpp>
 #include <kernel/print.hpp>
-#include <kernel/cpu/cpu.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     using namespace std;
     using namespace Lib;
@@ -10,7 +10,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // 读取当前时间
         time.time_read( );
         this->startup_time = time.make_time( );
-        println< ostream::HeadLevel::SYSTEM >( "Startup time : {}{}-{}-{} {}:{}:{} ", century, time.year, time.mon, time.mday, time.hour, time.min, time.sec );
+        // println< ostream::HeadLevel::SYSTEM >( "Startup time : {}{}-{}-{} {}:{}:{} ", century, time.year, time.mon, time.mday, time.hour, time.min, time.sec );
         // 开启CMOS中断
         this->write_cmos( static_cast< uint8_t >( CMOSType::CMOS_B ), 0b01000010 );
         // 读C寄存器，以允许CMOS中断
@@ -21,7 +21,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     CMOS::~CMOS( VOID ) noexcept {
     }
     auto CMOS::Time::make_time( IN Time & time ) noexcept -> time_t {
-        time_t res { };
+        time_t  res { };
         int32_t year { };     // 1970 年开始的年数
         // 下面从 1900 年开始的年数计算
         if ( time.year >= 70 )
@@ -61,30 +61,30 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     }
     auto CMOS::Time::time_read( IN Time & time ) -> VOID {
         time_read_bcd( time );
-        time.sec = BCD_TO_BIN( time.sec );
-        time.min = BCD_TO_BIN( time.min );
-        time.hour = BCD_TO_BIN( time.hour );
-        time.wday = BCD_TO_BIN( time.wday );
-        time.mday = BCD_TO_BIN( time.mday );
-        time.mon = BCD_TO_BIN( time.mon );
-        time.year = BCD_TO_BIN( time.year );
-        time.yday = get_yday( time );
+        time.sec   = BCD_TO_BIN( time.sec );
+        time.min   = BCD_TO_BIN( time.min );
+        time.hour  = BCD_TO_BIN( time.hour );
+        time.wday  = BCD_TO_BIN( time.wday );
+        time.mday  = BCD_TO_BIN( time.mday );
+        time.mon   = BCD_TO_BIN( time.mon );
+        time.year  = BCD_TO_BIN( time.year );
+        time.yday  = get_yday( time );
         time.isdst = -1;
-        century = BCD_TO_BIN( century );
+        century    = BCD_TO_BIN( century );
     }
     auto CMOS::Time::time_read_bcd( IN Time & time ) -> VOID {
         // CMOS 的访问速度很慢。为了减小时间误差，在读取了下面循环中所有数值后，
         // 若此时 CMOS 中秒值发生了变化，那么就重新读取所有值。
         // 这样内核就能把与 CMOS 的时间误差控制在 1 秒之内。
         do {
-            time.sec = CMOS::read_cmos( static_cast< uint8_t >( TimeType::SECOND ) );
-            time.min = CMOS::read_cmos( static_cast< uint8_t >( TimeType::MINUTE ) );
+            time.sec  = CMOS::read_cmos( static_cast< uint8_t >( TimeType::SECOND ) );
+            time.min  = CMOS::read_cmos( static_cast< uint8_t >( TimeType::MINUTE ) );
             time.hour = CMOS::read_cmos( static_cast< uint8_t >( TimeType::HOUR ) );
             time.wday = CMOS::read_cmos( static_cast< uint8_t >( TimeType::WEEKDAY ) );
             time.mday = CMOS::read_cmos( static_cast< uint8_t >( TimeType::DAY ) );
-            time.mon = CMOS::read_cmos( static_cast< uint8_t >( TimeType::MONTH ) );
+            time.mon  = CMOS::read_cmos( static_cast< uint8_t >( TimeType::MONTH ) );
             time.year = CMOS::read_cmos( static_cast< uint8_t >( TimeType::YEAR ) );
-            century = CMOS::read_cmos( static_cast< uint8_t >( TimeType::CENTURY ) );
+            century   = CMOS::read_cmos( static_cast< uint8_t >( TimeType::CENTURY ) );
         } while ( time.sec != CMOS::read_cmos( static_cast< uint8_t >( TimeType::SECOND ) ) );
     }
 }

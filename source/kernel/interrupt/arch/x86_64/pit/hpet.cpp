@@ -1,8 +1,8 @@
-#include <kernel/interrupt/arch/x86_64/pit/hpet.hpp>
 #include <kernel/cpu/cpu.hpp>
-#include <kernel/print.hpp>
-#include <kernel/memory/memory.hpp>
 #include <kernel/driver/driver.hpp>
+#include <kernel/interrupt/arch/x86_64/pit/hpet.hpp>
+#include <kernel/memory/memory.hpp>
+#include <kernel/print.hpp>
 #include <lib/spin_lock.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     using namespace std;
@@ -21,7 +21,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         info->main_counter_value = 0;
         CPU::mfence( );
 
-        println< ostream::HeadLevel::OK >( "Initialize the high precision event timer." );
+        //   println< ostream::HeadLevel::OK >( "Initialize the high precision event timer." );
     }
     Hpet::~Hpet( VOID ) noexcept {
     }

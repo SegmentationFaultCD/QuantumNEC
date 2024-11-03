@@ -79,7 +79,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             else {
                 page_header.bitmap->set( bitmap_index, __size );
             }
-            auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size__< PAGE_4K >;
+            auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_address + bitmap_index * this->__page_size__< PAGE_4K >;
             std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_4K > );
             lock.release( );
             return (VOID *)address;
@@ -93,7 +93,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 开块
         page_headers.__allocate_headers__( __size );
         // 拿第一个头的base
-        auto address = std::get< PHI >( page_headers.get( 0 ) ).base_adderess;
+        auto address = std::get< PHI >( page_headers.get( 0 ) ).base_address;
         std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_4K > );
         lock.release( );
         return (void *)address;
@@ -104,11 +104,13 @@ PUBLIC namespace QuantumNEC::Kernel {
         using PH  = __page_header__< PAGE_2M, PAGE_2M, PAGE_1G >;
         using PHI = PH::__page_information__;
 
-        auto           index        = 0ul;
-        auto           bitmap_index = 0ul;
-        auto           header_count = !__size % PH::page_descriptor_count ? __size / PH::page_descriptor_count : Lib::DIV_ROUND_UP( __size, PH::page_descriptor_count );
+        auto index        = 0ul;
+        auto bitmap_index = 0ul;
+        auto header_count = !__size % PH::page_descriptor_count ? __size / PH::page_descriptor_count : Lib::DIV_ROUND_UP( __size, PH::page_descriptor_count );
+
         Lib::ListNode *node { };
         lock.acquire( );
+
         if ( __size < PH::page_descriptor_count ) {
             node = list.traversal(
                 [ &index, &bitmap_index ]( Lib::ListNode *node, uint64_t size ) -> BOOL {
@@ -142,6 +144,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 },
                 header_count );
         }
+
         if ( node ) {
             for ( auto i = index; i < index + header_count - 1; ++i ) {
                 auto &page_header = std::get< PHI >( ( (PH::header_t *)node->container )[ i ] );
@@ -165,7 +168,9 @@ PUBLIC namespace QuantumNEC::Kernel {
             else {
                 page_header.bitmap->set( bitmap_index, __size );
             }
-            auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size__< PAGE_2M >;
+
+            auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_address + bitmap_index * this->__page_size__< PAGE_2M >;
+
             std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_2M > );
             lock.release( );
             return (void *)address;
@@ -176,7 +181,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 开块
         page_headers.__allocate_headers__( __size );
         // 拿第一个头的base
-        auto address = std::get< PHI >( page_headers.get( 0 ) ).base_adderess;
+        auto address = std::get< PHI >( page_headers.get( 0 ) ).base_address;
         std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_2M > );
         lock.release( );
         return (void *)address;
@@ -249,7 +254,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             else {
                 page_header.bitmap->set( bitmap_index, __size );
             }
-            auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_adderess + bitmap_index * this->__page_size__< PAGE_1G >;
+            auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_address + bitmap_index * this->__page_size__< PAGE_1G >;
             std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_1G > );
             lock.release( );
             return (void *)address;
@@ -261,7 +266,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 开块
         page_headers.__allocate_headers__( __size );
         // 拿第一个头的base
-        auto address = std::get< PHI >( page_headers.get( 0 ) ).base_adderess;
+        auto address = std::get< PHI >( page_headers.get( 0 ) ).base_address;
         std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_1G > );
         lock.release( );
         return (void *)address;

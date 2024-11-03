@@ -1,8 +1,8 @@
-#include <kernel/print.hpp>
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/driver/driver.hpp>
 #include <kernel/interrupt/interrupt.hpp>
 #include <kernel/memory/memory.hpp>
+#include <kernel/print.hpp>
 #include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
 #include <modules/modules.hpp>
@@ -21,38 +21,38 @@ __attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION(
 namespace {
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .id       = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_memmap_request memmap_request = {
-    .id = LIMINE_MEMMAP_REQUEST,
+    .id       = LIMINE_MEMMAP_REQUEST,
     .revision = 0,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_rsdp_request acpi_request = {
-    .id = LIMINE_RSDP_REQUEST,
+    .id       = LIMINE_RSDP_REQUEST,
     .revision = 0,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_hhdm_request hhdm_request = {
-    .id = LIMINE_HHDM_REQUEST,
+    .id       = LIMINE_HHDM_REQUEST,
     .revision = 0,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_smp_request smp_request = {
-    .id = LIMINE_SMP_REQUEST,
+    .id       = LIMINE_SMP_REQUEST,
     .revision = 0,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_paging_mode_request paging_mode_request = {
-    .id = LIMINE_PAGING_MODE_REQUEST,
+    .id       = LIMINE_PAGING_MODE_REQUEST,
     .revision = 0,
     .response = nullptr
 };
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_module_request modules_request = {
-    .id = LIMINE_MODULE_REQUEST,
+    .id       = LIMINE_MODULE_REQUEST,
     .revision = 0,
     .response = nullptr
 };
@@ -71,7 +71,7 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
 SpinLock _lock { };
-int64_t ProcC( uint64_t ) {
+int64_t  ProcC( uint64_t ) {
     // Architecture::Message message { };
     // Architecture::Syscall::SyscallStatus a;
 
@@ -148,26 +148,50 @@ int64_t ThreadB( uint64_t ) {
     return 0;
 }
 SpinLock lock { };
-
+using namespace QuantumNEC;
+Kernel::HeapAllocater a { };
+Kernel::HeapCollector c { };
+extern "C" {
+void *malloc( size_t size ) {
+    return a.allocate( size );
+};
+void free( void *s ) {
+    c.free( s );
+};
+}
+#define TERMINAL_EMBEDDED_FONT
+#include <extern/os_terminal.h>
 _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
-    QuantumNEC::Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
-    QuantumNEC::Kernel::__config.memory_map = *memmap_request.response;
-    QuantumNEC::Kernel::__config.acpi_table = *acpi_request.response;
-    QuantumNEC::Kernel::__config.hhdm = *hhdm_request.response;
-    QuantumNEC::Kernel::__config.smp = *smp_request.response;
-    QuantumNEC::Kernel::__config.paging_mode = *paging_mode_request.response;
-    QuantumNEC::Kernel::__config.modules = *modules_request.response;
+    Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
+    Kernel::__config.memory_map    = *memmap_request.response;
+    Kernel::__config.acpi_table    = *acpi_request.response;
+    Kernel::__config.hhdm          = *hhdm_request.response;
+    Kernel::__config.smp           = *smp_request.response;
+    Kernel::__config.paging_mode   = *paging_mode_request.response;
+    Kernel::__config.modules       = *modules_request.response;
 
-    Kernel::Graphics grap { };
-    Kernel::Acpi acp { };
-    Kernel::Interrupt intr { };
+    // Kernel::Graphics grap { };
     Kernel::Memory mem { };     // 内存管理初始化
+
+    Kernel::Acpi      acp { };
+    Kernel::Interrupt intr { };
+
     Kernel::Sound soun { };
-    Kernel::Time tim { };
+    Kernel::Time  tim { };
     // Kernel::Task task { };                                                 // 进程管理初始化
     Kernel::Syscall sysc { };
+
     Kernel::CPU cpu { };
-    Modules::Module modules { };
+
+    terminal_init(
+        framebuffer_request.response->framebuffers[ 0 ]->width,
+        framebuffer_request.response->framebuffers[ 0 ]->height,
+        (uint32_t *)framebuffer_request.response->framebuffers[ 0 ]->address,
+        12.0, malloc, free,
+        NULL );
+    terminal_advance_state( "1145141919810" );
+
+    // Modules::Module modules { };
 
     // char buf[] { "hello world\0" };
     // auto w { new char[ 12 ] };
@@ -196,7 +220,7 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     // strcpy( g, buf );
     // println< ostream::HeadLevel::DEBUG >( "{} {:x}", g, (void *)g );
 
-    println< ostream::HeadLevel::DEBUG >( "Test 2 : Make 2 processes-------------------------------" );
+    // println< ostream::HeadLevel::DEBUG >( "Test 2 : Make 2 processes-------------------------------" );
 
     // task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
     // task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );

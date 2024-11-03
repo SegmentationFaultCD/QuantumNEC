@@ -5,13 +5,13 @@
 
 PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC consteval auto operator""_KB( IN CONST unsigned long long kib ) {
-        return kib * 1024;
+        return (uint64_t)kib * 1024;
     }
     PUBLIC consteval auto operator""_MB( IN CONST unsigned long long mib ) {
-        return mib * 1024_KB;
+        return (uint64_t)mib * 1024_KB;
     }
     PUBLIC consteval auto operator""_GB( IN CONST unsigned long long gib ) {
-        return gib * 1024_MB;
+        return (uint64_t)gib * 1024_MB;
     }
     PUBLIC enum MemoryPageType : uint64_t {
         NONE    = 0,

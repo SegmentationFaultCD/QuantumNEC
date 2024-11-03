@@ -1,6 +1,6 @@
-#include <kernel/interrupt/arch/x86_64/pic/apic.hpp>
-#include <kernel/interrupt/arch/x86_64/pic/8259a.hpp>
 #include <kernel/cpu/cpu.hpp>
+#include <kernel/interrupt/arch/x86_64/pic/8259a.hpp>
+#include <kernel/interrupt/arch/x86_64/pic/apic.hpp>
 #include <kernel/print.hpp>
 #include <lib/spin_lock.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
@@ -11,7 +11,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // 开启  xapic
         InterruptCommandRegister icr { CPU::rdmsr( IA32_APIC_BASE_MSR ) };
         icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
-        icr.dest_mode = ICR_IOAPIC_DELV_LOGIC;
+        icr.dest_mode    = ICR_IOAPIC_DELV_LOGIC;
         CPU::wrmsr( IA32_APIC_BASE_MSR, icr );
         // 开启SVR
         ApicLocalVectorTableRegisters lvt { CPU::rdmsr( LOCAL_APIC_MSR_SVR ) };
@@ -21,45 +21,45 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         }
         CPU::wrmsr( LOCAL_APIC_MSR_SVR, lvt );
         // 屏蔽7个LVT寄存器
-        lvt = read_apic( LOCAL_BASE_APIC_LVT_CMCI, ApicType::LOCAL_APIC );
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt                = read_apic( LOCAL_BASE_APIC_LVT_CMCI, ApicType::LOCAL_APIC );
+        lvt.mask           = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         write_apic( LOCAL_BASE_APIC_LVT_CMCI, lvt, ApicType::LOCAL_APIC );
 
-        lvt = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TIMER );
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt                = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TIMER );
+        lvt.mask           = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         CPU::wrmsr( LOCAL_APIC_MSR_LVT_TIMER, lvt );
 
-        lvt = CPU::rdmsr( LOCAL_APIC_MSR_LVT_ERROR );
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt                = CPU::rdmsr( LOCAL_APIC_MSR_LVT_ERROR );
+        lvt.mask           = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         CPU::wrmsr( LOCAL_APIC_MSR_LVT_ERROR, lvt );
 
-        lvt = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TS );
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt                = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TS );
+        lvt.mask           = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         CPU::wrmsr( LOCAL_APIC_MSR_LVT_TS, lvt );
 
-        lvt = CPU::rdmsr( LOCAL_APIC_MSR_LVT_PMC );
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt                = CPU::rdmsr( LOCAL_APIC_MSR_LVT_PMC );
+        lvt.mask           = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         CPU::wrmsr( LOCAL_APIC_MSR_LVT_PMC, lvt );
 
-        lvt = CPU::rdmsr( LOCAL_APIC_MSR_LVT_LINT0 );
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt                = CPU::rdmsr( LOCAL_APIC_MSR_LVT_LINT0 );
+        lvt.mask           = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         CPU::wrmsr( LOCAL_APIC_MSR_LVT_LINT0, lvt );
 
-        lvt = CPU::rdmsr( LOCAL_APIC_MSR_LVT_LINT1 );
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        lvt.deliver_mode = APIC_ICR_IOAPIC_FIXED;
+        lvt                = CPU::rdmsr( LOCAL_APIC_MSR_LVT_LINT1 );
+        lvt.mask           = APIC_ICR_IOAPIC_MASKED;
+        lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         CPU::wrmsr( LOCAL_APIC_MSR_LVT_LINT1, lvt );
     }
@@ -88,12 +88,12 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         IOApicRedirectionEntry entry { };
         for ( auto i { 0ull }; i < ( ( this->read_apic( IOAPIC_REG_VER, ApicType::IO_APIC ) >> 16 ) & 0xFF ); i++ ) {
             entry.vector = IDT_ENTRY_IRQ_0 + i;
-            entry.mask = APIC_ICR_IOAPIC_MASKED;
+            entry.mask   = APIC_ICR_IOAPIC_MASKED;
             this->write_apic( IOAPIC_REG_TABLE + i * 2, entry, ApicType::IO_APIC );
         }
 
         ASM( "MOVQ %0, %%CR8" ::"r"( 0ull ) );
-        println< ostream::HeadLevel::OK >( "Initialize the advanced programmable interrupt controller." );
+        //  println< ostream::HeadLevel::OK >( "Initialize the advanced programmable interrupt controller." );
     }
     Apic::~Apic( VOID ) noexcept {
     }

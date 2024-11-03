@@ -32,7 +32,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             } flags;     // 标志
 
-            uint64_t base_adderess;     // 记录块起始地址
+            uint64_t base_address;     // 记录块起始地址
 
             uint64_t free_memory_page_count;
 
@@ -79,11 +79,14 @@ PUBLIC namespace QuantumNEC::Kernel {
                     }
                 }
                 if constexpr ( __type__ == HEADER_START_ADDRESS ) {
-                    return reinterpret_cast< header_t * >( physical_to_virtual( this->allocate( header_count * header_size ) ) );
+                    return reinterpret_cast< header_t * >( physical_to_virtual( this->HeapAllocater::allocate( header_count * header_size ) ) );
                 }
                 else {
-                    return (uint64_t)this->allocate< __mmap_allocater__ >(
-                        (( this->__page_size__< __allocater_to_bind__ > * header_count * page_descriptor_count ) / this->__page_size__< __mmap_allocater__ >));
+                    if constexpr ( __mmap_allocater__ != NONE ) {
+                        return (uint64_t)this->PageAllocater::allocate< __mmap_allocater__ >(
+                            (( this->__page_size__< __allocater_to_bind__ > * header_count * page_descriptor_count ) / this->__page_size__< __mmap_allocater__ >));
+                    }
+                    return 0ul;
                 }
             }
 
@@ -99,8 +102,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         explicit __page_header__( IN uint64_t header_count, IN __address__ header_start_address, IN __address__ base_address ) {
             auto &table = allocate_information_list[ __allocater_to_bind__ ];
 
-            this->group        = header_start_address.get_address< __address__::HEADER_START_ADDRESS >( 0 );
-            auto base_address_ = base_address.get_address< __address__::BASE_ADDRESS >( header_count );
+            this->group        = header_start_address.template get_address< __address__::HEADER_START_ADDRESS >( 0 );
+            auto base_address_ = base_address.template get_address< __address__::BASE_ADDRESS >( header_count );
 
             this->all_memory_header_count          = header_count;
             this->all_memory_page_desvriptor_count = all_memory_header_count * header_count;
@@ -118,13 +121,13 @@ PUBLIC namespace QuantumNEC::Kernel {
             start_info.base_address           = base_address_;
 
             for ( auto i = 1ul; i < this->all_memory_header_count; ++i ) {
-                auto &[ info, bitmap ]      = std::get< __page_information__ >( this->group[ i ] );
+                auto &[ info, bitmap ]      = this->group[ i ];
                 info.owner                  = &start_info;
                 info.flags.state            = __page_state__::ALL_FREE;
                 info.flags.type             = __allocater_to_bind__;
                 info.free_memory_page_count = this->page_descriptor_count;
                 info.bitmap                 = &bitmap;
-                start_info.base_address     = base_address_ + this->page_descriptor_count * PageAllocater::__page_size__< __allocater_to_bind__ > * i;
+                info.base_address           = base_address_ + this->page_descriptor_count * PageAllocater::__page_size__< __allocater_to_bind__ > * i;
             }
         }
         explicit __page_header__( IN __page_information__ *phis ) {

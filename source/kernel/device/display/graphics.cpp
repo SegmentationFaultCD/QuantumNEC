@@ -1,6 +1,6 @@
+#include <kernel/cpu/cpu.hpp>
 #include <kernel/driver/display/graphics.hpp>
 #include <kernel/print.hpp>
-#include <kernel/cpu/cpu.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     using namespace Lib;
     using namespace std;
@@ -8,8 +8,6 @@ PUBLIC namespace QuantumNEC::Kernel {
     Graphics::Graphics( VOID ) noexcept {
         frame = &__config.graphics_data;
         this->window_initialize( );
-
-        println< ostream::HeadLevel::SYSTEM >( "The graphical interface is ready." );
     }
     Graphics::~Graphics( VOID ) noexcept {
     }
@@ -36,14 +34,14 @@ PUBLIC namespace QuantumNEC::Kernel {
 
         Pos.XResolution = static_cast< int64_t >( XResolution );
         Pos.YResolution = static_cast< int64_t >( YResolution );
-        Pos.XPosition = XPosition;
-        Pos.YPosition = YPosition;
-        Pos.XCharSize = XCharSize;
-        Pos.YCharSize = YCharSize;
-        Pos.FB_addr = FB_addr;
-        Pos.FB_length = FB_length;
-        Pos.column = column;
-        Pos.row = row;
+        Pos.XPosition   = XPosition;
+        Pos.YPosition   = YPosition;
+        Pos.XCharSize   = XCharSize;
+        Pos.YCharSize   = YCharSize;
+        Pos.FB_addr     = FB_addr;
+        Pos.FB_length   = FB_length;
+        Pos.column      = column;
+        Pos.row         = row;
         // 初始化系统标准输出函数
     }
     // 窗口初始化
