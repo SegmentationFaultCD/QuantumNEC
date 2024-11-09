@@ -178,7 +178,6 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::Time      tim { };
     Kernel::Syscall   sysc { };
     Kernel::CPU       cpu { };
-    // Kernel::CPU       cpu { };
     // Kernel::Task task { };
 
     println< ostream::HeadLevel::DEBUG >( "start allocate" );
@@ -222,6 +221,15 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
         }
     }
     println< ostream::HeadLevel::DEBUG >( "Free C" );
+    auto g = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 12 );
+    println< ostream::HeadLevel::DEBUG >( "{:x}", g );
+    auto h = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 100 );
+    println< ostream::HeadLevel::DEBUG >( "{:x}", h );
+    auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 1523 );
+    println< ostream::HeadLevel::DEBUG >( "{:x}", s );
+    Kernel::PageCollector { }.free< Kernel::PAGE_2M >( s, 1523 );
+    auto r = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 2048 );
+    println< ostream::HeadLevel::DEBUG >( "{:x}", r );
 
     // task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
     // task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );

@@ -1,9 +1,10 @@
 #pragma once
-#include <libcxx/format.hpp>
+#include <kernel/driver/driver.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/spin_lock.hpp>
-#include <libcxx/iostream.hpp>
 #include <lib/utils.hpp>
+#include <libcxx/format.hpp>
+#include <libcxx/iostream.hpp>
 PUBLIC namespace QuantumNEC {
     PUBLIC constexpr auto ZEROPAD { 1 };
     PUBLIC constexpr auto SIGN { 2 };
@@ -17,36 +18,34 @@ PUBLIC namespace QuantumNEC {
      * @brief 显示颜色
      */
     PUBLIC enum DisplayColor : int {
-        WHITE = 0x00ffffff,          // 白
-        BLACK = 0x00000000,          // 黑
-        RED = 0x00ff0000,            // 红
-        ORANGE = 0x00ff8000,         // 橙
-        YELLOW = 0x00ffff00,         // 黄
-        GREEN = 0x0000ff00,          // 绿
-        BLUE = 0x000040ac,           // 蓝
-        INDIGO = 0x0000ffff,         // 青
-        PURPLE = 0x008000ff,         // 紫
-        GRAY = 0x00a4a4a4,           // 灰
-        BLUEGRAY = 0x005486ab,       // 蓝灰
+        WHITE      = 0x00ffffff,     // 白
+        BLACK      = 0x00000000,     // 黑
+        RED        = 0x00ff0000,     // 红
+        ORANGE     = 0x00ff8000,     // 橙
+        YELLOW     = 0x00ffff00,     // 黄
+        GREEN      = 0x0000ff00,     // 绿
+        BLUE       = 0x000040ac,     // 蓝
+        INDIGO     = 0x0000ffff,     // 青
+        PURPLE     = 0x008000ff,     // 紫
+        GRAY       = 0x00a4a4a4,     // 灰
+        BLUEGRAY   = 0x005486ab,     // 蓝灰
         YELLOWGRAY = 0x009da682,     // 黄灰
         INDIGOGRAY = 0x00b5eaea,     // 青灰
-        GRAYISH = 0x008d8d8d         // 淡灰
+        GRAYISH    = 0x008d8d8d      // 淡灰
     };
 
-    PUBLIC struct Position
-    {
-        int64_t XResolution;
-        int64_t YResolution;
-        int64_t XPosition;
-        int64_t YPosition;
-        int64_t XCharSize;
-        int64_t YCharSize;
+    PUBLIC struct Position {
+        int64_t   XResolution;
+        int64_t   YResolution;
+        int64_t   XPosition;
+        int64_t   YPosition;
+        int64_t   XCharSize;
+        int64_t   YCharSize;
         uint64_t *FB_addr;
-        uint64_t FB_length;
-        int64_t column;
-        uint64_t row;
-        explicit Position( VOID ) noexcept {
-        }
+        uint64_t  FB_length;
+        int64_t   column;
+        uint64_t  row;
+        explicit Position( VOID ) noexcept = default;
     };
 
     /**
@@ -56,8 +55,8 @@ PUBLIC namespace QuantumNEC {
      * @param fmt 格式字符串
      * @param args 参数
      */
-    PUBLIC auto printk( IN DisplayColor FRcolor, IN DisplayColor BKcolor, IN CONST char_t * fmt, IN... ) -> VOID;
-    PUBLIC inline char_t buffer[ 0x10000 ] { };     // 64kb缓冲区
+    PUBLIC auto            printk( IN DisplayColor FRcolor, IN DisplayColor BKcolor, IN CONST char_t * fmt, IN... ) -> VOID;
+    PUBLIC inline char_t   buffer[ 0x10000 ] { };     // 64kb缓冲区
     PUBLIC inline Position Pos { };
 
     /**
@@ -77,70 +76,9 @@ PUBLIC namespace QuantumNEC {
         IN DisplayColor BKcolor, IN uchar_t Font )
         -> VOID;
     inline Lib::SpinLock pri_lock { };
-
-    template < std::ostream::HeadLevel level, typename... Args >
-    PUBLIC auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID {
+    template < typename... Args >
+    PUBLIC auto print_( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID {
         auto fmt_str = format( fmt, std::forward< Args >( args )... );
-        constexpr auto level_table = [ & ] consteval -> std::tuple< const char *, DisplayColor, DisplayColor > {
-            using enum std::ostream::HeadLevel;
-            using enum DisplayColor;
-            const char_t *level_string { };
-            DisplayColor fcolor, bcolor;
-            switch ( level ) {
-            case SYSTEM:
-                level_string = "[ SYSTEM ]   ";
-                fcolor = BLUEGRAY;
-                bcolor = BLACK;
-                break;
-            case OK:
-                level_string = "[ OK/READY ] ";
-                fcolor = GREEN;
-                bcolor = BLACK;
-                break;
-            case INFO:
-                level_string = "[ INFO ]     ";
-                fcolor = INDIGO;
-                bcolor = BLACK;
-                break;
-            case START:
-                level_string = "[ START ]    ";
-                fcolor = YELLOW;
-                bcolor = BLACK;
-                break;
-            case ERROR:
-                level_string = "[ ERROR ]    ";
-                fcolor = RED;
-                bcolor = BLACK;
-                break;
-            case DEBUG:
-                level_string = "[ DEBUG ]    ";
-                fcolor = ORANGE;
-                bcolor = BLACK;
-                break;
-            case WARNING:
-                level_string = "[ WARNING ]  ";
-                fcolor = YELLOW;
-                bcolor = BLACK;
-                break;
-            }
-            return { level_string, fcolor, bcolor };
-        };
-        auto &&[ level_str, _fcolor, _bcolor ] = level_table( );
-
-        while ( *level_str ) {
-            if ( *level_str == '[' || *level_str == ']' ) {
-                putc( Pos.FB_addr, Pos.XResolution,
-                      Pos.XPosition * Pos.XCharSize,
-                      Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
-                      _bcolor, *level_str );
-            }
-            else { putc( Pos.FB_addr, Pos.XResolution,
-                         Pos.XPosition * Pos.XCharSize,
-                         Pos.YPosition * Pos.YCharSize, _fcolor,
-                         _bcolor, *level_str ); }
-            ++( Pos.XPosition );
-            level_str++;
-        }
 
         while ( *fmt_str ) {
             switch ( *fmt_str ) {
@@ -148,6 +86,7 @@ PUBLIC namespace QuantumNEC {
             case '\n':
                 Pos.YPosition++;
                 Pos.XPosition = Pos.column;     // 如果是，将光标行数加1, 列数设为BasePrint::Pos->column
+                Kernel::Graphics::write( '\n' );
                 break;
             case '\t':
                 for ( auto i { 0 }; i < 4; ++i ) {
@@ -155,7 +94,8 @@ PUBLIC namespace QuantumNEC {
                           Pos.XPosition * Pos.XCharSize,
                           Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
                           DisplayColor::BLACK, ' ' );
-                    ++( Pos.XPosition );
+                    Kernel::Graphics::write( ' ' );
+                    ++Pos.XPosition;
                 }
 
                 break;
@@ -177,13 +117,15 @@ PUBLIC namespace QuantumNEC {
                       Pos.XPosition * Pos.XCharSize,
                       Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
                       DisplayColor::BLACK, ' ' );
+                Kernel::Graphics::write( ' ' );
                 break;
             default:
                 putc( Pos.FB_addr, Pos.XResolution,
                       Pos.XPosition * Pos.XCharSize,
                       Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
                       DisplayColor::BLACK, *fmt_str );
-                ++( Pos.XPosition );
+                ++Pos.XPosition;
+                Kernel::Graphics::write( *fmt_str );
             }
 
             // 结尾部分
@@ -199,6 +141,74 @@ PUBLIC namespace QuantumNEC {
             fmt_str++;
         }
     }
+    template < std::ostream::HeadLevel level, typename... Args >
+    PUBLIC auto print( IN const char *fmt, IN Args &&...args ) -> VOID {
+        constexpr auto level_table = [ & ] consteval -> std::tuple< const char *, DisplayColor, DisplayColor > {
+            using enum std::ostream::HeadLevel;
+            using enum DisplayColor;
+            const char_t *level_string { };
+            DisplayColor  fcolor, bcolor;
+            switch ( level ) {
+            case SYSTEM:
+                level_string = "[ SYSTEM ]   ";
+                fcolor       = BLUEGRAY;
+                bcolor       = BLACK;
+                break;
+            case OK:
+                level_string = "[ OK/READY ] ";
+                fcolor       = GREEN;
+                bcolor       = BLACK;
+                break;
+            case INFO:
+                level_string = "[ INFO ]     ";
+                fcolor       = INDIGO;
+                bcolor       = BLACK;
+                break;
+            case START:
+                level_string = "[ START ]    ";
+                fcolor       = YELLOW;
+                bcolor       = BLACK;
+                break;
+            case ERROR:
+                level_string = "[ ERROR ]    ";
+                fcolor       = RED;
+                bcolor       = BLACK;
+                break;
+            case DEBUG:
+                level_string = "[ DEBUG ]    ";
+                fcolor       = ORANGE;
+                bcolor       = BLACK;
+                break;
+            case WARNING:
+                level_string = "[ WARNING ]  ";
+                fcolor       = YELLOW;
+                bcolor       = BLACK;
+                break;
+            }
+            return { level_string, fcolor, bcolor };
+        };
+        auto &&[ level_str, _fcolor, _bcolor ] = level_table( );
+
+        while ( *level_str ) {
+            if ( *level_str == '[' || *level_str == ']' ) {
+                putc( Pos.FB_addr, Pos.XResolution,
+                      Pos.XPosition * Pos.XCharSize,
+                      Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
+                      _bcolor, *level_str );
+                Kernel::Graphics::write( *level_str );
+            }
+            else {
+                putc( Pos.FB_addr, Pos.XResolution,
+                      Pos.XPosition * Pos.XCharSize,
+                      Pos.YPosition * Pos.YCharSize, _fcolor,
+                      _bcolor, *level_str );
+                Kernel::Graphics::write( *level_str );
+            }
+            ++( Pos.XPosition );
+            level_str++;
+        }
+        print_( fmt, args... );
+    }
 
     template < std::ostream::HeadLevel level, typename... Args >
     auto println( IN const char *fmt, IN Args &&...args ) {
@@ -206,6 +216,16 @@ PUBLIC namespace QuantumNEC {
         print< level >( fmt, std::forward< Args >( args )... );
         Pos.YPosition++;
         Pos.XPosition = Pos.column;
+        Kernel::Graphics::write( '\n' );
+        pri_lock.release( );
+    }
+    template < typename... Args >
+    auto println( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) {
+        pri_lock.acquire( );
+        print_( fmt, std::forward< Args >( args )... );
+        Pos.YPosition++;
+        Pos.XPosition = Pos.column;
+        Kernel::Graphics::write( '\n' );
         pri_lock.release( );
     }
 }

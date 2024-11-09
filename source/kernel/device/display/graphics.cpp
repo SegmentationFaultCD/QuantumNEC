@@ -5,7 +5,8 @@ PUBLIC namespace QuantumNEC::Kernel {
     using namespace Lib;
     using namespace std;
 
-    Graphics::Graphics( VOID ) noexcept {
+    Graphics::Graphics( VOID ) noexcept :
+        DisplayArch { } {
         frame = &__config.graphics_data;
         this->window_initialize( );
     }

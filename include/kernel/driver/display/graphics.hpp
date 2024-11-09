@@ -1,11 +1,11 @@
 #pragma once
+#include <kernel/driver/display/arch/display_arch.hpp>
 #include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     /**
      * @brief 图形化窗口驱动管理
      */
-    PUBLIC class Graphics
-    {
+    PUBLIC class Graphics : public DisplayArch {
     public:
         explicit Graphics( VOID ) noexcept;
         virtual ~Graphics( VOID ) noexcept;
@@ -41,9 +41,9 @@ PUBLIC namespace QuantumNEC::Kernel {
          * @param video_long 视图长度
          */
         auto display_pixel( IN uint64_t *video_handle,
-                            IN int32_t color,
-                            IN int64_t &X,
-                            IN int64_t &Y,
+                            IN int32_t   color,
+                            IN int64_t  &X,
+                            IN int64_t  &Y,
                             IN uint64_t &video_long ) noexcept -> VOID;
         /**
          * @brief 设置Pos参数
@@ -65,7 +65,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             IN int64_t XCharSize, IN int64_t YCharSize,
             IN int64_t column, IN uint64_t row,
             IN uint64_t *FB_addr,
-            IN uint64_t FB_length ) noexcept -> VOID;
+            IN uint64_t  FB_length ) noexcept -> VOID;
 
     public:
         /**
