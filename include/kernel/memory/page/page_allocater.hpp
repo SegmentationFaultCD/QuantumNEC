@@ -22,11 +22,11 @@ PUBLIC namespace QuantumNEC::Kernel {
         constexpr static auto __page_mask__ = ~( __page_size__< __type__ > - 1 );
         template < MemoryPageType __type__ >
             requires( __type__ != MemoryPageType::NONE )
-        constexpr static auto __page_aligned__( auto address ) {
+        constexpr static auto __page_aligned__( auto &&address ) {
             return ( (uint64_t)address + __page_size__< __type__ > - 1 ) & __page_mask__< __type__ >;
         };
         template < MemoryPageType __type__ >
-        constexpr static auto __page_base__( IN auto address ) {
+        constexpr static auto __page_base__( IN auto &&address ) {
             return (uint64_t)address & __page_mask__< __type__ >;
         }
 

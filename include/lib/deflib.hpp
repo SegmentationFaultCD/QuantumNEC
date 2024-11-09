@@ -32,36 +32,32 @@
     } )
 
 PUBLIC namespace QuantumNEC::Lib {
-    PUBLIC constexpr auto CHECKFLAG( const auto &field, const auto &flag ) {
+    PUBLIC constexpr auto CHECKFLAG( auto &&field, auto &&flag ) {
         return field & flag;
     }
 
     PUBLIC constexpr const auto CRLF { "\r\n" };
-    PUBLIC constexpr auto IS_DIGIT( const auto &c ) {
+    PUBLIC constexpr auto       IS_DIGIT( auto &&c ) {
         return c >= '0' && c <= '9';
     };
-    PUBLIC constexpr auto BIT( const auto &x ) {
+    PUBLIC constexpr auto BIT( auto &&x ) {
         return (unsigned long long)( 1 ) << ( x );
     }
     PUBLIC constexpr const auto L1_CACHE_BYTES { 32 };
-    PUBLIC constexpr auto DIV_ROUND_UP( const auto &X, const auto &STEP ) {
+    PUBLIC constexpr auto       DIV_ROUND_UP( auto &&X, auto &&STEP ) {
         return ( ( ( X ) + ( STEP - 1 ) ) / STEP );
     }
 
-    PUBLIC constexpr auto OFFSET( const auto *address ) {
-        return (unsigned long long)( address ) & 0x1FFFFF;
-    }
-
     // 将BCD码转换为整数
-    PUBLIC constexpr auto BCD_TO_BIN( auto value ) {
+    PUBLIC constexpr auto BCD_TO_BIN( auto &&value ) {
         return ( value & 0xf ) + ( value >> 4 ) * 10;
     }
 
     // 将整数转换为BCD码
-    PUBLIC constexpr auto BIN_TO_BCD( auto value ) {
+    PUBLIC constexpr auto BIN_TO_BCD( auto &&value ) {
         return ( value / 10 ) * 0x10 + ( value % 10 );
     }
-    PUBLIC constexpr auto SIZEOF_LONG_ALIGN( auto size ) {
+    PUBLIC constexpr auto SIZEOF_LONG_ALIGN( auto &&size ) {
         return ( size + sizeof( long ) - 1 ) & ~( sizeof( long ) - 1 );
     }
 

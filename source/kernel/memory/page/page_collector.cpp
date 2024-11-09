@@ -12,10 +12,10 @@ PUBLIC namespace QuantumNEC::Kernel {
             return;
         }
         auto &list { allocate_information_list[ PAGE_2M ] };
-        using PH  = __page_header__< PAGE_2M, PAGE_2M, PAGE_1G >;
+        using PH  = __page_header__< PAGE_2M, PAGE_1G >;
         using PHI = PH::__page_information__;
         // 掩码方式取得所在组基地址
-        auto base_address = (uint64_t)__physical_address__ & ~( PageAllocater::__page_size__< PAGE_2M > * PH::page_descriptor_count - 1 );
+        auto base_address = (uint64_t)__physical_address__ & ~( PageAllocater::__page_size__< PAGE_2M > * PH::page_descriptor_count * PH::page_header_count_of_zone - 1 );
         lock.acquire( );
         auto node = list.traversal(
             []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
@@ -69,7 +69,6 @@ PUBLIC namespace QuantumNEC::Kernel {
                 middle_header.free_memory_page_count = PH::page_descriptor_count;
                 middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
                 middle_header.bitmap->free( 0, PH::page_descriptor_count );
-                std::println< std::ostream::HeadLevel::DEBUG >( "{}", middle_header.bitmap->count( ) );
             }
 
             // 尾
@@ -90,10 +89,10 @@ PUBLIC namespace QuantumNEC::Kernel {
             return;
         }
         auto &list { allocate_information_list[ PAGE_1G ] };
-        using PH  = __page_header__< PAGE_1G, PAGE_2M, NONE >;
+        using PH  = __page_header__< PAGE_1G, NONE >;
         using PHI = PH::__page_information__;
         // 掩码方式取得所在组基地址
-        auto base_address = (uint64_t)__physical_address__ & ~( PageAllocater::__page_size__< PAGE_1G > * PH::page_descriptor_count - 1 );
+        auto base_address = (uint64_t)__physical_address__ & ~( PageAllocater::__page_size__< PAGE_1G > * PH::page_descriptor_count * PH::page_header_count_of_zone - 1 );
         lock.acquire( );
         auto node = list.traversal(
             []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
@@ -147,7 +146,6 @@ PUBLIC namespace QuantumNEC::Kernel {
                 middle_header.free_memory_page_count = PH::page_descriptor_count;
                 middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
                 middle_header.bitmap->free( 0, PH::page_descriptor_count );
-                std::println< std::ostream::HeadLevel::DEBUG >( "{}", middle_header.bitmap->count( ) );
             }
 
             // 尾
@@ -168,10 +166,10 @@ PUBLIC namespace QuantumNEC::Kernel {
             return;
         }
         auto &list { allocate_information_list[ PAGE_4K ] };
-        using PH  = __page_header__< PAGE_4K, PAGE_2M, PAGE_2M >;
+        using PH  = __page_header__< PAGE_4K, PAGE_2M >;
         using PHI = PH::__page_information__;
         // 掩码方式取得所在组基地址
-        auto base_address = (uint64_t)__physical_address & ~( PageAllocater::__page_size__< PAGE_4K > * PH::page_descriptor_count - 1 );
+        auto base_address = (uint64_t)__physical_address & ~( PageAllocater::__page_size__< PAGE_4K > * PH::page_descriptor_count * PH::page_header_count_of_zone - 1 );
         lock.acquire( );
         auto node = list.traversal(
             []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
@@ -225,7 +223,6 @@ PUBLIC namespace QuantumNEC::Kernel {
                 middle_header.free_memory_page_count = PH::page_descriptor_count;
                 middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
                 middle_header.bitmap->free( 0, PH::page_descriptor_count );
-                std::println< std::ostream::HeadLevel::DEBUG >( "{}", middle_header.bitmap->count( ) );
             }
 
             // 尾

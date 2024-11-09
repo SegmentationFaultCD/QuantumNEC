@@ -5,8 +5,8 @@
 #include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     class CPU :
-        public CpuArch,
         public FloatPointUnit,
+        public CpuArch,
         public SymmetricMultiprocessingArch {
     public:
         explicit CPU( VOID ) noexcept = default;

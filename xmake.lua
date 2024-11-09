@@ -240,7 +240,7 @@ target("qemu")
                       -name QuantumNEC \
                       -boot order=dc \
                       -net none \
-                      -rtc base=localtime -d in_asm"
+                      -rtc base=localtime"-- -d in_asm"
         os.exec("qemu-system-x86_64 -drive if=pflash,format=raw,readonly=on,file=vm/OVMF.fd -drive file=fat:rw:vm,index=0,format=vvfat "..qemu_flags)
     end)
 

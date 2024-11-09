@@ -7,11 +7,11 @@
 PUBLIC namespace QuantumNEC::Kernel {
     using namespace std;
     PageManager::PageManager( VOID ) noexcept {
-        allocate_information_list[ 1 ].init( );
-        allocate_information_list[ 2 ].init( );
-        allocate_information_list[ 3 ].init( );
+        allocate_information_list[ PAGE_4K ].init( );
+        allocate_information_list[ PAGE_2M ].init( );
+        allocate_information_list[ PAGE_1G ].init( );
         Ptr< limine_memmap_response > memory_descriptor { &__config.memory_map };
-        using PH  = __page_header__< PAGE_2M, PAGE_2M, PAGE_1G >;
+        using PH  = __page_header__< PAGE_2M, PAGE_1G >;
         using PHI = PH::__page_information__;
         uint64_t *info_address { };     // 找到一块空闲内存
         for ( auto i = 0ul; i < __config.memory_map.entry_count; ++i ) {
@@ -23,14 +23,11 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
         }
 
-        PH page_header { PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / PH::header_size, (uint64_t)info_address, 0 };
-
+        std::memset( (VOID *)info_address, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+        PH    page_header { PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / PH::header_size, (uint64_t)info_address, 0 };
         auto *bitmap = std::get< PHI >( page_header.get( 0 ) ).bitmap;
-
         bitmap->set( reinterpret_cast< uint64_t >( virtual_to_physical( info_address ) ) / PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
-
         bitmap->set( 0, 32 );
-
         for ( auto i = 0ul; i < __config.memory_map.entry_count; ++i ) {
             auto entry = memory_descriptor->entries[ i ];
             auto start { entry->base }, end { start + entry->length };
@@ -54,7 +51,6 @@ PUBLIC namespace QuantumNEC::Kernel {
             case LIMINE_MEMMAP_BAD_MEMORY:             // 错误内存
             case LIMINE_MEMMAP_KERNEL_AND_MODULES:     // 模块文件内存
             case LIMINE_MEMMAP_FRAMEBUFFER:            // 显存占用的
-
                 // 计算取得所在组的块的编号
                 auto base_index = start / ( PH::page_descriptor_count * PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
                 // 取得处于所在组的块的bitmap中的编号
@@ -69,6 +65,6 @@ PUBLIC namespace QuantumNEC::Kernel {
                 break;
             }
         }
-        // println< ostream::HeadLevel::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
+        println< ostream::HeadLevel::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
     }
 }

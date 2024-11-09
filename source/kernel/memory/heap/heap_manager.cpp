@@ -6,7 +6,7 @@
 #include <libcxx/string.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     HeapManager::HeapManager( ) noexcept {
-        auto zone = (uint64_t)physical_to_virtual( PageAllocater { }.allocate< MemoryPageType::PAGE_2M >( 4 ) );
+        auto zone = (uint64_t)physical_to_virtual( PageAllocater { }.allocate< MemoryPageType::PAGE_2M >( 12 ) );
         // std::memset( (void *)zone, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > * 4 );
 
         for ( auto i = 0ul; i < this->cache_size_count; ++i ) {

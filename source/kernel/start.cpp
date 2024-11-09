@@ -176,50 +176,52 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::Memory    mem { };
     Kernel::Sound     soun { };
     Kernel::Time      tim { };
+    Kernel::Syscall   sysc { };
+    Kernel::CPU       cpu { };
+    // Kernel::CPU       cpu { };
     // Kernel::Task task { };
-    Kernel::Syscall sysc { };
 
-    Kernel::CPU cpu { };
+    println< ostream::HeadLevel::DEBUG >( "start allocate" );
 
-    terminal_init(
-        framebuffer_request.response->framebuffers[ 0 ]->width,
-        framebuffer_request.response->framebuffers[ 0 ]->height,
-        (uint32_t *)framebuffer_request.response->framebuffers[ 0 ]->address,
-        12.0, malloc, free,
-        NULL );
-    terminal_advance_state( "1145141919810" );
+    println< ostream::HeadLevel::DEBUG >( "finish!" );
+    println< ostream::HeadLevel::DEBUG >( "Begin test malloc and free" );
+    char *a = (char *)malloc( 0x100 );
+    char *b = (char *)malloc( 0x200 );
+    char *c = (char *)malloc( 0x4000 );
+    println< ostream::HeadLevel::DEBUG >( "A: {:x}", (void *)a );
+    println< ostream::HeadLevel::DEBUG >( "B: {:x}", (void *)b );
+    println< ostream::HeadLevel::DEBUG >( "C: {:x}", (void *)c );
+    // bit pattern
+    for ( size_t i = 0; i < 0x100; i++ ) {
+        a[ i ] = 0x01;
+    }
+    // test if the memory is valid
+    for ( size_t i = 0; i < 0x100; i++ ) {
+        if ( a[ i ] != 0x01 ) {
+            println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)a );
+        }
+    }
+    println< ostream::HeadLevel::DEBUG >( "Free A" );
 
-    // Modules::Module modules { };
+    for ( size_t i = 0; i < 0x200; i++ ) {
+        b[ i ] = 0x02;
+    }
+    for ( size_t i = 0; i < 0x200; i++ ) {
+        if ( b[ i ] != 0x02 ) {
+            println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)b );
+        }
+    }
+    println< ostream::HeadLevel::DEBUG >( "Free B" );
 
-    // char buf[] { "hello world\0" };
-    // auto w { new char[ 12 ] };
-    // strcpy( w, buf );
-    // println< ostream::HeadLevel::DEBUG >( "{} {:x}", w, (void *)w );
-    // delete[] w;
-    // auto a = new char[ 12 ];
-    // strcpy( a, buf );
-    // println< ostream::HeadLevel::DEBUG >( "{} {:x}", a, (void *)a );
-    // auto b = new char[ 12 ];
-    // strcpy( b, buf );
-    // println< ostream::HeadLevel::DEBUG >( "{} {:x}", b, (void *)b );
-    // delete[] b;
-    // auto c = new char[ 0x12 ];
-    // strcpy( c, buf );
-    // println< ostream::HeadLevel::DEBUG >( "{} {:x}", c, (void *)c );
-    // auto d = new char[ 0x123 ];
-    // strcpy( d, buf );
-    // println< ostream::HeadLevel::DEBUG >( "{} {:x}", d, (void *)d );
-    // delete[] c;
-    // auto f = new char[ 1 ];
-    // strcpy( f, buf );
-    // println< ostream::HeadLevel::DEBUG >( "{} {:x}", f, (void *)f );
-    // delete[] f;
-    // auto g = new char[ 0x200001 ];
-    // strcpy( g, buf );
-    // println< ostream::HeadLevel::DEBUG >( "{} {:x}", g, (void *)g );
-
-    println< ostream::HeadLevel::DEBUG >( "Test 2 : Make 2 processes-------------------------------" );
-    terminal_advance_state( "1145141919810" );
+    for ( size_t i = 0; i < 0x4000; i++ ) {
+        c[ i ] = 0x03;
+    }
+    for ( size_t i = 0; i < 0x4000; i++ ) {
+        if ( c[ i ] != 0x03 ) {
+            println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)c );
+        }
+    }
+    println< ostream::HeadLevel::DEBUG >( "Free C" );
 
     // task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
     // task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
