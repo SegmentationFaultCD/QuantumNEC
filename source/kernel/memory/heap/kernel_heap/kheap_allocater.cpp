@@ -1,17 +1,17 @@
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/heap/heap_allocater.hpp>
-#include <kernel/memory/heap/heap_manager.hpp>
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
+#include <kernel/memory/heap/kheap/kheap_manager.hpp>
 #include <kernel/memory/heap/slab/slab.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_collector.hpp>
 #include <kernel/memory/page/page_manager.hpp>
 #include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
-    auto HeapAllocater::allocate( uint64_t size ) -> VOID * {
+    auto KHeapAllocater::allocate( uint64_t size ) -> VOID * {
         if ( size > 1_MB ) /* 允许的最大分配数是1MB */ {
             return NULL;
         }
-        auto result = HeapManager::traversal_to_get_slab( size );
+        auto result = KHeapManager::traversal_to_get_slab( size );
 
         if ( result.has_value( ) ) {
             auto &slab_cache = *result.value( );
@@ -104,7 +104,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             return NULL;
         }
-        if ( result.error( ) == HeapManager::ErrorCode::CanNotFindSuitableSlabCache ) {
+        if ( result.error( ) == KHeapManager::ErrorCode::CanNotFindSuitableSlabCache ) {
             // TODO 错误处理
         }
         return NULL;

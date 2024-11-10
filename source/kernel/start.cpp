@@ -1,7 +1,10 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/driver/driver.hpp>
 #include <kernel/interrupt/interrupt.hpp>
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
+#include <kernel/memory/heap/kheap/kheap_collector.hpp>
 #include <kernel/memory/memory.hpp>
+#include <kernel/memory/page/page_collector.hpp>
 #include <kernel/print.hpp>
 #include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
@@ -149,18 +152,8 @@ int64_t ThreadB( uint64_t ) {
 }
 SpinLock lock { };
 using namespace QuantumNEC;
-Kernel::HeapAllocater a { };
-Kernel::HeapCollector c { };
-extern "C" {
-void *malloc( size_t size ) {
-    return a.allocate( size );
-};
-void free( void *s ) {
-    c.free( s );
-};
-}
+
 #define TERMINAL_EMBEDDED_FONT
-#include <extern/os_terminal.h>
 _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
     Kernel::__config.memory_map    = *memmap_request.response;
@@ -170,23 +163,25 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::__config.paging_mode   = *paging_mode_request.response;
     Kernel::__config.modules       = *modules_request.response;
 
-    Kernel::Graphics  grap { };
-    Kernel::Acpi      acp { };
-    Kernel::Interrupt intr { };
-    Kernel::Memory    mem { };
-    Kernel::Sound     soun { };
-    Kernel::Time      tim { };
-    Kernel::Syscall   sysc { };
-    Kernel::CPU       cpu { };
+    Kernel::Graphics   grap { };
+    Kernel::SerialPort sp { };
+    Kernel::Acpi       acp { };
+    Kernel::Interrupt  intr { };
+    Kernel::Memory     mem { };
+    Kernel::Sound      soun { };
+    Kernel::Time       tim { };
+    Kernel::Syscall    sysc { };
+    Kernel::CPU        cpu { };
+    Modules::Module    mod { };
     // Kernel::Task task { };
 
     println< ostream::HeadLevel::DEBUG >( "start allocate" );
 
     println< ostream::HeadLevel::DEBUG >( "finish!" );
     println< ostream::HeadLevel::DEBUG >( "Begin test malloc and free" );
-    char *a = (char *)malloc( 0x100 );
-    char *b = (char *)malloc( 0x200 );
-    char *c = (char *)malloc( 0x4000 );
+    char *a = (char *)Kernel::KHeapAllocater { }.allocate( 0x100 );
+    char *b = (char *)Kernel::KHeapAllocater { }.allocate( 0x200 );
+    char *c = (char *)Kernel::KHeapAllocater { }.allocate( 0x4000 );
     println< ostream::HeadLevel::DEBUG >( "A: {:x}", (void *)a );
     println< ostream::HeadLevel::DEBUG >( "B: {:x}", (void *)b );
     println< ostream::HeadLevel::DEBUG >( "C: {:x}", (void *)c );

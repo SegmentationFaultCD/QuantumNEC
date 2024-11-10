@@ -1,13 +1,13 @@
-#include <kernel/memory/heap/heap_collector.hpp>
-#include <kernel/memory/heap/heap_manager.hpp>
+#include <kernel/memory/heap/kheap/kheap_collector.hpp>
+#include <kernel/memory/heap/kheap/kheap_manager.hpp>
 #include <kernel/memory/heap/slab/slab.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_collector.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
-    auto HeapCollector::free( IN VOID * address ) -> VOID {
+    auto KHeapCollector::free( IN VOID * address ) -> VOID {
         auto page_base_address = PageAllocater::__page_base__< MemoryPageType::PAGE_2M >( address );
 
-        auto result = HeapManager::traversal_to_find_page_base( page_base_address );
+        auto result = KHeapManager::traversal_to_find_page_base( page_base_address );
         if ( result.has_value( ) ) {
             auto [ slab, slab_cache ] = result.value( );
             if ( !slab ) {
@@ -31,9 +31,9 @@ PUBLIC namespace QuantumNEC::Kernel {
                     PageCollector { }.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
                     break;
                 default:
-                    HeapCollector { }.free( slab->color_map );
+                    KHeapCollector { }.free( slab->color_map );
                     PageCollector { }.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
-                    HeapCollector { }.free( slab );
+                    KHeapCollector { }.free( slab );
                     break;
                 }
             }

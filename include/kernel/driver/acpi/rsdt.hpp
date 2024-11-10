@@ -1,28 +1,25 @@
 #pragma once
-#include <lib/Uefi.hpp>
-#include <kernel/driver/acpi/rsdp.hpp>
 #include <concepts>
+#include <kernel/driver/acpi/rsdp.hpp>
 #include <kernel/memory/arch/x86_64/paging/ptv.hpp>
+#include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    class Rsdt
-    {
+    class Rsdt {
     public:
-        struct ACPISDTHeader
-        {
+        struct _packed ACPISDTHeader {
             uint32_t signature;
             uint32_t length;
-            uint8_t reserved;
-            uint8_t check_sum;
-            uint8_t OEMID[ 6 ];
-            uint8_t OEMTableID[ 8 ];
+            uint8_t  reserved;
+            uint8_t  check_sum;
+            uint8_t  OEMID[ 6 ];
+            uint8_t  OEMTableID[ 8 ];
             uint32_t OEM_reserved;
             uint32_t creator_ID;
             uint32_t creator_reserved;
 
             explicit ACPISDTHeader( VOID ) noexcept = default;
-        } _packed;
-        struct RSDT : ACPISDTHeader
-        {
+        };
+        struct _packed RSDT : ACPISDTHeader {
             explicit RSDT( VOID ) noexcept = default;
             auto operator[]( size_t index ) CONST->CONST ACPISDTHeader & {
                 auto entries { reinterpret_cast< CONST uint32_t * >( this + 1 ) };
@@ -31,16 +28,15 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             auto size( VOID ) CONST {
                 return ( this->length - sizeof( RSDT ) ) / sizeof( uint32_t );
             }
-        } _packed;
-        struct GenericAddressStructure
-        {
+        };
+        struct _packed GenericAddressStructure {
             explicit GenericAddressStructure( VOID ) noexcept = default;
-            uint8_t address_space_id;     // 0 - system memory, 1 - system I/O
-            uint8_t register_bit_width;
-            uint8_t register_bit_offset;
-            uint8_t access_width;
+            uint8_t  address_space_id;     // 0 - system memory, 1 - system I/O
+            uint8_t  register_bit_width;
+            uint8_t  register_bit_offset;
+            uint8_t  access_width;
             uint64_t address;
-        } _packed;
+        };
 
         explicit Rsdt( IN Rsdp &rsdp ) noexcept;
 

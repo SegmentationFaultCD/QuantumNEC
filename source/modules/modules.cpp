@@ -1,6 +1,6 @@
-#include <modules/modules.hpp>
 #include <kernel/print.hpp>
 #include <kernel/task/task.hpp>
+#include <modules/modules.hpp>
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
 using namespace std;

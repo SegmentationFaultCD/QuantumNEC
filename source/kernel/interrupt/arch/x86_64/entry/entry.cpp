@@ -1,6 +1,6 @@
 #include <kernel/interrupt/arch/x86_64/entry/entry.hpp>
-#include <kernel/print.hpp>
 #include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
+#include <kernel/print.hpp>
 using namespace QuantumNEC;
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     InterruptEntryRegister::InterruptEntryRegister( VOID ) noexcept :

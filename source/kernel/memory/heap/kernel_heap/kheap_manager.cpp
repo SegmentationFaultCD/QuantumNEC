@@ -1,11 +1,11 @@
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/heap/heap_manager.hpp>
+#include <kernel/memory/heap/kheap/kheap_manager.hpp>
 #include <kernel/memory/heap/slab/slab.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/print.hpp>
 #include <libcxx/string.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
-    HeapManager::HeapManager( ) noexcept {
+    KHeapManager::KHeapManager( ) noexcept {
         auto zone = (uint64_t)physical_to_virtual( PageAllocater { }.allocate< MemoryPageType::PAGE_2M >( 12 ) );
         // std::memset( (void *)zone, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > * 4 );
 
@@ -33,5 +33,6 @@ PUBLIC namespace QuantumNEC::Kernel {
             this->slab_caches[ i ].cache_pool->list.container  = this->slab_caches[ i ].cache_pool;
             this->slab_caches[ i ].pool_list.append( this->slab_caches[ i ].cache_pool->list );
         }
+        std::println< std::ostream::HeadLevel::OK >( "Initialize kernel heap." );
     }
 }

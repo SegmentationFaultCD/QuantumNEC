@@ -1,19 +1,17 @@
 #pragma once
-#include <lib/Uefi.hpp>
 #include <kernel/driver/acpi/xsdt.hpp>
+#include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    PUBLIC class Bgrt
-    {
+    PUBLIC class Bgrt {
     public:
-        struct BGRT : Xsdt::ACPISDTHeader
-        {
+        struct _packed BGRT : Xsdt::ACPISDTHeader {
             uint16_t version;
-            uint8_t status;
-            uint8_t imageType;
-            VOID *image;
+            uint8_t  status;
+            uint8_t  imageType;
+            VOID    *image;
             uint32_t xOffset;
             uint32_t yOffset;
-        } _packed;
+        };
         using table_type = BGRT;
 
     public:

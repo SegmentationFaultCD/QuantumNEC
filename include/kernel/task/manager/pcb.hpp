@@ -27,7 +27,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 return *this;
             }
         };
-        struct ThreadContext     // 栈底
+        struct _packed ThreadContext     // 栈底
         {
 #if defined( __x86_64__ )
             // ABI要求保护的寄存器
@@ -48,7 +48,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 #endif
             auto make( IN VOID *_entry, IN uint64_t _arg ) -> BOOL;
             // 栈顶
-        } _packed;
+        };
         struct ProcessContext : Interrupt::InterruptFrame {
             auto make( IN VOID *_entry, IN uint64_t kernel_stack_top ) -> BOOL;
         };

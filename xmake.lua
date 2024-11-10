@@ -198,7 +198,7 @@ target("micro_kernel")
         os.cp("source/boot/limine.conf", "./vm/EFI/Boot/")
         os.cp("source/boot/limine/BOOTX64.EFI", "vm/EFI/Boot/")
         os.cp("source/boot/OVMF.fd", "vm/")
-        os.cp("images/background.jpeg", "vm/EFI/")
+        os.cp("images/wallpaper.jpg", "vm/EFI/")
     end)
     on_link(function (target)
         local object_dir = target:objectdir()
@@ -225,22 +225,22 @@ target("qemu")
     set_default(true)
     on_build(function (target)
         local qemu_flags = "-cpu qemu64,x2apic \
-                      -m 32G \
+                      -m 8G \
                       -smp 4,cores=4,threads=1,sockets=1 \
                       -device nec-usb-xhci,id=xhci \
                       -no-shutdown \
-                      -chardev stdio,mux=on,id=com1  \
-                      -serial chardev:com1 \
                       -device qxl-vga,vgamem_mb=128 \
                       -device ich9-intel-hda \
                       -device virtio-serial-pci \
                       -nic user,model=virtio-net-pci \
                       -device virtio-mouse-pci \
                       -device virtio-keyboard-pci \
+                      -serial chardev:com1 -chardev stdio,mux=on,id=com1  \
                       -name QuantumNEC \
                       -boot order=dc \
                       -net none \
-                      -rtc base=localtime"-- -d in_asm"
+                      -rtc base=localtime"
+                      -- -nographic"-- -d in_asm"    --   
         os.exec("qemu-system-x86_64 -drive if=pflash,format=raw,readonly=on,file=vm/OVMF.fd -drive file=fat:rw:vm,index=0,format=vvfat "..qemu_flags)
     end)
 

@@ -28,13 +28,12 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept {
         memcpy( &this->gdt->descriptor_table[ i ][ 11 ], &tss_base_high, 8 );
         // 还剩下13 ~ 8192个描述符保留
     }
-    //  println< ostream::HeadLevel::SYSTEM >( "Loading the global segment descriptor table." );
+
     // 加载GDT
     this->gdt->load( 0 );
     // 加载全局段中的TSS
-    // println< ostream::HeadLevel::SYSTEM >( "Loading the task state segment in global segment." );
     this->gdt->tss[ 0 ].load_tr( SELECTOR_TSS );
-    // println< ostream::HeadLevel::OK >( "Initialize the global segment descriptor table management." );
+    println< ostream::HeadLevel::OK >( "Initialize segment." );
 }
 auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) CONST -> VOID {
     ASM( "lgdt %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ processor_id ] ) );

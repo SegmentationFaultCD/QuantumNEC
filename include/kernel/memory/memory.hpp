@@ -1,11 +1,7 @@
 #pragma once
 
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/heap/heap_allocater.hpp>
-#include <kernel/memory/heap/heap_collector.hpp>
-#include <kernel/memory/heap/heap_manager.hpp>
-#include <kernel/memory/page/page_allocater.hpp>
-#include <kernel/memory/page/page_collector.hpp>
+#include <kernel/memory/heap/heap.hpp>
 #include <kernel/memory/page/page_manager.hpp>
 
 PUBLIC namespace QuantumNEC::Kernel {
@@ -16,7 +12,6 @@ PUBLIC namespace QuantumNEC::Kernel {
     public:
         explicit Memory( VOID ) noexcept = default;
 
-    public:
         virtual ~Memory( VOID ) noexcept = default;
     };
 }

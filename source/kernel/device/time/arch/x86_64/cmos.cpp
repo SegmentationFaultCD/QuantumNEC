@@ -10,7 +10,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // 读取当前时间
         time.time_read( );
         this->startup_time = time.make_time( );
-        // println< ostream::HeadLevel::SYSTEM >( "Startup time : {}{}-{}-{} {}:{}:{} ", century, time.year, time.mon, time.mday, time.hour, time.min, time.sec );
+        println< ostream::HeadLevel::SYSTEM >( "Startup time : {}{}-{}-{} {}:{}:{} ", century, time.year, time.mon, time.mday, time.hour, time.min, time.sec );
         // 开启CMOS中断
         this->write_cmos( static_cast< uint8_t >( CMOSType::CMOS_B ), 0b01000010 );
         // 读C寄存器，以允许CMOS中断

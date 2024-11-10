@@ -1,5 +1,5 @@
-#include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
 #include <kernel/cpu/cpu.hpp>
+#include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
 #include <kernel/print.hpp>
 #include <lib/spin_lock.hpp>
 using namespace QuantumNEC;
@@ -8,7 +8,7 @@ using namespace std;
 using namespace Lib;
 PRIVATE SpinLock lock { };
 
-extern "C" auto do_divide_error( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_divide_error _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     // 显示中断名
 
     ControlRegisterFrame control_registers_frame { };
@@ -38,7 +38,7 @@ extern "C" auto do_divide_error( IN CONST InterruptDescriptorTable::InterruptFra
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_debug( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_debug _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -66,7 +66,7 @@ extern "C" auto do_debug( IN CONST InterruptDescriptorTable::InterruptFrame *fra
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_nmi( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> CONST InterruptDescriptorTable::InterruptFrame * {
+extern "C" auto do_nmi _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> CONST InterruptDescriptorTable::InterruptFrame * {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -95,7 +95,7 @@ extern "C" auto do_nmi( IN CONST InterruptDescriptorTable::InterruptFrame *frame
                                           Apic::apic_id( ) );
     return frame;
 }
-extern "C" auto do_int3( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_int3 _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -123,7 +123,7 @@ extern "C" auto do_int3( IN CONST InterruptDescriptorTable::InterruptFrame *fram
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_overflow( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_overflow _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -151,7 +151,7 @@ extern "C" auto do_overflow( IN CONST InterruptDescriptorTable::InterruptFrame *
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_bounds( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_bounds _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -179,7 +179,7 @@ extern "C" auto do_bounds( IN CONST InterruptDescriptorTable::InterruptFrame *fr
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_undefined_opcode( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_undefined_opcode _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -208,7 +208,7 @@ extern "C" auto do_undefined_opcode( IN CONST InterruptDescriptorTable::Interrup
                                           Apic::apic_id( ) );
 }
 
-extern "C" auto do_dev_not_available( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_dev_not_available _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -236,7 +236,7 @@ extern "C" auto do_dev_not_available( IN CONST InterruptDescriptorTable::Interru
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_double_fault( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_double_fault _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -264,7 +264,7 @@ extern "C" auto do_double_fault( IN CONST InterruptDescriptorTable::InterruptFra
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_coprocessor_segment_overrun( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_coprocessor_segment_overrun _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -292,7 +292,7 @@ extern "C" auto do_coprocessor_segment_overrun( IN CONST InterruptDescriptorTabl
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_invalid_TSS( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_invalid_TSS _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x} : {}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -329,7 +329,7 @@ extern "C" auto do_invalid_TSS( IN CONST InterruptDescriptorTable::InterruptFram
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
 }
-extern "C" auto do_segment_not_present( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_segment_not_present _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x} : {}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -366,7 +366,7 @@ extern "C" auto do_segment_not_present( IN CONST InterruptDescriptorTable::Inter
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
 }
-extern "C" auto do_stack_segment_fault( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_stack_segment_fault _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x} : {}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -403,7 +403,7 @@ extern "C" auto do_stack_segment_fault( IN CONST InterruptDescriptorTable::Inter
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
 }
-extern "C" auto do_general_protection( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_general_protection _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x} : {}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -440,7 +440,7 @@ extern "C" auto do_general_protection( IN CONST InterruptDescriptorTable::Interr
                                           ( !( frame->error_code & 0x02 ) ) ? ( ( frame->error_code & 0x04 ) ? "Refers to a segment or gate descriptor in the LDT.\n" : "Refers to a descriptor in the current GDT.\n" ) : "\r",
                                           frame->error_code & 0xfff8 );
 }
-extern "C" auto do_page_fault( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_page_fault _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -477,7 +477,7 @@ extern "C" auto do_page_fault( IN CONST InterruptDescriptorTable::InterruptFrame
                                           ( frame->error_code & ( 1 << 6 ) ) ? "Shadow Stack Cause Fault" : "",
                                           ( frame->error_code & ( 1 << 7 ) ) ? "Software Guard Extensions Cause Fault" : "" );
 }
-extern "C" auto do_x87_FPU_error( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_x87_FPU_error _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -505,7 +505,7 @@ extern "C" auto do_x87_FPU_error( IN CONST InterruptDescriptorTable::InterruptFr
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_alignment_check( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_alignment_check _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -533,7 +533,7 @@ extern "C" auto do_alignment_check( IN CONST InterruptDescriptorTable::Interrupt
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_machine_check( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_machine_check _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -561,7 +561,7 @@ extern "C" auto do_machine_check( IN CONST InterruptDescriptorTable::InterruptFr
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_SIMD_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_SIMD_exception _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -589,7 +589,7 @@ extern "C" auto do_SIMD_exception( IN CONST InterruptDescriptorTable::InterruptF
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_virtualization_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_virtualization_exception _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -617,7 +617,7 @@ extern "C" auto do_virtualization_exception( IN CONST InterruptDescriptorTable::
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_control_protection_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_control_protection_exception _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -645,7 +645,7 @@ extern "C" auto do_control_protection_exception( IN CONST InterruptDescriptorTab
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_exception_injected_by_the_virtual_machine( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_exception_injected_by_the_virtual_machine _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -673,7 +673,7 @@ extern "C" auto do_exception_injected_by_the_virtual_machine( IN CONST Interrupt
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_VMM_communication_failed( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_VMM_communication_failed _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"
@@ -701,7 +701,7 @@ extern "C" auto do_VMM_communication_failed( IN CONST InterruptDescriptorTable::
                                           *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ),
                                           Apic::apic_id( ) );
 }
-extern "C" auto do_security_exception( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
+extern "C" auto do_security_exception _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame *frame ) -> VOID {
     ControlRegisterFrame control_registers_frame { };
     println< ostream::HeadLevel::ERROR >( "IRQ_{:x}:{}\n"
                                           "\t\t\t Rflags -> {:x}\n"

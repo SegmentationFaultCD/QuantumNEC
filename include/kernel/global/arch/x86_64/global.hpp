@@ -3,10 +3,8 @@
 #include <lib/list.hpp>
 #include <libcxx/format.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    PUBLIC struct ControlRegisters
-    {
-        struct CR0
-        {
+    PUBLIC struct ControlRegisters {
+        struct CR0 {
             uint64_t PE : 1;     // 如果PE=1，则保护模式启动，如果PE=0，则在实模式下运行
             uint64_t MP : 1;     // 监视协处理器
             uint64_t EM : 1;     // x87 FPU仿真
@@ -27,8 +25,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // CR1 保留
         // CPU在尝试访问它时将抛出#UD异常。
 
-        struct CR2
-        {
+        struct CR2 {
             /*
              *   x86架构中的CR2寄存器是页故障线性地址寄存器，也称为页故障地址寄存器（Page Fault Linear Address Register）。当CPU检测到一个页故障（Page Fault）时，它会将故障发生时的线性地址存储在CR2寄存器中，这个地址指向导致页故障的页面。
              *   内核可以通过读取CR2寄存器来获取引起页故障的地址，然后对该地址所在的页面进行处理，比如进行页面的分配或者进行页面的交换。CR2寄存器的值可以在中断或异常处理例程中读取。
@@ -38,8 +35,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             uint64_t PFLA;
             explicit CR2( VOID ) noexcept = default;
         };
-        struct CR3
-        {
+        struct CR3 {
             /*
              *   cr3寄存器和MMU密切相关，保存了当前进程所使用的虚拟地址空间的页目录地址，可以说是整个虚拟地址翻译中的顶级指挥棒，在进程空间切换的时候，CR3也将同步切换。
              *   cr3寄存器的高20位用于保存页目录地址，0-11位记录标记位，所以页目录地址必须是4KB的整数倍。
@@ -52,8 +48,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             uint64_t page_directory_base : 52;
             explicit CR3( VOID ) noexcept = default;
         };
-        struct CR4
-        {
+        struct CR4 {
             /*
              *   用于控制CPU的特性和操作系统的行为。它的作用如下：
              *   控制分页机制：x86CR4寄存器的最重要作用是控制分页机制。在64位x86处理器中，x86CR4寄存器的第5位（PAE）控制是否启用物理地址扩展（Physical Address Extension，PAE）模式，第7位（PSE）控制是否启用页大小扩展（Page Size Extension，PSE）模式，第12位（PCIDE）控制是否启用页表缓存（Page Directory Cache，PDC）。
@@ -112,8 +107,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             explicit CR4( VOID ) noexcept = default;
         };
         // CR5 ~ CR7 保留，如果使用结果和 CR1 一样.
-        struct CR8
-        {
+        struct CR8 {
             // 任务优先级寄存器
             uint64_t TPL : 4;
             uint64_t : 60;
@@ -122,8 +116,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // CR9 ~ CR15 保留，如果使用结果和 CR1 一样.
     };
 
-    struct RFlags
-    {
+    struct _packed RFlags {
         uint64_t CF : 1;
         uint64_t MBS : 1;
         uint64_t PF : 1;
@@ -150,10 +143,9 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         operator uint64_t( ) {
             return *reinterpret_cast< uint64_t * >( this );
         }
-    } _packed;
+    };
 
-    PUBLIC struct ControlRegisterFrame
-    {
+    PUBLIC struct ControlRegisterFrame {
         ControlRegisters::CR0 cr0;
         ControlRegisters::CR2 cr2;
         ControlRegisters::CR3 cr3;
@@ -168,8 +160,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         }
         // CR1，CR5~CR7, CR9~CR15为保留，无法访问
     };
-    PUBLIC struct GeneralPurposeRegistersFrame
-    {
+    PUBLIC struct _packed GeneralPurposeRegistersFrame {
         uint64_t rax;
         uint64_t rbx;
         uint64_t rcx;
@@ -186,21 +177,19 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         uint64_t r14;
         uint64_t r15;
         explicit GeneralPurposeRegistersFrame( VOID ) noexcept = default;
-    } _packed;
-    PUBLIC struct SegmentRegisterFrame
-    {
+    };
+    PUBLIC struct _packed SegmentRegisterFrame {
         uint64_t ds;
         uint64_t es;
         uint64_t fs;
         uint64_t gs;
         explicit SegmentRegisterFrame( VOID ) noexcept = default;
-    } _packed;
-    PUBLIC struct RegisterFrame :
+    };
+    PUBLIC struct _packed RegisterFrame :
         SegmentRegisterFrame,
-        GeneralPurposeRegistersFrame
-    {
+        GeneralPurposeRegistersFrame {
         explicit RegisterFrame( VOID ) noexcept = default;
-    } _packed;
+    };
 
     PUBLIC constexpr CONST auto IA32_APIC_BASE_MSR { 0x1B };
     PUBLIC constexpr CONST auto IA32_APIC_BASE_MSR_BSP { 1UL << 8U };     // 处理器是 BSP
@@ -615,8 +604,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
 namespace std {
 template <>
-struct formatter< Kernel::x86_64::RFlags >
-{
+struct formatter< Kernel::x86_64::RFlags > {
     auto format( IN const Kernel::x86_64::RFlags &flags ) -> char * {
         auto val = *( (uint64_t *)&flags );
         return formatter< uint64_t > { }.format( val );

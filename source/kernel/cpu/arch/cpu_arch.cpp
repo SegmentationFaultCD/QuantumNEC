@@ -13,6 +13,7 @@ QuantumNEC::Kernel::CpuArch::CpuArch( VOID ) noexcept {
     *reinterpret_cast< Ptr< uint32_t > >( &factoryName[ 4 ] ) = status.rdx;
     *reinterpret_cast< Ptr< uint32_t > >( &factoryName[ 8 ] ) = status.rcx;
     factoryName[ 12 ]                                         = '\0';
+
     // println< ostream::HeadLevel::INFO >( "CPU device information is as follows:" );
     // println< ostream::HeadLevel::INFO >( "{} {:x} {:x} {:x}         ", factoryName, status.rbx, status.rdx, status.rcx );
 

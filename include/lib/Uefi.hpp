@@ -108,11 +108,11 @@ using QWORD = unsigned long int;
 using WORD = unsigned short int;
 
 using time_t = unsigned int;
-struct FontConfig
+struct _packed FontConfig
 {
     uint64_t length;
     VOID *frame;
-} _packed;
+};
 struct BootConfig
 {
     limine_framebuffer graphics_data;

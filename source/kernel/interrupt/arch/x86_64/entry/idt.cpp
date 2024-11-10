@@ -89,7 +89,7 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     interrupt_name[ 31 ] = "--- System Reserved";
 
     /* 注册所有入口函数到中断描述符表 */
-    //  println< ostream::HeadLevel::INFO >( "Setting the interrupt handler entry for the interrupt descriptor table" );
+    println< ostream::HeadLevel::INFO >( "Setting the interrupt handler entry for the interrupt descriptor table" );
     uint64_t function { };
     SET_TRAP_HANDLER( 0x00, 0 );
     SET_TRAP_HANDLER( 0x01, 0 );
@@ -348,11 +348,11 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     SET_INTERRUPT_HANDLER( 0xfe, 0 );
     SET_INTERRUPT_HANDLER( 0xff, 0 );
     /* 挂载 idt*/
-    // println< ostream::HeadLevel::SYSTEM >( "Loading the interrupt descriptor table." );
+    println< ostream::HeadLevel::SYSTEM >( "Loading the interrupt descriptor table." );
 
     this->idt->load( 0 );
 
-    // println< ostream::HeadLevel::OK >( "Initialize the interrupt descriptor table management." );
+    println< ostream::HeadLevel::OK >( "Initialize the interrupt descriptor table management." );
 }
 
 auto InterruptDescriptorTable::_IDT::load( [[maybe_unused]] IN uint64_t processor_id ) CONST -> VOID {

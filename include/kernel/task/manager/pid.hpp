@@ -4,8 +4,7 @@
 #include <libcxx/expected.hpp>
 namespace QuantumNEC::Kernel {
 PUBLIC inline constexpr CONST auto PID_COUNT { 1024ul };
-class PidPool
-{
+class PidPool {
 public:
     explicit PidPool( VOID ) noexcept = default;
 

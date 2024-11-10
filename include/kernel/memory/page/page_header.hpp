@@ -1,7 +1,7 @@
 #pragma once
 #include <concepts>
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/heap/heap_allocater.hpp>
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_manager.hpp>
 #include <kernel/print.hpp>
@@ -57,7 +57,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         uint64_t all_memory_page_desvriptor_count;
 
     private:
-        class __address__ : PageAllocater, HeapAllocater {
+        class __address__ : PageAllocater, KHeapAllocater {
         public:
             enum __address_type__ {
                 BASE_ADDRESS,
@@ -84,7 +84,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                     }
                 }
                 if constexpr ( __type__ == HEADER_START_ADDRESS ) {
-                    return reinterpret_cast< header_t * >( this->HeapAllocater::allocate( header_count * header_size ) );
+                    return reinterpret_cast< header_t * >( this->KHeapAllocater::allocate( header_count * header_size ) );
                 }
                 else {
                     if constexpr ( __mmap_allocater__ != NONE ) {

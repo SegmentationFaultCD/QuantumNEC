@@ -30,7 +30,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     public:
         enum class InterruptStatus : BOOL {
             INTERRUPT_DISABLE = FALSE, /* 关闭 */
-            INTERRUPT_ENABLE = TRUE    /* 打开 */
+            INTERRUPT_ENABLE  = TRUE   /* 打开 */
         };
 
     public:

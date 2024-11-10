@@ -14,7 +14,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     public:
         explicit SerialPort( VOID ) noexcept;
-        ~SerialPort( VOID ) noexcept = default;
+        virtual ~SerialPort( VOID ) noexcept = default;
 
     public:
         STATIC auto read( VOID ) -> char_t;
@@ -25,5 +25,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                 write( ch );
             }
         }
+
+    private:
+        inline STATIC BOOL support_serial_port { FALSE };
     };
 }

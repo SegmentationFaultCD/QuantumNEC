@@ -6,8 +6,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     /**
      * @brief 全局段描述符
      */
-    PUBLIC struct GlobalSegmentDescriptor
-    {
+    PUBLIC struct _packed GlobalSegmentDescriptor {
     private:
         /*  全局段描述符内部安排
             8192个一组
@@ -35,12 +34,11 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             uint64_t base,
             uint64_t limit,
             uint64_t access ) -> GlobalSegmentDescriptor &;
-    } _packed;
+    };
     /**
      * @brief 任务状态段描述符
      */
-    PUBLIC struct TaskStateSegmentDescriptor64
-    {
+    PUBLIC struct _packed TaskStateSegmentDescriptor64 {
     private:
         uint32_t reserved1;
         uint64_t rsp[ 3 ];
@@ -67,7 +65,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             ASM( "ltr %%ax" ::"a"( segment )
                  : "memory" );
         }
-    } _packed;
+    };
     using TaskStateSegmentDescriptor = TaskStateSegmentDescriptor64;
     /**
      * @brief 全局段描述符表

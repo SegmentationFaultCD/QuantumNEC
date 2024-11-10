@@ -9,8 +9,6 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     inline static uint64_t      address { };
     using namespace std;
     auto PageTableWalker::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode, IN pmlxt & _pmlxt ) -> VOID {
-        lock.acquire( );
-
         pml1t  pml1t { };
         pml2t  pml2t { mode };
         pml3t  pml3t { mode };
@@ -30,7 +28,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         };
 
         auto page_size = pml4t.check_page_size( mode );     // 确认每页大小
-
+        while ( true );
         flags |= pml4t.is_huge( mode );     // 如果为huge页那么设置ps位为1
 
         auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
@@ -66,6 +64,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index ) );     // 得到下一级页表的地址
             self( level - 1, get_table( level - 1 ) );
         };
+        lock.acquire( );
         while ( size-- ) {     // 重复循环映射
 
             map_helper( _level, _pmlxt );
@@ -167,12 +166,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         if ( !flags ) {
             cr0.WP = 1;
             CPU::write_cr0( cr0 );
-            //  println< ostream::HeadLevel::SYSTEM >( "Disable the page protection." );
         }
         else {
             cr0.WP = 0;
             CPU::write_cr0( cr0 );
-            //   println< ostream::HeadLevel::SYSTEM >( "Enable the page protection." );
         }
         lock.release( );
     };

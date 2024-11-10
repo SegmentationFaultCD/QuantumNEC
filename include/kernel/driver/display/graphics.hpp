@@ -1,11 +1,10 @@
 #pragma once
-#include <kernel/driver/display/arch/display_arch.hpp>
 #include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     /**
      * @brief 图形化窗口驱动管理
      */
-    PUBLIC class Graphics : public DisplayArch {
+    PUBLIC class Graphics {
     public:
         explicit Graphics( VOID ) noexcept;
         virtual ~Graphics( VOID ) noexcept;

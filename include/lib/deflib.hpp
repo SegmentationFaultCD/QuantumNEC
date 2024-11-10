@@ -4,14 +4,14 @@
  * @brief 强制变量在本地分配
  */
 
-#define _volatile __attribute__( ( volatile ) )
-#define _asmcall __attribute__( ( sysv_abi ) )
-#define _regparms( x ) __attribute__( regparms( x ) )
-#define _packed __attribute__( ( packed ) )     // 定义特殊结构
-#define _weak __attribute__( ( weak ) )
-#define _aligned( n ) __attribute__( ( __aligned__( ( n ) ) ) )
-#define _used __attribute__( ( used ) )
-#define _unused __attribute__( ( unused ) )
+#define _volatile [[gnu::volatile]]
+#define _asmcall [[gnu::sysv_abi]]
+#define _regparms( x ) [[gnu::regparms( x )]]
+#define _packed [[gnu::packed]]     // 定义特殊结构
+#define _weak [[gnu::weak]]
+#define _aligned( n ) alignas( n )
+#define _used [[gnu::used]]
+#define _unused [[gnu::unused]]
 #pragma once
 #define VOID void
 #define CONST const

@@ -1,16 +1,6 @@
 [
 {
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/sys/linux/x86-64/debug/source/lib/utils.cpp.o", "source/lib/utils.cpp"],
-  "file": "source/lib/utils.cpp"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/sys/linux/x86-64/debug/source/lib/spin_lock.cpp.o", "source/lib/spin_lock.cpp"],
-  "file": "source/lib/spin_lock.cpp"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
   "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/c/linux/x86-64/debug/source/libc/string.cpp.o", "source/libc/string.cpp"],
   "file": "source/libc/string.cpp"
 },
@@ -23,6 +13,31 @@
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
   "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/c/linux/x86-64/debug/source/libc/math.cpp.o", "source/libc/math.cpp"],
   "file": "source/libc/math.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/cxx/linux/x86-64/debug/source/libcxx/abi.cpp.o", "source/libcxx/abi.cpp"],
+  "file": "source/libcxx/abi.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/cxx/linux/x86-64/debug/source/libcxx/builtins.cpp.o", "source/libcxx/builtins.cpp"],
+  "file": "source/libcxx/builtins.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/cxx/linux/x86-64/debug/source/libcxx/format.cpp.o", "source/libcxx/format.cpp"],
+  "file": "source/libcxx/format.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/sys/linux/x86-64/debug/source/lib/utils.cpp.o", "source/lib/utils.cpp"],
+  "file": "source/lib/utils.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/sys/linux/x86-64/debug/source/lib/spin_lock.cpp.o", "source/lib/spin_lock.cpp"],
+  "file": "source/lib/spin_lock.cpp"
 },
 {
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
@@ -46,21 +61,6 @@
 },
 {
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/heap_allocater.cpp.o", "source/kernel/memory/heap/heap_allocater.cpp"],
-  "file": "source/kernel/memory/heap/heap_allocater.cpp"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/heap_manager.cpp.o", "source/kernel/memory/heap/heap_manager.cpp"],
-  "file": "source/kernel/memory/heap/heap_manager.cpp"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/heap_collector.cpp.o", "source/kernel/memory/heap/heap_collector.cpp"],
-  "file": "source/kernel/memory/heap/heap_collector.cpp"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
   "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/slab/slab_destoryer.cpp.o", "source/kernel/memory/heap/slab/slab_destoryer.cpp"],
   "file": "source/kernel/memory/heap/slab/slab_destoryer.cpp"
 },
@@ -78,6 +78,21 @@
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
   "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/slab/slab_collector.cpp.o", "source/kernel/memory/heap/slab/slab_collector.cpp"],
   "file": "source/kernel/memory/heap/slab/slab_collector.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/kernel_heap/kheap_allocater.cpp.o", "source/kernel/memory/heap/kernel_heap/kheap_allocater.cpp"],
+  "file": "source/kernel/memory/heap/kernel_heap/kheap_allocater.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/kernel_heap/kheap_collector.cpp.o", "source/kernel/memory/heap/kernel_heap/kheap_collector.cpp"],
+  "file": "source/kernel/memory/heap/kernel_heap/kheap_collector.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/memory/heap/kernel_heap/kheap_manager.cpp.o", "source/kernel/memory/heap/kernel_heap/kheap_manager.cpp"],
+  "file": "source/kernel/memory/heap/kernel_heap/kheap_manager.cpp"
 },
 {
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
@@ -221,6 +236,11 @@
 },
 {
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
+  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/device/output/arch/x86_64/serial_port.cpp.o", "source/kernel/device/output/arch/x86_64/serial_port.cpp"],
+  "file": "source/kernel/device/output/arch/x86_64/serial_port.cpp"
+},
+{
+  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
   "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-D", "APIC", "-fPIE", "-fno-lto", "-Wpointer-arith", "-Wwrite-strings", "-Wno-reorder", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/interrupt/arch/x86_64/pic/pic.cpp.o", "source/kernel/interrupt/arch/x86_64/pic/pic.cpp"],
   "file": "source/kernel/interrupt/arch/x86_64/pic/pic.cpp"
 },
@@ -333,19 +353,4 @@
   "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
   "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c23", "-Iinclude", "-Isource/boot/limine", "-o", "build/.objs/micro_kernel/linux/x86-64/debug/source/kernel/interrupt/arch/x86_64/entry/entry.S.o", "source/kernel/interrupt/arch/x86_64/entry/entry.S"],
   "file": "source/kernel/interrupt/arch/x86_64/entry/entry.S"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/cxx/linux/x86-64/debug/source/libcxx/abi.cpp.o", "source/libcxx/abi.cpp"],
-  "file": "source/libcxx/abi.cpp"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/cxx/linux/x86-64/debug/source/libcxx/builtins.cpp.o", "source/libcxx/builtins.cpp"],
-  "file": "source/libcxx/builtins.cpp"
-},
-{
-  "directory": "/home/QuantumNEC/QuantumNEC/QuantumNEC-Limine",
-  "arguments": ["/usr/bin/gcc", "-c", "-g", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fno-lto", "-fPIC", "-o", "build/.objs/cxx/linux/x86-64/debug/source/libcxx/format.cpp.o", "source/libcxx/format.cpp"],
-  "file": "source/libcxx/format.cpp"
 }]

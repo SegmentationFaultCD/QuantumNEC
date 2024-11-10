@@ -17,18 +17,16 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         }
         return sum;
     }
-    PUBLIC class Rsdp
-    {
+    PUBLIC class Rsdp {
     public:
-        struct RSDP
-        {
-            char_t signature[ 8 ];
-            uint8_t check_sum;
-            char_t OEMID[ 6 ];
-            uint8_t revision;
+        struct _packed RSDP {
+            char_t   signature[ 8 ];
+            uint8_t  check_sum;
+            char_t   OEMID[ 6 ];
+            uint8_t  revision;
             uint32_t rsdt_address;
             explicit RSDP( VOID ) noexcept = default;
-        } _packed;
+        };
 
     public:
         explicit Rsdp( IN uint64_t rsdp_address ) noexcept {

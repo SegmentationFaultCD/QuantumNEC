@@ -3,6 +3,7 @@
 #include <kernel/memory/arch/x86_64/paging/page_table_walker.hpp>
 #include <kernel/memory/arch/x86_64/paging/paging.hpp>
 #include <kernel/memory/arch/x86_64/paging/ptv.hpp>
+#include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     pml5t pml5_t;
     pml5t pml4_t;
@@ -21,5 +22,6 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->kernel_page_table     = pml4_t;
         }
         PageTableWalker { }.page_protect( FALSE );
+        std::println< std::ostream::HeadLevel::OK >( "Initialize paging." );
     }
 }

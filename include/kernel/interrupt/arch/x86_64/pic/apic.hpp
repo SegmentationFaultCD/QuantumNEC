@@ -3,33 +3,29 @@
 #include <lib/Uefi.hpp>
 
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    PUBLIC class Apic
-    {
+    PUBLIC class Apic {
     public:
         using irq_t = uint64_t;
 
-        struct IOApicInformation
-        {
+        struct IOApicInformation {
             uint64_t io_apic_address;
-            VOID *io_apic_index_address;
-            VOID *io_apic_EOI_address;
-            VOID *io_apic_data_address;
+            VOID    *io_apic_index_address;
+            VOID    *io_apic_EOI_address;
+            VOID    *io_apic_data_address;
         };
-        struct ApicInformation
-        {
-            uint64_t local_apic_address;
-            uint8_t core_count;
-            uint8_t local_apic_ID[ NR_CPUS ];
-            uint64_t ioapic_count;
+        struct ApicInformation {
+            uint64_t          local_apic_address;
+            uint8_t           core_count;
+            uint8_t           local_apic_ID[ NR_CPUS ];
+            uint64_t          ioapic_count;
             IOApicInformation ioapic[ 8 ];     // ioapic最多可以有8个
         };
 
         enum class ApicType {
-            IO_APIC = 0,
+            IO_APIC    = 0,
             LOCAL_APIC = 1
         };
-        struct ApicLocalVectorTableRegisters
-        {
+        struct _packed ApicLocalVectorTableRegisters {
             uint32_t vector : 8;             // 0~7	ALL
             uint32_t deliver_mode : 3;       // 8~10	      CMCI LINT0 LINT1 PerformCounter ThermalSensor
             uint32_t : 1;                    // 11
@@ -60,10 +56,9 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                 *this = value | uint32_t( *this );
                 return *this;
             }
-        } _packed;
+        };
 
-        struct InterruptCommandRegister
-        {
+        struct _packed InterruptCommandRegister {
             uint32_t vector : 8;
             uint32_t deliver_mode : 3;
             uint32_t dest_mode : 1;
@@ -95,10 +90,9 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                 *reinterpret_cast< uint64_t * >( this ) = value;
                 return *this;
             }
-        } _packed;
+        };
 
-        struct IOApicRedirectionEntry
-        {
+        struct _packed IOApicRedirectionEntry {
             uint32_t vector : 8;
             uint32_t deliver_mode : 3;
             uint32_t dest_mode : 1;
@@ -130,7 +124,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             operator uint64_t( ) {
                 return *reinterpret_cast< uint64_t * >( this );
             }
-        } _packed;
+        };
 
     public:
         explicit Apic( VOID ) noexcept;
@@ -158,7 +152,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             // 恰好是该cpu的APIC ID
             ApicLocalVectorTableRegisters lvt { };
             lvt.vector = vector;
-            lvt.mask = APIC_ICR_IOAPIC_UNMASKED;
+            lvt.mask   = APIC_ICR_IOAPIC_UNMASKED;
             write_apic( IOAPIC_REG_TABLE + 2 * irq, lvt, ApicType::IO_APIC );
         }
         STATIC auto enable_ioapic( IN IN irq_t irq ) -> VOID;

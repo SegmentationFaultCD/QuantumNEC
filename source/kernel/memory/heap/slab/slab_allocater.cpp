@@ -1,6 +1,6 @@
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/heap/heap_allocater.hpp>
-#include <kernel/memory/heap/heap_collector.hpp>
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
+#include <kernel/memory/heap/kheap/kheap_collector.hpp>
 #include <kernel/memory/heap/slab/slab_allocater.hpp>
 #include <kernel/memory/heap/slab/slab_creater.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
@@ -26,7 +26,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             return NULL;
         };
         if ( !slab_cache->total_free ) {
-            slab = reinterpret_cast< Slab * >( HeapAllocater { }.allocate( sizeof( Slab ) ) );
+            slab = reinterpret_cast< Slab * >( KHeapAllocater { }.allocate( sizeof( Slab ) ) );
 
             if ( !slab ) {
                 return NULL;
@@ -36,7 +36,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             slab->page = PageAllocater { }.allocate< MemoryPageType::PAGE_2M >( 1 );
 
             if ( !slab->page ) {
-                HeapCollector { }.free( slab );
+                KHeapCollector { }.free( slab );
                 return NULL;
             }
             std::memset( slab->page, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
@@ -46,11 +46,11 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             slab->virtual_address = physical_to_virtual( slab->page );
             slab->color_length    = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
-            slab->color_map       = reinterpret_cast< uint64_t       *>( HeapAllocater { }.allocate( slab->color_length ) );
+            slab->color_map       = reinterpret_cast< uint64_t       *>( KHeapAllocater { }.allocate( slab->color_length ) );
 
             if ( !slab->color_map ) {
                 PageCollector { }.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
-                HeapCollector { }.free( slab );
+                KHeapCollector { }.free( slab );
                 return NULL;
             }
             slab_cache->pool_list.insert( &slab->list, &slab_cache->cache_pool->list );
@@ -85,9 +85,9 @@ PUBLIC namespace QuantumNEC::Kernel {
         }
         if ( !slab ) {
             slab_cache->pool_list.remove( slab->list );
-            HeapCollector { }.free( slab->color_map );
+            KHeapCollector { }.free( slab->color_map );
             PageCollector { }.free< MemoryPageType::PAGE_2M >( slab, 1 );
-            HeapCollector { }.free( slab );
+            KHeapCollector { }.free( slab );
         }
         return NULL;
     }

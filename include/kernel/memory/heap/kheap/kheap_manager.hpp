@@ -3,7 +3,7 @@
 #include <lib/Uefi.hpp>
 #include <utility>
 PUBLIC namespace QuantumNEC::Kernel {
-    class HeapManager {
+    class KHeapManager {
     private:
         constexpr static uint64_t cache_size[] {
             32,
@@ -62,6 +62,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         }
 
     public:
-        explicit HeapManager( VOID ) noexcept;
+        explicit KHeapManager( VOID ) noexcept;
+        virtual ~KHeapManager( VOID ) noexcept = default;
     };
 }

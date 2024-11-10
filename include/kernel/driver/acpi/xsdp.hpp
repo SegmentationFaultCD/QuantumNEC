@@ -18,22 +18,20 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     STATIC consteval auto SIGN_64( auto A, auto B, auto C, auto D, auto E, auto F, auto G, auto H ) -> uint64_t {
         return (uint64_t)SIGN_32( A, B, C, D ) | ( (uint64_t)SIGN_32( E, F, G, H ) << 32u );
     }
-    PUBLIC class Xsdp
-    {
+    PUBLIC class Xsdp {
     public:
-        struct XSDP
-        {
-            char_t signature[ 8 ];
-            uint8_t check_sum;
-            char_t OEMID[ 6 ];
-            uint8_t revision;
+        struct _packed XSDP {
+            char_t   signature[ 8 ];
+            uint8_t  check_sum;
+            char_t   OEMID[ 6 ];
+            uint8_t  revision;
             uint32_t rsdt_address;
             uint32_t length;
             uint64_t xsdt_address;
-            uint8_t extended_check_sum;
-            char_t reserved[ 3 ];
+            uint8_t  extended_check_sum;
+            char_t   reserved[ 3 ];
             explicit XSDP( VOID ) noexcept = default;
-        } _packed;
+        };
 
     public:
         auto bytes_sum_total( IN CONST uint8_t *data, IN size_t bytes ) {

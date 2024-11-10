@@ -1,6 +1,6 @@
-#include <modules/loader/elf.hpp>
 #include <kernel/kernel.hpp>
 #include <kernel/memory/memory.hpp>
+#include <modules/loader/elf.hpp>
 using namespace QuantumNEC::Kernel;
 PUBLIC namespace QuantumNEC::Modules {
     auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< uint64_t, ElfErrorCode > {
@@ -27,7 +27,7 @@ PUBLIC namespace QuantumNEC::Modules {
         Kernel::PageTableWalker { }.map( (uint64_t)Kernel::virtual_to_physical( relocate_base ), relocate_base, 1, Kernel::PAGE_PRESENT | Kernel::PAGE_RW_W | Kernel::PAGE_US_U, MemoryPageType::PAGE_2M );
 
         auto relocate_offset = relocate_base - low_address;
-        auto zero_start = reinterpret_cast< uint64_t * >( relocate_base );
+        auto zero_start      = reinterpret_cast< uint64_t      *>( relocate_base );
         for ( uint64_t i { }; i < ( page_count << 9 ); i++ ) {
             *zero_start = 0x000000000000;
             zero_start++;

@@ -1,5 +1,5 @@
 #include <lib/Uefi.hpp>
-PUBLIC namespace QuantumNEC::Architecture::ABI {
+PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC using namespace QuantumNEC::Lib;
     /**
      * Copy 16 bytes from one location to another using optimised SSE

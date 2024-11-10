@@ -5,11 +5,11 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PUBLIC class Dsdt
     {
     public:
-        struct DSDT : Xsdt::ACPISDTHeader
+        struct _packed DSDT : Xsdt::ACPISDTHeader
         {
             explicit DSDT( VOID ) noexcept = default;
 
-        } _packed;
+        }  ;
 
         using table_type = DSDT;
 

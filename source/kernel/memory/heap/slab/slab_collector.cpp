@@ -1,5 +1,5 @@
-#include <kernel/memory/heap/heap_allocater.hpp>
-#include <kernel/memory/heap/heap_collector.hpp>
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
+#include <kernel/memory/heap/kheap/kheap_collector.hpp>
 #include <kernel/memory/heap/slab/slab_collector.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_collector.hpp>
@@ -28,9 +28,9 @@ PUBLIC namespace QuantumNEC::Kernel {
             if ( !slab->using_count && slab_cache->total_free >= slab->color_count * 3 / 2 ) {
                 slab_cache->pool_list.remove( slab->list );
                 slab_cache->total_free -= slab->color_count;
-                HeapCollector { }.free( slab->color_map );
+                KHeapCollector { }.free( slab->color_map );
                 PageCollector { }.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
-                HeapCollector { }.free( slab );
+                KHeapCollector { }.free( slab );
             }
             return;
         }

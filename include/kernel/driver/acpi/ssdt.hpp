@@ -5,11 +5,9 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PUBLIC class Ssdt
     {
     public:
-        struct SSDT : Xsdt::ACPISDTHeader
-        {
+        struct _packed SSDT : Xsdt::ACPISDTHeader {
             explicit SSDT( VOID ) noexcept = default;
-
-        } _packed;
+        };
 
         using table_type = SSDT;
 
