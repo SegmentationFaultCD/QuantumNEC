@@ -208,7 +208,7 @@ target("micro_kernel")
             ldfiles = ldfiles..val.." "
         end
         local ldflags = "-L./library"
-        local libs = "-lsys -lcxx -lc -los_terminal"
+        local libs = "-lsys -lcxx -lc"
         local lds = "source/kernel/System.lds"
         os.exec("ld "..ldflags.." -o "..run_dir.."/micro_kernel.elf "..ldfiles.." "..libs.." -T "..lds)
         os.cp(run_dir.."/micro_kernel.elf", "vm/QuantumNEC/")
