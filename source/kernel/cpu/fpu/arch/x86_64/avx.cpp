@@ -18,5 +18,5 @@ Avx::Avx( VOID ) noexcept {
     //     "POPQ %RCX\n\t"
     //     "POPQ %RAX\n\t" );
 
-  //  println< ostream::HeadLevel::OK >( "Initialize the Advanced Vector Extensions" );
+    println< ostream::HeadLevel::OK >( "Initialize the Advanced Vector Extensions" );
 }

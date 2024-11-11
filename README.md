@@ -1,5 +1,7 @@
+# 中文
+
 # 简介
- 一个自制的操作系统，最现代，最快速，最安全，最轻量级（The most modern, the fastest, the safest and the most miniature(MFSS)）<br>
+ 一个自制的操作系统，最现代，最快速，最安全，最轻量级(MFSS)<br>
  它由一个**初一学生**从2023-1-1日开始开发
 # 由来
  这个OS，怎么说呢，是我看了别人视频，突发奇想开发的<br>
@@ -57,4 +59,11 @@ xmake run # 运行
 # 依赖
 - 使用现代化引导[limine](https://github.com/limine-bootloader/limine)进行来装载内核，不需要自己编写boot loader
 # 贡献
-如果您想为此项目做出贡献，请阅读[贡献指南](CONTRIBUTING.md)
+如果您想为此项目做出贡献，请阅读[贡献指南](scripts/CONTRIBUTING.md)
+
+# English
+
+# Introduction
+ This is a self-made OS, the most modern, the fastest, the safest, and the most miniature(MFSS)<br>
+ A grade-one student started development 
+ 它由一个**初一学生**从2023-1-1日开始开发

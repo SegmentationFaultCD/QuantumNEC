@@ -4,7 +4,6 @@
 #include <lib/spin_lock.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     SymmetricMultiprocessing::SymmetricMultiprocessing( VOID ) noexcept {
-        // uint64_t stack_start = 0;
         Lib::SpinLock lock { };
         using namespace QuantumNEC::Kernel;
         for ( auto i { 1ul }; i < __config.smp.cpu_count; ++i ) {
@@ -12,10 +11,9 @@ PUBLIC namespace QuantumNEC::Kernel {
             __config.smp.cpus[ i ]->goto_address = apu_entry;
             auto stack_start                     = KHeapAllocater { }.allocate( PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
             Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
-
             lock.release( );
         }
-        // std::println< std::ostream::HeadLevel::OK >( "Initialize Symmetric Multiprocessing" );
+        std::println< std::ostream::HeadLevel::OK >( "Initialize Symmetric Multiprocessing" );
     }
     auto SymmetricMultiprocessing::send_IPI( IN Apic::InterruptCommandRegister icr ) -> VOID {
         // icr.deliver_mode = APIC_ICR_IOAPIC_FIXED;

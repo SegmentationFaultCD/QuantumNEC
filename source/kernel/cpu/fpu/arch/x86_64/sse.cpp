@@ -23,7 +23,7 @@ auto Sse::SSE::load_sse( VOID ) -> VOID {
 }
 Sse::Sse( VOID ) noexcept {
     this->activate_sse( );
-    //  println< ostream::HeadLevel::OK >( "Initialize the Streaming SIMD Extensions(SSE)" );
+    println< ostream::HeadLevel::OK >( "Initialize the Streaming SIMD Extensions(SSE)" );
 }
 
 auto Sse::activate_sse( VOID ) noexcept -> VOID {

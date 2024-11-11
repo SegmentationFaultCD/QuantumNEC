@@ -172,7 +172,7 @@ _C_LINK auto micro_kernel_entry( VOID ) -> VOID {
     Kernel::Time       tim { };
     Kernel::Syscall    sysc { };
     Kernel::CPU        cpu { };
-    Modules::Module    mod { };
+    // Modules::Module    mod { };
     // Kernel::Task task { };
 
     println< ostream::HeadLevel::DEBUG >( "start allocate" );
