@@ -1,4 +1,4 @@
-#include <kernel/task/manager/pcb.hpp>
+#include <kernel/task/general/pcb/pcb.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     PCB::PCB( CONST char_t * _name_, uint64_t _priority_, Flags _flags_, VOID * _entry_, IN uint64_t _arg_ ) noexcept {
         // 内核栈处理

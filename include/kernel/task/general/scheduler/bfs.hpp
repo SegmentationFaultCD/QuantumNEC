@@ -1,6 +1,6 @@
 #pragma once
 
-#include <kernel/task/general/scheduler/sche_src.hpp>
+#include <kernel/task/general/scheduler/scheduler.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
 #include <lib/spin_lock.hpp>
@@ -8,7 +8,7 @@
 PUBLIC namespace QuantumNEC::Kernel {
     // 该调度器思想由Con Kolivas发明
     // 面向桌面端设备，适用与较少的CPU
-    class BrainFuckScheduler : public ScheduleSource {
+    class BrainFuckScheduler : public Scheduler {
         /**
          * 这个是CPU分配给每个任务的时间片，一个常数
          * 该值以毫秒为单位，默认值为 6ms。有效值为 1 至 1000。减小该值将减少延迟，但代价是降低吞吐量；增大
@@ -142,125 +142,21 @@ PUBLIC namespace QuantumNEC::Kernel {
     public:
         explicit BrainFuckScheduler( VOID ) = default;
 
-        virtual ~BrainFuckScheduler( VOID ) = default;
+        ~BrainFuckScheduler( VOID ) = default;
 
     public:
-        virtual auto pick_next( VOID ) -> std::expected< PCB *, ErrorCode > override {
-            auto index = 0;
-            for ( ; index < 103; ++index ) {
-                if ( this->bitmap[ index ] ) {
-                    break;
-                }
-            }
-            if ( index < 100 ) {
-                // 实时任务，直接弹出首位
-                auto pcb = (PCB *)this->task_queue[ index ].begin( )->container;
-                this->global_lock.release( );
-                return pcb;
-            }
-            else {
-                // EEVDF算法
-                for ( auto i = index; i < 103; ++i ) {
-                    if ( this->task_queue[ i ].is_empty( ) ) {
-                        continue;
-                    }
-                    auto head = this->task_queue[ i ].begin( );
-                    this->global_lock.acquire( );
-                    Lib::ListNode *p, *q, *tail;                                // 创建三个指针，进行冒泡排序
-                    auto           count = this->task_queue[ i ].length( );     // 记录链表结点的个数
-                    for ( auto i = 0ul; i < count - 1; i++ )                    // 外层循环，跟数组冒泡排序一样
-                    {
-                        auto num = count - i - 1;     // 记录内层循环需要的次数，跟数组冒泡排序一样，
-                        q        = head;              // 令q指向第一个结点
-                        p        = q->next;           // 令p指向第二个结点
-                        tail     = head->prev;        // 让tail始终指向q前一个结点，方便交换，也方便与进行下一步操作
-                        while ( num-- )               // 内层循环,次数跟数组冒泡排序一样
-                        {
-                            if ( auto pcb = ( (PCB *)q->container ); pcb->virtual_deadline < Interrupt::global_jiffies ) {
-                                // deadline小于当前进程则直接弹出
-                                this->global_lock.release( );
-                                return pcb;
-                            }
-                            if ( ( (PCB *)q->container )->virtual_deadline > ( (PCB *)p->container )->virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
-                            {
-                                q->next    = p->next;
-                                p->next    = q;
-                                tail->next = p;
-                            }
-                            // 进行指针的移动
-                            tail = tail->next;
-                            q    = tail->next;
-                            p    = q->next;
-                        }
-                    }
-                    this->global_lock.release( );
-                    return (PCB *)head->container;
-                }
-            }
-            return std::unexpected { ErrorCode::ALL_QUEUE_ARE_EMPTY };
-        }
+        friend Scheduler;
+
+    private:
+        auto __pick_next__( VOID ) -> std::expected< PCB *, ErrorCode >;
+        // 任务插入
+        auto __insert__( PCB *pcb ) -> std::expected< PCB *, ErrorCode >;
         // 任务唤醒
-        virtual auto wake_up( PCB *pcb ) -> std::expected< PCB *, ErrorCode > override {
-            auto current = get_current( );
-            auto node    = this->running_queue.traversal(
-                []( Lib::ListNode *node, uint64_t virtual_deadline ) -> BOOL {
-                    return ( (PCB *)node->container )->virtual_deadline > virtual_deadline;
-                },
-                pcb->virtual_deadline );
-            if ( node ) {     // 不为空说明可以抢占
-                auto can_seize_pcb = (PCB *)node->container;
-                if ( can_seize_pcb == current ) {
-                    this->running_queue.remove( can_seize_pcb->general_task_node );
-                    this->task_queue[ can_seize_pcb->priority ].append( can_seize_pcb->general_task_node );
-                    pcb->cpu_id      = can_seize_pcb->cpu_id;
-                    pcb->flags.state = PCB::State::RUNNING;
-                    this->running_queue.append( pcb->general_task_node );
-                    pcb->virtual_deadline = Interrupt::global_jiffies + this->prio_ratios[ pcb->priority ] * this->rr_interval;
-                }
-                /*
-  ICR_DELIVER_MODE_FIXED,
-        ICR_DEST_MODE_PHY,
-        ICR_DELIVER_STATUS_IDLE,
-        ICR_LEVEL_DE_ASSEST,
-        ICR_TRIGGER_EDGE,
-        ICR_ALL_EXCLUDE_SELF,
-*/
-            }
-            this->task_queue[ pcb->priority ].append( pcb->general_task_node );
-            return current;
-        }
+        auto __wake_up__( PCB *pcb ) -> std::expected< PCB *, ErrorCode >;
         // 任务睡眠
-        virtual auto sleep( VOID ) -> std::expected< PCB *, ErrorCode > override {
-            auto current = get_current( );
-            this->task_queue[ current->priority ].remove( current->general_task_node );
-            auto result = this->pick_next( );
-            if ( result.has_value( ) ) {
-                return result.value( );
-            }
-            return result;
-        }
-        virtual auto schedule( VOID ) -> std::expected< PCB *, ErrorCode > override {
-            return (PCB *)NULL;
-        }
-        //     auto current = get_current( );
-        //     if ( !current->jiffies ) {     // 时间片耗尽
-        //         current->jiffies = rr_interval;
-        //         current->virtual_deadline = Architecture::ArchitectureManager< TARGET_ARCH >::global_jiffies + prio_ratios[ current->priority ] * rr_interval;
-        //         const auto then = this->insert( current );
-        //         if ( !then.has_value( ) ) {
-        //             if ( then.error( ) == ErrorCode::ALL_QUEUE_ARE_EMPTY ) {
-        //                 // TODO
-        //                 // 错误处理
-        //             }
-        //             return current;
-        //         }
-        //         return then;
-        //     }
-        //     else {
-        //         current->jiffies--;
-        //         return current;
-        //     }
-        // }
+        auto __sleep__( VOID ) -> std::expected< PCB *, ErrorCode >;
+        // 任务调度
+        auto __schedule__( VOID ) -> std::expected< PCB *, ErrorCode >;
 
     private:
         // 存放除了running状态下的其他所有任务

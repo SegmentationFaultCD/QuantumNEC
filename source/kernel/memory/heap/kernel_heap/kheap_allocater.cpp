@@ -20,7 +20,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             if ( slab_cache.total_free ) {
                 slab = (Slab *)slab_cache.pool_list.traversal(
-                                                       []( Lib::ListNode *node, uint64_t ) {
+                                                       []( Lib::ListNode *node, uint64_t ) static {
                                                            return ( (Slab *)node->container )->free_count;
                                                        },
                                                        0 )

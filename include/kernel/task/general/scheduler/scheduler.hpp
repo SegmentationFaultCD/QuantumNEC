@@ -1,20 +1,29 @@
 #pragma once
+#include <kernel/task/general/pcb/pcb.hpp>
 #include <lib/Uefi.hpp>
-#include <concepts>
-#include <type_traits>
-#include <kernel/task/scheduler/bfs.hpp>
+#include <libcxx/expected.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
-    template < typename SchedulerType >
-        requires std::is_compound_v< SchedulerType >
-                 && std::derived_from< SchedulerType, ScheduleSource >
-                 && std::invocable< decltype( SchedulerType::wake_up ), PCB * >
-                 && std::invocable< decltype( SchedulerType::sleep ) >
-                 && std::invocable< decltype( SchedulerType::scheduler ) >
-                 && std::invocable< decltype( SchedulerType::insert ), PCB * >
-    class Scheduler : public SchedulerType
-    {
+    class Scheduler {
     public:
-        explicit Scheduler( VOID ) noexcept = default;
-        virtual ~Scheduler( VOID ) noexcept = default;
+        enum class ErrorCode {
+            ALL_QUEUE_ARE_EMPTY,
+            CAN_NOT_INSERT_TASK,
+        };
+        explicit Scheduler( VOID ) = default;
+        ~Scheduler( VOID )         = default;
+
+    public:
+        auto sleep( this auto &&self, uint64_t ticks ) -> std::expected< PCB *, ErrorCode > {
+            return self.__sleep__( ticks );
+        }
+        auto wake_up( this auto &&self, PCB *pcb ) -> std::expected< PCB *, ErrorCode > {
+            return self.__wake_up__( pcb );
+        }
+        auto pick_next( this auto &&self ) -> std::expected< PCB *, ErrorCode > {
+            return self.__pick_next__( );
+        }
+        auto schedule( this auto &&self ) -> std::expected< PCB *, ErrorCode > {
+            return self.__schedule__( );
+        }
     };
 }

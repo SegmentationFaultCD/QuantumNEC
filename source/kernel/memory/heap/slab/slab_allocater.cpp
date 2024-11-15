@@ -63,7 +63,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         }
         else {
             slab = (Slab *)( slab_cache->pool_list.traversal(
-                                                      []( Lib::ListNode *node, uint64_t ) -> BOOL {
+                                                      []( Lib::ListNode *node, uint64_t ) static -> BOOL {
                                                           if ( ( (Slab *)node->container )->free_count ) {
                                                               return TRUE;
                                                           }
