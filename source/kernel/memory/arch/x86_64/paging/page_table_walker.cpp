@@ -28,7 +28,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         };
 
         auto page_size = pml4t.check_page_size( mode );     // 确认每页大小
-        while ( true );
+
         flags |= pml4t.is_huge( mode );     // 如果为huge页那么设置ps位为1
 
         auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
