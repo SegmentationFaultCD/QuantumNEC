@@ -5,11 +5,11 @@
 #include <kernel/memory/arch/x86_64/paging/ptv.hpp>
 #include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    pml5t pml5_t;
-    pml5t pml4_t;
+    pml5t pml5_t_buffer;
+    pml5t pml4_t_buffer;
     Paging::Paging( VOID ) noexcept {
-        this->pml5_t = new ( &pml5_t ) pml5t { };
-        this->pml4_t = new ( &pml4_t ) pml4t { };
+        this->pml5_t = new ( &pml5_t_buffer ) pml5t { };
+        this->pml4_t = new ( &pml4_t_buffer ) pml4t { };
 
         if ( __config.paging_mode.mode == LIMINE_PAGING_MODE_X86_64_5LVL ) {
             *this->pml5_t               = (pml5t_entry *)physical_to_virtual( CPU::get_page_table( ) );

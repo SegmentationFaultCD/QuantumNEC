@@ -1,5 +1,5 @@
 #include <kernel/cpu/cpu.hpp>
-#include <kernel/driver/display/graphics.hpp>
+#include <kernel/driver/output/display/graphics.hpp>
 #include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     using namespace Lib;

@@ -134,7 +134,7 @@
     "clangd.fallbackFlags": [
         "-std=c++23",
         "-I${workspaceFolder}/include",
-        "-I${workspaceFolder}/source/Boot/limine/",
+        "-I${workspaceFolder}/source/boot/limine/",
     ],
     "clangd.onConfigChanged": "restart",
     "clangd.serverCompletionRanking": true,

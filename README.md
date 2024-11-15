@@ -1,5 +1,4 @@
-# 中文
-
+# ------------------------------------------------------------------------------------------------
 # 简介
  一个自制的操作系统，最现代，最快速，最安全，最轻量级(MFSS)<br>
  它由一个**初一学生**从2023-1-1日开始开发
@@ -61,9 +60,7 @@ xmake run # 运行
 # 贡献
 如果您想为此项目做出贡献，请阅读[贡献指南](scripts/CONTRIBUTING.md)
 
-# English
-
+# ------------------------------------------------------------------------------------------------
 # Introduction
  This is a self-made OS, the most modern, the fastest, the safest, and the most miniature(MFSS)<br>
  A grade-one student started development 
- 它由一个**初一学生**从2023-1-1日开始开发

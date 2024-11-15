@@ -1,7 +1,7 @@
 #pragma once
-#include "deflib.hpp"
+#include <lib/deflib.hpp>
 
-#include "../source/boot/limine/limine.h"
+#include <limine.h>
 
 #define OUT
 #define IN

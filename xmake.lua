@@ -181,6 +181,7 @@ target("micro_kernel")
     add_links("sys", "cxx", "c")
 
     add_files(
+        "source/boot/*.cpp",
         "source/kernel/**/*.cpp",
         "source/kernel/*.cpp",
         "source/kernel/**/*.S",
@@ -197,7 +198,6 @@ target("micro_kernel")
         os.mkdir("vm/QuantumNEC/SYSTEM64")
         os.cp("source/boot/limine.conf", "./vm/EFI/Boot/")
         os.cp("source/boot/limine/BOOTX64.EFI", "vm/EFI/Boot/")
-        os.cp("source/boot/OVMF.fd", "vm/")
         os.cp("images/wallpaper.jpg", "vm/EFI/")
     end)
     on_link(function (target)
@@ -209,7 +209,7 @@ target("micro_kernel")
         end
         local ldflags = "-L./library"
         local libs = "-lsys -lcxx -lc"
-        local lds = "source/kernel/System.lds"
+        local lds = "scripts/linker/x86_64linker.lds"
         os.exec("ld "..ldflags.." -o "..run_dir.."/micro_kernel.elf "..ldfiles.." "..libs.." -T "..lds)
         os.cp(run_dir.."/micro_kernel.elf", "vm/QuantumNEC/")
     end)
@@ -224,23 +224,25 @@ target("qemu")
     add_deps("micro_kernel")
     set_default(true)
     on_build(function (target)
-        local qemu_flags = "-cpu qemu64,x2apic \
-                      -m 8G \
-                      -smp 4,cores=4,threads=1,sockets=1 \
-                      -device nec-usb-xhci,id=xhci \
-                      -no-shutdown \
-                      -device qxl-vga,vgamem_mb=128 \
-                      -device ich9-intel-hda \
-                      -device virtio-serial-pci \
-                      -nic user,model=virtio-net-pci \
-                      -device virtio-mouse-pci \
-                      -device virtio-keyboard-pci \
-                      -serial chardev:com1 -chardev stdio,mux=on,id=com1  \
-                      -name QuantumNEC \
-                      -boot order=dc \
-                      -net none \
-                      -rtc base=localtime"
+        local qemu_flags =  "-cpu qemu64,x2apic \
+                             -drive if=pflash,format=raw,readonly=on,file=scripts/bios/x86_64efi.bios \
+                             -drive file=fat:rw:vm,index=0,format=vvfat \
+                             -m 8G \
+                             -smp 4,cores=4,threads=1,sockets=1 \
+                             -device nec-usb-xhci,id=xhci \
+                             -no-shutdown \
+                             -device qxl-vga,vgamem_mb=128 \
+                             -device ich9-intel-hda \
+                             -device virtio-serial-pci \
+                             -nic user,model=virtio-net-pci \
+                             -device virtio-mouse-pci \
+                             -device virtio-keyboard-pci \
+                             -serial chardev:com1 -chardev stdio,mux=on,id=com1 \
+                             -name QuantumNEC \
+                             -boot order=dc \
+                             -net none \
+                             -rtc base=localtime"
                       -- -nographic"-- -d in_asm"    --   
-        os.exec("qemu-system-x86_64 -drive if=pflash,format=raw,readonly=on,file=vm/OVMF.fd -drive file=fat:rw:vm,index=0,format=vvfat "..qemu_flags)
+        os.exec("qemu-system-x86_64 "..qemu_flags)
     end)
 

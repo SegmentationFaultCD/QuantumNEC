@@ -36,7 +36,7 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept {
     println< ostream::HeadLevel::OK >( "Initialize segment." );
 }
 auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) CONST -> VOID {
-    ASM( "lgdt %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ processor_id ] ) );
+    ASM( "LGDT %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ processor_id ] ) );
     ASM(
         "MOVQ %%RAX, %%DS \n\t"
         "MOVQ %%RAX, %%ES \n\t"
