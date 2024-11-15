@@ -183,7 +183,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             auto address = std::get< PHI >( ( (PH::header_t *)node->container )[ index ] ).base_address + bitmap_index * this->__page_size__< PAGE_2M >;
 
-            std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_2M > );
+            // std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_2M > );
 
             return (VOID *)address;
         }
@@ -196,7 +196,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         page_headers.__allocate_headers__( __size );
         // 拿第一个头的base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).base_address;
-        std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_2M > );
+        // std::memset( physical_to_virtual( address ), 0, __size * this->__page_size__< PAGE_2M > );
 
         return (void *)address;
     }
