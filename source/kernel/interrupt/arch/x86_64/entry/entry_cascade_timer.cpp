@@ -1,3 +1,4 @@
+#include <kernel/cpu/cpu.hpp>
 #include <kernel/global/arch/x86_64/global.hpp>
 #include <kernel/interrupt/arch/x86_64/entry/entry.hpp>
 #include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
@@ -10,26 +11,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PRIVATE auto cascade_timer_handler _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t )
         -> CONST                       InterruptDescriptorTable::InterruptFrame                       *{
         Cascade_TimerEntry::global_jiffies++;
-        // auto p_current { get_current< Process >( ) };
-        // auto t_current { get_current< Thread >( ) };
-        // if ( !( p_current->flags & TASK_FLAG_THREAD ) ) {
-        //     // 非线程，需保存进程栈
-        //     save_current_frame( frame );
-        // }
+        CPU::switch_cpu(  );
 
-        // if ( !p_current->ticks ) {
-        //     p_current->ticks = p_current->priority;
-        //     if ( !( p_current->flags & TASK_FLAG_THREAD ) ) {
-        //         p_current->schedule( );
-        //         return &Task::ready_task->context->iframe;
-        //     }
-        //     else {
-        //         t_current->schedule( );
-        //     }
-        // }
-        // else {
-        //     p_current->ticks--;
-        // }
         return frame;
     }
     Cascade_TimerEntry::Cascade_TimerEntry( VOID ) noexcept {

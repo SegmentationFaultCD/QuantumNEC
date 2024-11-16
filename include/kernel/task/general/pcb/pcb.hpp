@@ -44,11 +44,13 @@ PUBLIC namespace QuantumNEC::Kernel {
 #else
 #error Not any registers
 #endif
-            auto make( IN VOID *_entry, IN uint64_t _arg ) -> BOOL;
+            auto make( IN VOID *_entry, IN uint64_t _arg ) -> BOOL {
+            }
             // 栈顶
         };
         struct ProcessContext : Interrupt::InterruptFrame {
-            auto make( IN VOID *_entry, IN uint64_t kernel_stack_top ) -> BOOL;
+            auto make( IN VOID *_entry, IN uint64_t kernel_stack_top ) -> BOOL {
+            }
         };
         struct Context {
             ProcessContext *pcontext;

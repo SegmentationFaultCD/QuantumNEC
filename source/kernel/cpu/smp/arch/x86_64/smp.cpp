@@ -16,14 +16,19 @@ PUBLIC namespace QuantumNEC::Kernel {
         std::println< std::ostream::HeadLevel::OK >( "Initialize Symmetric Multiprocessing" );
     }
     auto SymmetricMultiprocessing::send_IPI( IN Apic::InterruptCommandRegister icr ) -> VOID {
-        // icr.deliver_mode = APIC_ICR_IOAPIC_FIXED;
-        // icr.dest_mode = ICR_IOAPIC_DELV_PHYSICAL;
-        // icr.deliver_status = APIC_ICR_IOAPIC_IDLE;
-        // icr.level = ICR_LEVEL_DE_ASSERT;
-        // icr.trigger = APIC_ICR_IOAPIC_EDGE;
-        // icr.dest_shorthand = ICR_ALL_EXCLUDE_SELF;
-        // icr.destination.x2apic_destination = 0x00;
-        CPU::wrmsr( LOCAL_APIC_MSR_ICRLO, icr );
-        CPU::wrmsr( LOCAL_APIC_MSR_ICRL1, icr >> 32 );
+        Apic::write_apic( LOCAL_BASE_APIC_ICRL1, icr >> 32, Apic::ApicType::LOCAL_APIC );
+        Apic::write_apic( LOCAL_BASE_APIC_ICRL0, icr & 0xffffffff, Apic::ApicType::LOCAL_APIC );
+    }
+    auto SymmetricMultiprocessing::switch_cpu( VOID ) -> VOID {
+        Apic::InterruptCommandRegister icr;
+        icr.vector                         = IRQ_SMP_SWITCH_CPU;
+        icr.deliver_mode                   = APIC_ICR_IOAPIC_FIXED;
+        icr.dest_mode                      = ICR_IOAPIC_DELV_PHYSICAL;
+        icr.deliver_status                 = APIC_ICR_IOAPIC_IDLE;
+        icr.level                          = ICR_LEVEL_DE_ASSERT;
+        icr.trigger                        = APIC_ICR_IOAPIC_EDGE;
+        icr.dest_shorthand                 = ICR_ALL_EXCLUDE_SELF;
+        icr.destination.x2apic_destination = 0;
+        send_IPI( icr );
     }
 }

@@ -19,7 +19,7 @@ PUBLIC [[noreturn]] auto x86_64::apu_entry( IN limine_smp_info *cpu ) -> VOID {
     Interrupt::enable_x2apic( );
     Sse::activate_sse( );     // 激活FPU
     lock.release( );
+    Interrupt::enable_interrupt( );
     while ( TRUE ) {
-        CPU::hlt( );
     }
 }

@@ -153,6 +153,9 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
             println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)c );
         }
     }
+
+    Kernel::Interrupt::enable_interrupt( );
+
     // for ( auto i = 0; i < 2000; ++i ) {
     //     auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 1 );
     //     println< ostream::HeadLevel::DEBUG >( "{:x} {}", s, i );
@@ -192,5 +195,6 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     // architecture.wrmsr( 0x830, icr );
 
     while ( true ) {
+        Kernel::CPU::hlt( );
     }
 }

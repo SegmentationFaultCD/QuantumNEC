@@ -62,6 +62,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
         lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
         CPU::wrmsr( LOCAL_APIC_MSR_LVT_LINT1, lvt );
+
+        // 设置IO APIC
     }
     Apic::Apic( VOID ) noexcept {
         // 关闭8259A PIC
@@ -83,21 +85,17 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         else {
             println< ostream::HeadLevel::SYSTEM >( "Can not enable apic." );
         }
-
-        // 设置IO APIC
         IOApicRedirectionEntry entry { };
-        for ( auto i { 0ull }; i < ( ( this->read_apic( IOAPIC_REG_VER, ApicType::IO_APIC ) >> 16 ) & 0xFF ); i++ ) {
+        for ( auto i { 0ull }; i < ( ( read_apic( IOAPIC_REG_VER, ApicType::IO_APIC ) >> 16 ) & 0xFF ); i++ ) {
             entry.vector = IDT_ENTRY_IRQ_0 + i;
             entry.mask   = APIC_ICR_IOAPIC_MASKED;
-            this->write_apic( IOAPIC_REG_TABLE + i * 2, entry, ApicType::IO_APIC );
+            write_apic( IOAPIC_REG_TABLE + i * 2, entry, ApicType::IO_APIC );
         }
-
         ASM( "MOVQ %0, %%CR8" ::"r"( 0ull ) );
-        //  println< ostream::HeadLevel::OK >( "Initialize the advanced programmable interrupt controller." );
     }
     Apic::~Apic( VOID ) noexcept {
     }
-    auto Apic::eoi( IN CONST irq_t ) -> VOID {
+    auto Apic::eoi( IN [[maybe_unused]] CONST irq_t irq ) -> VOID {
         if ( apic_flags == 0 ) {
             write_apic( LOCAL_BASE_APIC_EOI, 0, ApicType::LOCAL_APIC );
         }
@@ -159,7 +157,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     auto Apic::enable_ioapic( IN IN irq_t vector ) -> VOID {
         IOApicRedirectionEntry entry { read_apic( ( vector - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, ApicType::IO_APIC ) };
         entry.mask = APIC_ICR_IOAPIC_UNMASKED;
-        write_apic( ( vector - 32 ) * 2 + IOAPIC_REG_TABLE, entry, ApicType::IO_APIC );
+        write_apic( ( vector - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, entry, ApicType::IO_APIC );
     }
     auto Apic::disable_ioapic( IN irq_t irq ) -> VOID {
         IOApicRedirectionEntry entry { read_apic( ( irq - IDT_ENTRY_IRQ_0 ) * 2 + IOAPIC_REG_TABLE, ApicType::IO_APIC ) };

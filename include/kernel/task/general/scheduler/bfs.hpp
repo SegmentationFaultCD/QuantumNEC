@@ -18,7 +18,8 @@ PUBLIC namespace QuantumNEC::Kernel {
          * 义的。在比较 BFS 与其他调度器的延迟性能时，值得注意这一事实。实验表明，将 rr 间隔增加到 300 可以提高
          * 吞吐量，但超过这个间隔后，来自其他地方的调度噪声会阻碍吞吐量的进一步提高。
          */
-        constexpr static auto rr_interval    = 6;
+        constexpr static auto rr_interval = 6;
+        // 总优先级数量
         constexpr static auto total_priority = 103;
         // 每个优先级对应的prio_ratios
         constexpr static uint64_t prio_ratios[ total_priority ] {
@@ -128,7 +129,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         };     // 每个优先级对应的偏移量
 
         /**
-         * virtual deadline计算方法 global_jiffies + prio_ratios[priority] * rr_interval
+         * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * rr_interval
          */
 
     public:
@@ -160,7 +161,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     private:
         // 存放除了running状态下的其他所有任务
-        Lib::ListTable task_queue[ total_priority ] { };
+        Lib::ListTable task_queue[ total_priority ] { };     // 全局队列最多只有 (请求 CPU 时间的任务数）-（逻辑 CPU 数）+ 1 的任务
         // 每个队列对应的位图
         BOOL bitmap[ total_priority ] { };
         // 全局锁

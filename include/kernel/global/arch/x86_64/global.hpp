@@ -373,6 +373,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PUBLIC constexpr CONST auto IRQ_APIC_LVT_PERFORMANCE_COUNTER { IDT_ENTRY_IRQ_0 + 121 };
     PUBLIC constexpr CONST auto IRQ_SYSTEM_CALL { IDT_ENTRY_IRQ_0 + 0x60 };
     PUBLIC constexpr CONST auto IDT_IRQ_SMP_INTERRUPT_0 { 0xc8 };
+    PUBLIC constexpr CONST auto IRQ_SMP_SWITCH_CPU { IDT_IRQ_SMP_INTERRUPT_0 };
 
     // APIC
     /*
@@ -452,8 +453,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ENABLE { 0x00000100 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ESR { 0x0280 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_CMCI { 0x02F0 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ICRLO { 0x0300 };
-    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ICRLI { 0x0310 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ICRL0 { 0x0300 };
+    PUBLIC constexpr CONST auto LOCAL_BASE_APIC_ICRL1 { 0x0310 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_TIMER { 0x0320 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_TS { 0x0330 };
     PUBLIC constexpr CONST auto LOCAL_BASE_APIC_LVT_PMC { 0x0340 };

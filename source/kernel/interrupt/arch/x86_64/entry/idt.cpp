@@ -405,17 +405,11 @@ auto InterruptDescriptorTable::register_IPI( IN uint64_t                     irq
     -> VOID {
     if ( irq < IDT_IRQ_SMP_INTERRUPT_0 )
         return;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].irq_name   = irq_name;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].parameter  = parameter;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].flags      = 0;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].handler    = handler;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].controller = *controller;
-    if ( controller ) {
-        if ( controller && controller->install )
-            SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].controller.install( irq, arg );
-        if ( controller && controller->enable )
-            SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].controller.enable( irq );
-    }
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].irq_name  = irq_name;
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].parameter = parameter;
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].flags     = 0;
+    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].handler   = handler;
+    std::memset( &SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].controller, 0, sizeof( InterruptFunctionController ) );
     return;
 }
 auto InterruptDescriptor::make( IN CONST uint64_t entry_point,
