@@ -1,8 +1,6 @@
 # QuantumNEC
 ![](https://komarev.com/ghpvc/?username=SegmentationFaultCD&color=green)
-
-# ------------------------------------------------------------------------------------------------
-
+----------------
 <!-- [![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=SegmentationFaultCD)](https://git.io/streak-stats) -->
 
 <!-- [![s](https://github-profile-trophy.vercel.app/?username=ryo-ma&theme=darkhub)] -->
@@ -75,8 +73,7 @@ xmake run # 运行
 - 使用现代化引导[limine](https://github.com/limine-bootloader/limine)进行来装载内核，不需要自己编写boot loader
 # 贡献
 如果您想为此项目做出贡献，请阅读[贡献指南](scripts/CONTRIBUTING.md)
-
-# ------------------------------------------------------------------------------------------------
+--------------------
 # Introduction
  This is a self-made OS, the most modern, the fastest, the safest, and the most miniature(MFSS)<br>
  A grade-one student started development 
