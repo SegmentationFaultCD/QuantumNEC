@@ -155,7 +155,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 任务唤醒
         auto __wake_up__( PCB *pcb ) -> std::expected< PCB *, ErrorCode >;
         // 任务睡眠
-        auto __sleep__( VOID ) -> std::expected< PCB *, ErrorCode >;
+        auto __sleep__( IN uint64_t ticks ) -> std::expected< PCB *, ErrorCode >;
         // 任务调度
         auto __schedule__( VOID ) -> std::expected< PCB *, ErrorCode >;
 

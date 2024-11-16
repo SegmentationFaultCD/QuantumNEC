@@ -11,8 +11,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PRIVATE auto cascade_timer_handler _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t )
         -> CONST                       InterruptDescriptorTable::InterruptFrame                       *{
         Cascade_TimerEntry::global_jiffies++;
-        CPU::switch_cpu(  );
-
+        CPU::switch_cpu( );
+        // 在这里进行任务调度
         return frame;
     }
     Cascade_TimerEntry::Cascade_TimerEntry( VOID ) noexcept {

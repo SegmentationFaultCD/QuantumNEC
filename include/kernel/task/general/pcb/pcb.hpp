@@ -139,4 +139,6 @@ PUBLIC namespace QuantumNEC::Kernel {
             PageTableWalker { }.activate( this->memory_manager.page_table );
         }
     };
+    inline auto get_current( VOID ) -> PCB * {
+    }
 }

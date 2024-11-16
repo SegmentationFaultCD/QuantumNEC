@@ -8,6 +8,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         enum class ErrorCode {
             ALL_QUEUE_ARE_EMPTY,
             CAN_NOT_INSERT_TASK,
+            NO_TASK_CAN_SCHEDULER
         };
         explicit Scheduler( VOID ) = default;
         ~Scheduler( VOID )         = default;
