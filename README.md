@@ -1,13 +1,29 @@
+# QuantumNEC
+![](https://komarev.com/ghpvc/?username=SegmentationFaultCD&color=green)
+
 # ------------------------------------------------------------------------------------------------
+
+<!-- [![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=SegmentationFaultCD)](https://git.io/streak-stats) -->
+
+<!-- [![s](https://github-profile-trophy.vercel.app/?username=ryo-ma&theme=darkhub)] -->
+
 # 简介
- 一个自制的操作系统，最现代，最快速，最安全，最轻量级(MFSS)<br>
+
+ 一个自制的操作系统，最现代，最快速，最安全，最轻量级(MFSS)<br> 
  它由一个**初一学生**从2023-1-1日开始开发
 # 由来
+
+[![MasterHead](images/background.jpeg)](https://github.com/SegmentationFaultCD)
+
  这个OS，怎么说呢，是我看了别人视频，突发奇想开发的<br>
  为此，我把它命名为**QuantumNEC**---__量子死亡脉冲__<br>
  "**Quantum**"的意思是"**量子**"，意味着这个操作系统的运行速度和量子矩阵传播速度一样快(虽然几乎不可能),<br>
  "**NEC**"是"**死亡脉冲**"，我也不知道怎么取得🤣,<br>
  弄这个东西还是为了学习底层知识，__*炫技（划掉）*__<br>
+# 主要语言
+
+[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=SegmentationFaultCD&layout=donut-vertical)](https://github.com/SegmentationFaultCD/QuantumNEC/tree/limine)
+
 # 安装与使用说明
 
 ## 编译环境
