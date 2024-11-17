@@ -1,24 +1,22 @@
 #pragma once
-#include <lib/Uefi.hpp>
-#include <tuple>
-#include <libcxx/string_view.hpp>
 #include <concepts>
-#include <lib/utils.hpp>
 #include <cstdint>
-#include <utility>
+#include <lib/Uefi.hpp>
+#include <lib/utils.hpp>
 #include <libcxx/iostream.hpp>
+#include <libcxx/string_view.hpp>
+#include <tuple>
+#include <utility>
 
 PUBLIC namespace std {
     inline std::int16_t number_format { };
-    inline char_t fmt_buffer[ 1024 * 64 ] { };
-    inline char_t _buffer[ 1024 ] { };
-    struct format_context
-    {
+    inline char_t       fmt_buffer[ 1024 * 64 ] { };
+    inline char_t       _buffer[ 1024 ] { };
+    struct format_context {
     };
 
     template < typename... Args >
-    class format_string
-    {
+    class format_string {
     private:
         string_view str;
 
@@ -43,77 +41,100 @@ PUBLIC namespace std {
             }
         }
 
-        auto get( void ) -> char * {
+        auto get( void ) const -> const char * {
             return str.c_str( );
         }
     };
     template < class T, class CharT = char >
-    struct formatter
-    {
-        auto format( const T & ) -> char *;
+    struct formatter {
+        auto format( T ) -> char *;
     };
     template <>
-    struct formatter< char >
-    {
-        auto format( const char &value ) -> char *;
+    struct formatter< char > {
+        auto format( char value ) -> char *;
     };
     template <>
-    struct formatter< std::uint8_t >
-    {
-        auto format( const std::uint8_t &value ) -> char *;
+    struct formatter< char && > {
+        auto format( char &&value ) -> char *;
     };
     template <>
-    struct formatter< char * >
-    {
-        auto format( char *&value ) -> char *;
+    struct formatter< std::uint8_t && > {
+        auto format( std::uint8_t &&value ) -> char *;
     };
     template <>
-    struct formatter< const char * >
-    {
-        auto format( const char *&value ) -> char *;
-    };
-
-    template <>
-    struct formatter< std::int32_t >
-    {
-        auto format( const std::int32_t &value ) -> char *;
+    struct formatter< char * > {
+        auto format( char *value ) -> char *;
     };
     template <>
-    struct formatter< std::int16_t >
-    {
-        auto format( const std::int16_t &value ) -> char *;
+    struct formatter< const char * > {
+        auto format( const char *value ) -> char *;
     };
     template <>
-    struct formatter< std::int64_t >
-    {
-        auto format( const std::int64_t &value ) -> char *;
+    struct formatter< std::int32_t && > {
+        auto format( std::int32_t &&value ) -> char *;
     };
     template <>
-    struct formatter< std::uint32_t >
-    {
-        auto format( const std::uint32_t &value ) -> char *;
+    struct formatter< std::int16_t && > {
+        auto format( std::int16_t &&value ) -> char *;
     };
     template <>
-    struct formatter< std::uint16_t >
-    {
-        auto format( const std::uint16_t &value ) -> char *;
+    struct formatter< std::int64_t && > {
+        auto format( std::int64_t &&value ) -> char *;
     };
     template <>
-    struct formatter< std::uint64_t >
-    {
-        auto format( const std::uint64_t &value ) -> char *;
+    struct formatter< std::uint32_t && > {
+        auto format( std::uint32_t &&value ) -> char *;
     };
     template <>
-    struct formatter< VOID * >
-    {
+    struct formatter< std::uint16_t && > {
+        auto format( std::uint16_t &&value ) -> char *;
+    };
+    template <>
+    struct formatter< std::uint64_t && > {
+        auto format( std::uint64_t &&value ) -> char *;
+    };
+    template <>
+    struct formatter< VOID * > {
         auto format( VOID *value ) -> char *;
     };
     template <>
-    struct formatter< double64_t >
-    {
-        auto format( const double64_t &value ) -> char *;
+    struct formatter< double64_t && > {
+        auto format( double64_t &&value ) -> char *;
     };
-    auto _to_format( char *&fmt, auto args ) {
+    template <>
+    struct formatter< std::int32_t > {
+        auto format( std::int32_t value ) -> char *;
+    };
+    template <>
+    struct formatter< std::int16_t > {
+        auto format( std::int16_t value ) -> char *;
+    };
+    template <>
+    struct formatter< std::int64_t > {
+        auto format( std::int64_t value ) -> char *;
+    };
+    template <>
+    struct formatter< std::uint32_t > {
+        auto format( std::uint32_t value ) -> char *;
+    };
+    template <>
+    struct formatter< std::uint16_t > {
+        auto format( std::uint16_t value ) -> char *;
+    };
+    template <>
+    struct formatter< std::uint64_t > {
+        auto format( std::uint64_t value ) -> char *;
+    };
+    template <>
+    struct formatter< std::uint8_t > {
+        auto format( std::uint8_t value ) -> char *;
+    };
+
+    template <>
+    struct formatter< double64_t > {
+        auto format( double64_t value ) -> char *;
+    };
+    auto _to_format( const char *&fmt, auto args ) {
         number_format = 10;
         while ( *fmt ) {
             if ( *fmt == '{' ) {

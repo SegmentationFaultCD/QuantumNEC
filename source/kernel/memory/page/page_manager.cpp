@@ -1,6 +1,5 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_header.hpp>
 #include <kernel/memory/page/page_manager.hpp>
 #include <kernel/print.hpp>

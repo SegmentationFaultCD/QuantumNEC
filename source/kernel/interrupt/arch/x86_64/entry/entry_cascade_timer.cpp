@@ -4,14 +4,16 @@
 #include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
 #include <kernel/interrupt/arch/x86_64/pic/pic.hpp>
 #include <kernel/print.hpp>
+#include <kernel/task/task.hpp>
 using namespace QuantumNEC;
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     _C_LINK auto save_current_frame( IN CONST InterruptDescriptorTable::InterruptFrame * frame ) -> VOID;
 
-    PRIVATE auto cascade_timer_handler _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t )
-        -> CONST                       InterruptDescriptorTable::InterruptFrame                       *{
+    PRIVATE auto cascade_timer_handler _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t ) -> CONST InterruptDescriptorTable::InterruptFrame * {
         Cascade_TimerEntry::global_jiffies++;
+
         CPU::switch_cpu( );
+
         // 在这里进行任务调度
         return frame;
     }

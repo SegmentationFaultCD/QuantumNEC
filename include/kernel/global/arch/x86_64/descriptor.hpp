@@ -11,9 +11,9 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     class Descriptor {
     public:
         explicit Descriptor( VOID ) noexcept {
-            for ( auto i { 0ull }; i < table_count; ++i ) {
-                this->xdtr[ i ].size       = uint16_t( sizeof( DescriptorType ) * descriptor_count - 1 );
-                this->xdtr[ i ].descriptor = this->descriptor_table[ i ];
+            for ( auto i = 0ul; auto &[ size, descriptor ] : this->xdtr ) {
+                size       = uint16_t( sizeof( DescriptorType ) * descriptor_count - 1 );
+                descriptor = this->descriptor_table[ i++ ];
             }
         }
         virtual ~Descriptor( VOID ) noexcept = default;

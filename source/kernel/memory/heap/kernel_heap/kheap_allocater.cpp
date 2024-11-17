@@ -1,10 +1,9 @@
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
 #include <kernel/memory/heap/kheap/kheap_manager.hpp>
+#include <kernel/memory/heap/kheap/kheap_walker.hpp>
 #include <kernel/memory/heap/slab/slab.hpp>
-#include <kernel/memory/page/page_allocater.hpp>
-#include <kernel/memory/page/page_collector.hpp>
 #include <kernel/memory/page/page_manager.hpp>
+#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     auto KHeapAllocater::allocate( uint64_t size ) -> VOID * {
@@ -28,7 +27,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             else {
                 if ( slab = [ &slab_cache, this ] -> Slab * {
-                         auto page = PageAllocater { }.allocate< MemoryPageType::PAGE_2M >( 1 );
+                         auto page = PageWalker { }.allocate< MemoryPageType::PAGE_2M >( 1 );
 
                          if ( !page ) {
                              return NULL;
@@ -41,10 +40,10 @@ PUBLIC namespace QuantumNEC::Kernel {
                          case 256:
                          case 512: {
                              auto virtual_address  = (uint64_t)physical_to_virtual( page );
-                             auto struct_size      = sizeof( Slab ) + PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / slab_cache.size / 8;
-                             slab                  = (Slab *)( virtual_address + PageAllocater::__page_size__< MemoryPageType::PAGE_2M > - struct_size );
+                             auto struct_size      = sizeof( Slab ) + PageWalker::__page_size__< MemoryPageType::PAGE_2M > / slab_cache.size / 8;
+                             slab                  = (Slab *)( virtual_address + PageWalker::__page_size__< MemoryPageType::PAGE_2M > - struct_size );
                              slab->color_map       = (uint64_t *)slab + sizeof( Slab ) / sizeof( uint64_t );
-                             slab->free_count      = ( PageAllocater::__page_size__< MemoryPageType::PAGE_2M > - ( PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / slab_cache.size / 8 ) - sizeof( Slab ) / slab_cache.size );
+                             slab->free_count      = ( PageWalker::__page_size__< MemoryPageType::PAGE_2M > - ( PageWalker::__page_size__< MemoryPageType::PAGE_2M > / slab_cache.size / 8 ) - sizeof( Slab ) / slab_cache.size );
                              slab->using_count     = 0;
                              slab->color_count     = slab->free_count;
                              slab->virtual_address = (VOID *)virtual_address;
@@ -63,7 +62,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                          case 524288:
                          case 1048576: {
                              slab                  = (Slab *)this->allocate( sizeof( Slab ) );
-                             slab->free_count      = PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / slab_cache.size;
+                             slab->free_count      = PageWalker::__page_size__< MemoryPageType::PAGE_2M > / slab_cache.size;
                              slab->using_count     = 0;
                              slab->color_count     = slab->free_count;
                              slab->color_length    = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
@@ -73,7 +72,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 
                          } break;
                          default:
-                             PageCollector { }.free< MemoryPageType::PAGE_2M >( page, 1 );
+                             PageWalker { }.free< MemoryPageType::PAGE_2M >( page, 1 );
                              return NULL;
                          }
                          std::memset( slab->color_map, 0xff, slab->color_length );
@@ -99,7 +98,9 @@ PUBLIC namespace QuantumNEC::Kernel {
                     slab->free_count--;
                     slab_cache.total_free--;
                     slab_cache.total_using++;
-                    return (VOID *)( (uint64_t)slab->virtual_address + slab_cache.size * i );
+                    auto virtual_address = (VOID *)( (uint64_t)slab->virtual_address + slab_cache.size * i );
+                    std::memset( virtual_address, 0, size );
+                    return virtual_address;
                 }
             }
             return NULL;

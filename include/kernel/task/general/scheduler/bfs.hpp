@@ -8,7 +8,40 @@
 PUBLIC namespace QuantumNEC::Kernel {
     // 该调度器思想由Con Kolivas发明
     // 面向桌面端设备，适用与较少的CPU
-    class BrainFuckScheduler : public Scheduler {
+    class SchedulerHelper;
+    class BrainFuckScheduler : public __Scheduler__ {
+        friend SchedulerHelper;
+
+    public:
+        enum Priority {
+            // 0 ~ 99 为实时任务
+            ISO          = 100,     // 等时任务
+            NORMAL_BATCH = 101,     // 分时任务，普通任务
+            IDLEPRIO     = 102,     // CPU 即将处于 IDLE 状态时才被调度的进程，低优先级任务
+        };
+
+    public:
+        explicit BrainFuckScheduler( VOID ) noexcept = default;
+        ~BrainFuckScheduler( VOID )                  = default;
+
+    public:
+        friend __Scheduler__;
+
+    private:
+        auto __pick_next__( VOID ) -> std::expected< PCB *, ErrorCode >;
+        // 任务唤醒
+        auto __wake_up__( PCB *pcb ) -> PCB *;
+        // 任务睡眠
+        auto __sleep__( IN uint64_t ticks ) -> std::expected< PCB *, ErrorCode >;
+        // 任务调度
+        auto __schedule__( VOID ) -> std::expected< PCB *, ErrorCode >;
+    };
+    class ProcessManager;
+    class SchedulerHelper {
+        friend BrainFuckScheduler;
+        friend ProcessManager;
+
+    private:
         /**
          * 这个是CPU分配给每个任务的时间片，一个常数
          * 该值以毫秒为单位，默认值为 6ms。有效值为 1 至 1000。减小该值将减少延迟，但代价是降低吞吐量；增大
@@ -128,45 +161,32 @@ PUBLIC namespace QuantumNEC::Kernel {
             2148051,
         };     // 每个优先级对应的偏移量
 
-        /**
-         * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * rr_interval
-         */
-
     public:
-        enum Priority {
-            // 0 ~ 99 为实时任务
-            ISO          = 100,     // 等时任务
-            NORMAL_BATCH = 101,     // 分时任务，普通任务
-            IDLEPRIO     = 102,     // CPU 即将处于 IDLE 状态时才被调度的进程，低优先级任务
-        };
-
-    public:
-        explicit BrainFuckScheduler( VOID ) = default;
-
-        ~BrainFuckScheduler( VOID ) = default;
-
-    public:
-        friend Scheduler;
-
-    private:
-        auto __pick_next__( VOID ) -> std::expected< PCB *, ErrorCode >;
-        // 任务插入
-        auto __insert__( PCB *pcb ) -> std::expected< PCB *, ErrorCode >;
-        // 任务唤醒
-        auto __wake_up__( PCB *pcb ) -> std::expected< PCB *, ErrorCode >;
-        // 任务睡眠
-        auto __sleep__( IN uint64_t ticks ) -> std::expected< PCB *, ErrorCode >;
-        // 任务调度
-        auto __schedule__( VOID ) -> std::expected< PCB *, ErrorCode >;
+        explicit SchedulerHelper( VOID ) noexcept {
+            for ( auto &queue : this->task_queue ) {
+                queue.init( );
+            }
+            std::memset( this->bitmap, 0, this->total_priority );
+            this->running_queue.init( );
+        }
+        ~SchedulerHelper( VOID ) noexcept = default;
 
     private:
         // 存放除了running状态下的其他所有任务
-        Lib::ListTable task_queue[ total_priority ] { };     // 全局队列最多只有 (请求 CPU 时间的任务数）-（逻辑 CPU 数）+ 1 的任务
-        // 每个队列对应的位图
-        BOOL bitmap[ total_priority ] { };
+        inline static Lib::ListTable task_queue[ total_priority ] { };     // 全局队列最多只有 (请求 CPU 时间的任务数）-（逻辑 CPU 数）+ 1 的任务
+                                                                           // 每个队列对应的位图
+        inline static BOOL bitmap[ total_priority ] { };
         // 全局锁
-        Lib::SpinLock global_lock { };
+        inline static Lib::SpinLock global_lock { };
         // 仅仅存放运行任务，数量为CPU个数
-        Lib::ListTable running_queue { };
+        inline static Lib::ListTable running_queue { };
+
+    public:
+        STATIC auto make_virtual_deadline( uint64_t priority ) {
+            /**
+             * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * rr_interval
+             */
+            return Interrupt::global_jiffies + prio_ratios[ priority ] * rr_interval;
+        }
     };
 }

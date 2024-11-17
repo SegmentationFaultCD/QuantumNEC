@@ -1,11 +1,9 @@
 #pragma once
 #include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    class Sse
-    {
+    class Sse {
     public:
-        struct alignas( 16 ) SSE
-        {
+        struct alignas( 16 ) SSE {
             uint8_t fxsave_region[ 512 ] { };
             explicit SSE( VOID ) noexcept = default;
             /**
@@ -17,16 +15,16 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
              * @brief 读取fpu
              * @param task 当前进程
              */
-            auto save_sse( VOID ) -> VOID;
+            auto save( VOID ) -> VOID;
             /**
              * @brief 设置fpu
              * @param task 当前进程
              */
-            auto load_sse( VOID ) -> VOID;
+            auto load( VOID ) -> VOID;
         };
 
     public:
-        STATIC auto activate_sse( VOID ) noexcept -> VOID;
+        STATIC auto activate( VOID ) noexcept -> VOID;
 
     public:
         explicit Sse( VOID ) noexcept;

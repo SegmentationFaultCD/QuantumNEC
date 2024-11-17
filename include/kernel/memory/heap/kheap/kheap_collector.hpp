@@ -7,6 +7,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         virtual ~KHeapCollector( VOID ) noexcept = default;
 
     public:
-        auto free( IN VOID * ) -> VOID;
+        auto free( IN VOID *virtual_address ) -> VOID;
     };
 }

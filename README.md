@@ -1,5 +1,4 @@
-# QuantumNEC
-![](https://komarev.com/ghpvc/?username=SegmentationFaultCD&color=green)
+# QuantumNEC ![](https://komarev.com/ghpvc/?username=SegmentationFaultCD&color=green)
 ----------------
 <!-- [![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=SegmentationFaultCD)](https://git.io/streak-stats) -->
 

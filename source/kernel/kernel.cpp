@@ -111,7 +111,7 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::Syscall   sysc { };
     Kernel::CPU       cpu { };
     Modules::Module   mod { };
-    // Kernel::Task task { };
+    Kernel::Task      task { };
 
     println< ostream::HeadLevel::DEBUG >( "start allocate" );
 

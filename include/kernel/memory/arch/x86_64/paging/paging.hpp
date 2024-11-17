@@ -158,6 +158,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         PT   = 1,
 
     };
+
     class pmlxt {
     public:
         explicit pmlxt( IN Level _level ) noexcept :
@@ -264,6 +265,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         friend pmlxt;
 
     public:
+        using page_table_entry      = pml1t_entry;
+        using huge_page_table_entry = void;
+
+    public:
         explicit pml1t( IN pml1t_entry *pml1t_address ) noexcept :
             pmlxt { Level::PT } {
             this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml1t_address );
@@ -281,58 +286,58 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     public:
         virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].p;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].p;
         }
         virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].rw;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].rw;
         }
         virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].us;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].us;
         }
         virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pcd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pcd;
         }
         virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pwt;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pwt;
         }
         virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].a;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].a;
         }
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd;
         }
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base << PAGE_4K_SHIFT;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base << PAGE_4K_SHIFT;
         }
         virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
-            return ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pat;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pat;
         }
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].p = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].p = bit;
         }
         virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].rw = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].rw = bit;
         }
         virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].us = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].us = bit;
         }
         virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pcd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pcd = bit;
         }
         virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pwt = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pwt = bit;
         }
         virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].a = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].a = bit;
         }
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd = bit;
         }
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base = address >> PAGE_4K_SHIFT;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base = address >> PAGE_4K_SHIFT;
         }
         virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml1t_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pat = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pat = bit;
         }
         virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
             auto &[ index, base, flags ] = group;
@@ -363,18 +368,23 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->pmlx_entry = pml1->pmlx_entry;
             return *this;
         };
-        auto operator=( IN pml1t_entry *entry ) -> pml1t & {
+        auto operator=( IN page_table_entry *entry ) -> pml1t & {
             this->pmlx_entry[ Level::PT ] = (uint64_t *)entry;
             return *this;
         };
     };
     PUBLIC class pml2t : public pmlxt {
         friend pmlxt;
+
+    public:
+        using page_table_entry      = pml2t_entry;
+        using huge_page_table_entry = pml2t_huge_entry;
+
         // 三级页表有两种情况
         // 一种是当分页模式为2M时继续找二级页表
         // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
     public:
-        explicit pml2t( IN pml2t_entry *pml2t_address, IN MemoryPageType _mode ) noexcept :
+        explicit pml2t( IN page_table_entry *pml2t_address, IN MemoryPageType _mode ) noexcept :
             pmlxt { Level::PD }, mode { _mode } {
             this->pmlx_entry[ Level::PD ] = (uint64_t *)pml2t_address;
         }
@@ -386,79 +396,79 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     public:
         virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].p;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].p;
         }
         virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].rw;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].rw;
         }
 
         virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].us;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].us;
         }
 
         virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pcd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pcd;
         }
 
         virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pwt;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pwt;
         }
 
         virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].a;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].a;
         }
 
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd;
         }
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
             if ( mode == MemoryPageType::PAGE_2M ) {
-                return ( (pml2t_huge_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base << PAGE_2M_SHIFT;
+                return ( (huge_page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base << PAGE_2M_SHIFT;
             }
             else {
-                return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base << PAGE_4K_SHIFT;
+                return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base << PAGE_4K_SHIFT;
             }
         }
         virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
-            return ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].ps;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].ps;
         }
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].p = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].p = bit;
         }
 
         virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].rw = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].rw = bit;
         }
 
         virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].us = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].us = bit;
         }
 
         virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pcd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pcd = bit;
         }
 
         virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pwt = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pwt = bit;
         }
         virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].a = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].a = bit;
         }
 
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd = bit;
         }
 
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
             if ( mode == MemoryPageType::PAGE_2M ) {
-                ( (pml2t_huge_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base = address >> PAGE_2M_SHIFT;
+                ( (huge_page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base = address >> PAGE_2M_SHIFT;
             }
             else {
-                ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base = address >> PAGE_4K_SHIFT;
+                ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base = address >> PAGE_4K_SHIFT;
             }
         }
         virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml2t_entry *)this->pmlx_entry[ Level::PD ] )[ index ].ps = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].ps = bit;
         }
 
         virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
@@ -483,7 +493,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto get_address_index_in( IN VOID *address ) -> uint64_t override {
             return ( ( (uint64_t)address >> PAGE_2M_SHIFT ) & 0x1ff );
         }
-        auto operator=( IN pml2t_entry *entry ) -> pml2t & {
+        auto operator=( IN page_table_entry *entry ) -> pml2t & {
             this->pmlx_entry[ Level::PD ] = (uint64_t *)entry;
             return *this;
         }
@@ -493,11 +503,15 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     };
     PUBLIC class pml3t : public pmlxt {
         friend pmlxt;
+
+    public:
+        using page_table_entry      = pml3t_entry;
+        using huge_page_table_entry = pml3t_huge_entry;
         // 三级页表有两种情况
         // 一种是当分页模式为2M时继续找二级页表
         // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
     public:
-        explicit pml3t( IN pml3t_entry *pml3t_address, IN MemoryPageType _mode ) noexcept :
+        explicit pml3t( IN page_table_entry *pml3t_address, IN MemoryPageType _mode ) noexcept :
             pmlxt { Level::PDPT }, mode { _mode } {
             this->pmlx_entry[ Level::PDPT ] = (uint64_t *)pml3t_address;
         }
@@ -509,78 +523,78 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     public:
         virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].p;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].p;
         }
         virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].rw;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].rw;
         }
 
         virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].us;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].us;
         }
 
         virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pcd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pcd;
         }
 
         virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pwt;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pwt;
         }
 
         virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].a;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].a;
         }
         virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps;
         }
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd;
         }
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
             if ( mode == MemoryPageType::PAGE_1G ) {
-                return ( (pml3t_huge_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base << PAGE_1G_SHIFT;
+                return ( (huge_page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base << PAGE_1G_SHIFT;
             }
             else {
-                return ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base << PAGE_4K_SHIFT;
+                return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base << PAGE_4K_SHIFT;
             }
         }
 
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].p = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].p = bit;
         }
 
         virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].rw = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].rw = bit;
         }
 
         virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].us = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].us = bit;
         }
 
         virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pcd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pcd = bit;
         }
 
         virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pwt = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pwt = bit;
         }
         virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].a = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].a = bit;
         }
 
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd = bit;
         }
         virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps = bit;
         }
 
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
             if ( mode == MemoryPageType::PAGE_1G ) {
-                ( (pml3t_huge_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_1G_SHIFT;
+                ( (huge_page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_1G_SHIFT;
             }
             else {
-                ( (pml3t_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_4K_SHIFT;
+                ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_4K_SHIFT;
             }
         }
         virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
@@ -605,7 +619,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto get_address_index_in( IN VOID *address ) -> uint64_t override {
             return ( ( (uint64_t)address >> PAGE_1G_SHIFT ) & 0x1ff );
         }
-        auto operator=( IN pml3t_entry *entry ) -> pml3t & {
+        auto operator=( IN page_table_entry *entry ) -> pml3t & {
             this->pmlx_entry[ Level::PDPT ] = (uint64_t *)entry;
             return *this;
         }
@@ -615,9 +629,13 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     };
     PUBLIC class pml4t : public pmlxt {
         friend pmlxt;
+
+    public:
+        using page_table_entry      = pml4t_entry;
+        using huge_page_table_entry = void;
         // 五级页表是最大的了
     public:
-        explicit pml4t( IN pml4t_entry *pml4t_address ) noexcept :
+        explicit pml4t( IN page_table_entry *pml4t_address ) noexcept :
             pmlxt { Level::PML4 } {
             this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml4t_address );
         }
@@ -634,55 +652,55 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     public:
         virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].p;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].p;
         }
         virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].rw;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].rw;
         }
         virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].us;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].us;
         }
         virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pcd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pcd;
         }
         virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pwt;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pwt;
         }
         virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].a;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].a;
         }
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd;
         }
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
-            return ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base << PAGE_4K_SHIFT;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base << PAGE_4K_SHIFT;
         }
         virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
             return 0;
         }
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].p = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].p = bit;
         }
         virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].rw = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].rw = bit;
         }
         virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].us = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].us = bit;
         }
         virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pcd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pcd = bit;
         }
         virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pwt = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pwt = bit;
         }
         virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].a = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].a = bit;
         }
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd = bit;
         }
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
-            ( (pml4t_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base = address >> PAGE_4K_SHIFT;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base = address >> PAGE_4K_SHIFT;
         }
         virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN BOOL bit ) -> VOID override {
         }
@@ -718,16 +736,20 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->pmlx_entry = pml4->pmlx_entry;
             return *this;
         };
-        auto operator=( IN pml4t_entry *entry ) -> pml4t & {
+        auto operator=( IN page_table_entry *entry ) -> pml4t & {
             this->pmlx_entry[ Level::PML4 ] = (uint64_t *)entry;
             return *this;
         };
     };
     PUBLIC class pml5t : public pmlxt {
         friend pmlxt;
+
+    public:
+        using page_table_entry      = pml5t_entry;
+        using huge_page_table_entry = void;
         // 五级页表是最大的了
     public:
-        explicit pml5t( IN pml5t_entry *pml5t_address ) noexcept :
+        explicit pml5t( IN page_table_entry *pml5t_address ) noexcept :
             pmlxt { Level::PML5 } {
             this->pmlx_entry[ Level::PML5 ] = (uint64_t *)( pml5t_address );
         }
@@ -744,55 +766,55 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     public:
         virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].p;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].p;
         }
         virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].rw;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].rw;
         }
         virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].us;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].us;
         }
         virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pcd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pcd;
         }
         virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pwt;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pwt;
         }
         virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].a;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].a;
         }
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd;
         }
         virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
             return 0;
         }
         virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
-            return ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base << PAGE_4K_SHIFT;
+            return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base << PAGE_4K_SHIFT;
         }
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].p = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].p = bit;
         }
         virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].rw = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].rw = bit;
         }
         virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].us = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].us = bit;
         }
         virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pcd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pcd = bit;
         }
         virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pwt = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pwt = bit;
         }
         virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].a = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].a = bit;
         }
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd = bit;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd = bit;
         }
         virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
-            ( (pml5t_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base = address >> PAGE_4K_SHIFT;
+            ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base = address >> PAGE_4K_SHIFT;
         }
         virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN BOOL bit ) -> VOID override {
         }
@@ -826,7 +848,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->pmlx_entry = pml5->pmlx_entry;
             return *this;
         };
-        auto operator=( IN pml5t_entry *entry ) -> pml5t & {
+        auto operator=( IN page_table_entry *entry ) -> pml5t & {
             this->pmlx_entry[ Level::PML5 ] = (uint64_t *)entry;
             return *this;
         };

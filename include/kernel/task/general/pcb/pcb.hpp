@@ -11,8 +11,8 @@
 #include <libcxx/cstring.hpp>
 
 PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC constexpr CONST auto TASK_STACK_SIZE { 4_KB };     // 64KB
-    PUBLIC constexpr CONST auto TASK_STACK_MAGIC { 0x1145141919810ULL };
+    PUBLIC constexpr CONST auto TASK_KERNEL_STACK_SIZE { PageAllocater::__page_size__< MemoryPageType::PAGE_4K > };     // 4KB
+    PUBLIC constexpr CONST auto PCB_STACK_MAGIC { 0x1145141919810ULL };
     PUBLIC constexpr CONST auto TASK_NAME_SIZE { 32ull };
 
     PUBLIC struct PCB {
@@ -137,6 +137,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 #endif
             // 激活页表
             PageTableWalker { }.activate( this->memory_manager.page_table );
+            this->fpu_frame->load( );
         }
     };
     inline auto get_current( VOID ) -> PCB * {

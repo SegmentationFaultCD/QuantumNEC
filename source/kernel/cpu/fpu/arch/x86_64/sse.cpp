@@ -14,19 +14,19 @@ auto Sse::SSE::check_fpu( VOID ) -> BOOL {
     }
     return TRUE;
 }
-auto Sse::SSE::save_sse( VOID ) -> VOID {
+auto Sse::SSE::save( VOID ) -> VOID {
     ASM( "FXSAVE %0" ::"m"( *this ) );
 }
 
-auto Sse::SSE::load_sse( VOID ) -> VOID {
+auto Sse::SSE::load( VOID ) -> VOID {
     ASM( "FXRSTOR %0" ::"m"( *this ) );
 }
 Sse::Sse( VOID ) noexcept {
-    this->activate_sse( );
+    this->activate( );
     println< ostream::HeadLevel::OK >( "Initialize the Streaming SIMD Extensions(SSE)" );
 }
 
-auto Sse::activate_sse( VOID ) noexcept -> VOID {
+auto Sse::activate( VOID ) noexcept -> VOID {
     auto cr0 = CPU::read_cr0( );
     auto cr4 = CPU::read_cr4( );
     cr0.EM   = 0;

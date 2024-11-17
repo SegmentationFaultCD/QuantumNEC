@@ -1,5 +1,5 @@
 #include <kernel/memory/heap/kheap/kheap_allocater.hpp>
-#include <kernel/memory/memory.hpp>
+#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/task/task.hpp>
 #include <lib/spin_lock.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
@@ -9,7 +9,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         for ( auto i { 1ul }; i < __config.smp.cpu_count; ++i ) {
             lock.acquire( );
             __config.smp.cpus[ i ]->goto_address = apu_entry;
-            auto stack_start                     = KHeapAllocater { }.allocate( PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
+            auto stack_start                     = PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
             Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
             lock.release( );
         }

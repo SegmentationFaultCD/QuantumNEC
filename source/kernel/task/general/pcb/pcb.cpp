@@ -1,9 +1,11 @@
+#include <kernel/memory/heap/kheap/kheap_walker.hpp>
+#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/task/general/pcb/pcb.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     PCB::PCB( CONST char_t * _name_, uint64_t _priority_, Flags _flags_, VOID * _entry_, IN uint64_t _arg_ ) noexcept {
         // 内核栈处理
-        this->kernel_stack_base = (uint64_t)PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-        this->kernel_stack_size = PageAllocater::__page_size__< MemoryPageType::PAGE_4K >;
+        this->kernel_stack_base = (uint64_t)PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+        this->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
         // 设置内核栈
         auto kernel_stack = this->kernel_stack_base + this->kernel_stack_size;
         kernel_stack -= sizeof( ProcessContext );
@@ -29,8 +31,8 @@ PUBLIC namespace QuantumNEC::Kernel {
             // 用户进程有自己的页表，所以复制内核页表
             PageTableWalker { }.copy( this->memory_manager.page_table );
             // 用户栈8M大小
-            this->user_stack_base = (uint64_t)PageAllocater { }.allocate< MemoryPageType::PAGE_2M >( 4 );
-            this->user_stack_size = PageAllocater::__page_size__< MemoryPageType::PAGE_2M > * 4;
+            this->user_stack_base = (uint64_t)PageWalker { }.allocate< MemoryPageType::PAGE_2M >( 4 );
+            this->user_stack_size = PageWalker::__page_size__< MemoryPageType::PAGE_2M > * 4;
             // 用户栈栈底存PCB的地址
             *(uint64_t *)physical_to_virtual( this->user_stack_base ) = uint64_t( this );
             // 将这一段内存映射为用户页
@@ -44,7 +46,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             this->context.pcontext->rsp = USER_STACK_VIRTUAL_ADDRESS_TOP;
         }
         // 浮点栈放在PCB后面
-        this->fpu_frame = reinterpret_cast< FloatPointUnit::FpuFrame * >( this + 1 );
+        this->fpu_frame = reinterpret_cast< decltype( this->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *this->fpu_frame ) );
         // 分配PID
         this->PID = pid_pool.allocate( );
         // 设置进程名
@@ -63,6 +65,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         this->cpu_id = Interrupt::apic_id( );
 #endif
         // 魔术字节
-        this->stack_magic = TASK_STACK_MAGIC;
+        this->stack_magic = PCB_STACK_MAGIC;
     }
 }

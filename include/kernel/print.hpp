@@ -76,71 +76,10 @@ PUBLIC namespace QuantumNEC {
         IN DisplayColor BKcolor, IN uchar_t Font )
         -> VOID;
     inline Lib::SpinLock pri_lock { };
+
     template < typename... Args >
-    PUBLIC auto print_( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID {
-        auto fmt_str = format( fmt, std::forward< Args >( args )... );
+    PUBLIC auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID;
 
-        while ( *fmt_str ) {
-            switch ( *fmt_str ) {
-            case '\a': break;
-            case '\n':
-                Pos.YPosition++;
-                Pos.XPosition = Pos.column;     // 如果是，将光标行数加1, 列数设为BasePrint::Pos->column
-                Kernel::Output::write( '\n' );
-                break;
-            case '\t':
-                for ( auto i { 0 }; i < 4; ++i ) {
-                    putc( Pos.FB_addr, Pos.XResolution,
-                          Pos.XPosition * Pos.XCharSize,
-                          Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
-                          DisplayColor::BLACK, ' ' );
-                    Kernel::Output::write( ' ' );
-                    ++Pos.XPosition;
-                }
-
-                break;
-            case '\r':
-                Pos.XPosition = Pos.column + 1;
-                break;
-            case '\b':
-                Pos.XPosition--;
-                if ( Pos.XPosition < LINEEOF ) {
-                    Pos.XPosition = ( Pos.XResolution / Pos.XCharSize - 1 )
-                                    * Pos.XCharSize;
-                    Pos.YPosition--;
-                    if ( Pos.YPosition < LINEEOF ) {
-                        Pos.YPosition = ( Pos.YResolution / Pos.YCharSize )
-                                        * Pos.YCharSize;
-                    }
-                }
-                putc( Pos.FB_addr, Pos.XResolution,
-                      Pos.XPosition * Pos.XCharSize,
-                      Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
-                      DisplayColor::BLACK, ' ' );
-                Kernel::Output::write( ' ' );
-                break;
-            default:
-                putc( Pos.FB_addr, Pos.XResolution,
-                      Pos.XPosition * Pos.XCharSize,
-                      Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
-                      DisplayColor::BLACK, *fmt_str );
-                ++Pos.XPosition;
-                Kernel::Output::write( *fmt_str );
-            }
-
-            // 结尾部分
-            if ( Pos.XPosition
-                 >= ( Pos.XResolution / Pos.XCharSize ) ) {
-                ++( Pos.YPosition );
-                Pos.XPosition = LINEEOF;
-            }
-            if ( Pos.YPosition
-                 >= ( Pos.YResolution / Pos.YCharSize ) ) {
-                Pos.YPosition = LINEEOF;
-            }
-            fmt_str++;
-        }
-    }
     template < std::ostream::HeadLevel level, typename... Args >
     PUBLIC auto print( IN const char *fmt, IN Args &&...args ) -> VOID {
         constexpr auto level_table = [ & ] consteval -> std::tuple< const char *, DisplayColor, DisplayColor > {
@@ -207,7 +146,72 @@ PUBLIC namespace QuantumNEC {
             ++( Pos.XPosition );
             level_str++;
         }
-        print_( fmt, args... );
+        print( fmt, args... );
+    }
+    template < typename... Args >
+    PUBLIC auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID {
+        auto fmt_str = format( fmt, std::forward< Args >( args )... );
+
+        while ( *fmt_str ) {
+            switch ( *fmt_str ) {
+            case '\a': break;
+            case '\n':
+                Pos.YPosition++;
+                Pos.XPosition = Pos.column;     // 如果是，将光标行数加1, 列数设为BasePrint::Pos->column
+                Kernel::Output::write( '\n' );
+                break;
+            case '\t':
+                for ( auto i { 0 }; i < 4; ++i ) {
+                    putc( Pos.FB_addr, Pos.XResolution,
+                          Pos.XPosition * Pos.XCharSize,
+                          Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
+                          DisplayColor::BLACK, ' ' );
+                    Kernel::Output::write( ' ' );
+                    ++Pos.XPosition;
+                }
+
+                break;
+            case '\r':
+                Pos.XPosition = Pos.column + 1;
+                break;
+            case '\b':
+                Pos.XPosition--;
+                if ( Pos.XPosition < LINEEOF ) {
+                    Pos.XPosition = ( Pos.XResolution / Pos.XCharSize - 1 )
+                                    * Pos.XCharSize;
+                    Pos.YPosition--;
+                    if ( Pos.YPosition < LINEEOF ) {
+                        Pos.YPosition = ( Pos.YResolution / Pos.YCharSize )
+                                        * Pos.YCharSize;
+                    }
+                }
+                putc( Pos.FB_addr, Pos.XResolution,
+                      Pos.XPosition * Pos.XCharSize,
+                      Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
+                      DisplayColor::BLACK, ' ' );
+                Kernel::Output::write( ' ' );
+                break;
+            default:
+                putc( Pos.FB_addr, Pos.XResolution,
+                      Pos.XPosition * Pos.XCharSize,
+                      Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
+                      DisplayColor::BLACK, *fmt_str );
+                ++Pos.XPosition;
+                Kernel::Output::write( *fmt_str );
+            }
+
+            // 结尾部分
+            if ( Pos.XPosition
+                 >= ( Pos.XResolution / Pos.XCharSize ) ) {
+                ++( Pos.YPosition );
+                Pos.XPosition = LINEEOF;
+            }
+            if ( Pos.YPosition
+                 >= ( Pos.YResolution / Pos.YCharSize ) ) {
+                Pos.YPosition = LINEEOF;
+            }
+            fmt_str++;
+        }
     }
 
     template < std::ostream::HeadLevel level, typename... Args >
@@ -222,7 +226,7 @@ PUBLIC namespace QuantumNEC {
     template < typename... Args >
     auto println( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) {
         pri_lock.acquire( );
-        print_( fmt, std::forward< Args >( args )... );
+        print( fmt, std::forward< Args >( args )... );
         Pos.YPosition++;
         Pos.XPosition = Pos.column;
         Kernel::Output::write( '\n' );

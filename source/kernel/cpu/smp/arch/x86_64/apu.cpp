@@ -17,7 +17,7 @@ PUBLIC [[noreturn]] auto x86_64::apu_entry( IN limine_smp_info *cpu ) -> VOID {
     Memory::gdt->load( cpu->processor_id );
     Memory::gdt->tss[ cpu->processor_id ].load_tr( SELECTOR_TSS );
     Interrupt::enable_x2apic( );
-    Sse::activate_sse( );     // 激活FPU
+    Sse::activate( );     // 激活SSE
     lock.release( );
     Interrupt::enable_interrupt( );
     while ( TRUE ) {

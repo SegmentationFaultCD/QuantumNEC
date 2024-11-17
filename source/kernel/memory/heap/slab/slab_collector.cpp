@@ -1,9 +1,10 @@
-#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
-#include <kernel/memory/heap/kheap/kheap_collector.hpp>
+#include <kernel/memory/heap/kheap/kheap_walker.hpp>
 #include <kernel/memory/heap/slab/slab_collector.hpp>
-#include <kernel/memory/page/page_allocater.hpp>
-#include <kernel/memory/page/page_collector.hpp>
+#include <kernel/memory/page/page_walker.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
+    inline PageWalker  page_walker { };
+    inline KHeapWalker kheap_walker { };
+
     auto SlabCollector::free( IN SlabCache * slab_cache, IN VOID * address, IN uint64_t arg ) -> VOID {
         auto slab = slab_cache->cache_pool;
 
@@ -28,9 +29,9 @@ PUBLIC namespace QuantumNEC::Kernel {
             if ( !slab->using_count && slab_cache->total_free >= slab->color_count * 3 / 2 ) {
                 slab_cache->pool_list.remove( slab->list );
                 slab_cache->total_free -= slab->color_count;
-                KHeapCollector { }.free( slab->color_map );
-                PageCollector { }.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
-                KHeapCollector { }.free( slab );
+                kheap_walker.free( slab->color_map );
+                page_walker.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
+                kheap_walker.free( slab );
             }
             return;
         }

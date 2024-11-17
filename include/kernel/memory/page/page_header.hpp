@@ -1,9 +1,9 @@
 #pragma once
 #include <concepts>
 #include <kernel/memory/arch/memory_arch.hpp>
-#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
-#include <kernel/memory/page/page_allocater.hpp>
+#include <kernel/memory/heap/kheap/kheap_walker.hpp>
 #include <kernel/memory/page/page_manager.hpp>
+#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/print.hpp>
 #include <lib/Uefi.hpp>
 #include <utility>
@@ -57,7 +57,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         uint64_t all_memory_page_desvriptor_count;
 
     private:
-        class __address__ : PageAllocater, KHeapAllocater {
+        class __address__ {
         public:
             enum __address_type__ {
                 BASE_ADDRESS,
@@ -84,12 +84,12 @@ PUBLIC namespace QuantumNEC::Kernel {
                     }
                 }
                 if constexpr ( __type__ == HEADER_START_ADDRESS ) {
-                    return reinterpret_cast< header_t * >( this->KHeapAllocater::allocate( header_count * header_size ) );
+                    return reinterpret_cast< header_t * >( __kheap_walker__.allocate( header_count * header_size ) );
                 }
                 else {
                     if constexpr ( __mmap_allocater__ != NONE ) {
-                        return (uint64_t)this->PageAllocater::allocate< __mmap_allocater__ >(
-                            (( this->__page_size__< __allocater_to_bind__ > * header_count * page_descriptor_count ) / this->__page_size__< __mmap_allocater__ >));
+                        return (uint64_t)__page_walker__.allocate< __mmap_allocater__ >(
+                            (( PageWalker::__page_size__< __allocater_to_bind__ > * header_count * page_descriptor_count ) / PageWalker::__page_size__< __mmap_allocater__ >));
                     }
                     return 0ul;
                 }
@@ -98,6 +98,10 @@ PUBLIC namespace QuantumNEC::Kernel {
         private:
             BOOL     has_val;
             uint64_t address;
+
+        private:
+            inline static PageWalker  __page_walker__ { };
+            inline static KHeapWalker __kheap_walker__ { };
         };
 
     private:
