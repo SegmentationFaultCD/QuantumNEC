@@ -30,6 +30,5 @@ PUBLIC namespace QuantumNEC::Kernel {
             this->slab_caches[ i ].cache_pool->list.container  = this->slab_caches[ i ].cache_pool;
             this->slab_caches[ i ].pool_list.append( this->slab_caches[ i ].cache_pool->list );
         }
-        std::println< std::ostream::HeadLevel::OK >( "Initialize kernel heap." );
     }
 }

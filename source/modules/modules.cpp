@@ -21,7 +21,7 @@ PUBLIC namespace QuantumNEC::Modules {
                 name[ k ] = Kernel::__config.modules.modules[ i ]->path[ j ];
             }
             name[ k + 1 ] = '\0';
-            println< ostream::HeadLevel::SYSTEM >( "Service {} ready!", name );
+            println< print_level::SYSTEM >( "Service {} ready!", name );
             // Kernel::Task::create< Kernel::Process >( name, 31, Kernel::TASK_FLAG_USER_PROCESS, (Kernel::TaskFunction)file_entry, 0 );
         }
         // TODO 挂载动态模块文件

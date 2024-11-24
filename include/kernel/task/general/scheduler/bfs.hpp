@@ -173,13 +173,13 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     private:
         // 存放除了running状态下的其他所有任务
-        inline static Lib::ListTable task_queue[ total_priority ] { };     // 全局队列最多只有 (请求 CPU 时间的任务数）-（逻辑 CPU 数）+ 1 的任务
-                                                                           // 每个队列对应的位图
+        inline static Lib::ListTable< PCB > task_queue[ total_priority ] { };     // 全局队列最多只有 (请求 CPU 时间的任务数）-（逻辑 CPU 数）+ 1 的任务
+                                                                                  // 每个队列对应的位图
         inline static BOOL bitmap[ total_priority ] { };
         // 全局锁
         inline static Lib::SpinLock global_lock { };
         // 仅仅存放运行任务，数量为CPU个数
-        inline static Lib::ListTable running_queue { };
+        inline static Lib::ListTable< PCB > running_queue { };
 
     public:
         STATIC auto make_virtual_deadline( uint64_t priority ) {

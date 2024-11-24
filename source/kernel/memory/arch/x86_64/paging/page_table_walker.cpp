@@ -1,6 +1,7 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/memory/arch/x86_64/paging/page_table_walker.hpp>
 #include <kernel/memory/arch/x86_64/paging/ptv.hpp>
+#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/print.hpp>
 #include <lib/spin_lock.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
@@ -10,8 +11,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     using namespace std;
     auto PageTableWalker::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode, IN pmlxt & _pmlxt ) -> VOID {
         pml1t  pml1t { };
-        pml2t  pml2t { mode };
-        pml3t  pml3t { mode };
+        pml2t  pml2t { };
+        pml3t  pml3t { };
         pml4t  pml4t { };
         pml5t  pml5t { };
         pmlxt *page_table[] { // 这里用指针数组是为了可扩展性
@@ -40,8 +41,33 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                 // 换句话说，就是舍去1级页表
                 // 4K分页，那么就是查到1级页表为止
                 // 1G分页，就是查到3级页表为止
+                if ( mode == PAGE_1G ) {
+                    if ( pmlx_t.flags_ps_pat( index ) ) {
+                        goto normal;
+                    }
+                    else {
+                        get_table( PAGE_2M )   = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
+                        pmlxt &next_page_table = get_table( PAGE_2M );
 
-                pmlx_t = { index, physics_address & ~0x7FF, flags & 0x7FF };
+                        for ( auto i = 0; i < 512; ++i ) {
+                            if ( !next_page_table.flags_ps_pat( i ) ) {
+                                PageWalker { }.free< MemoryPageType::PAGE_4K >( (VOID *)next_page_table.flags_base( i, PAGE_4K ), 1 );
+                            }
+                        }
+                        PageWalker { }.free< MemoryPageType::PAGE_4K >( (VOID *)pmlx_t.flags_base( index, PAGE_4K ), 1 );
+                    }
+                }
+                if ( mode == PAGE_2M ) {
+                    if ( pmlx_t.flags_ps_pat( index ) ) {
+                        goto normal;
+                    }
+                    else {
+                        PageWalker { }.free< MemoryPageType::PAGE_4K >( (VOID *)pmlx_t.flags_base( index, PAGE_4K ), 1 );
+                    }
+                }
+
+            normal:
+                pmlx_t = { index, physics_address & ~0x7FF, flags & 0x7FF, mode };
                 CPU::invlpg( reinterpret_cast< VOID * >( virtual_address ) );     // 刷新快表
                 physics_address += page_size;
                 virtual_address += page_size;
@@ -55,18 +81,16 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             // 这种情况下，那么就是继续迭代既可
             else if ( !pmlx_t.flags_p( index ) ) {
                 // 这个页要是是一个不存在的那么就弄出一个4k大小表给他
-
                 auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
-                pmlx_t    = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FF ), flags };
+                pmlx_t    = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FF ), flags, mode };
                 std::memset( physical_to_virtual( new_ ), 0, page_size );
             }
 
-            get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index ) );     // 得到下一级页表的地址
+            get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // 得到下一级页表的地址
             self( level - 1, get_table( level - 1 ) );
         };
         lock.acquire( );
         while ( size-- ) {     // 重复循环映射
-
             map_helper( _level, _pmlxt );
         }
         lock.release( );
@@ -74,8 +98,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     auto PageTableWalker::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageType mode, IN pmlxt & _pmlxt ) -> VOID {
         lock.acquire( );
         pml1t  pml1t { };
-        pml2t  pml2t { mode };
-        pml3t  pml3t { mode };
+        pml2t  pml2t { };
+        pml3t  pml3t { };
         pml4t  pml4t { };
         pml5t  pml5t { };
         pmlxt *page_table[] {
@@ -108,7 +132,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                 virtual_address += page_size;
                 return;
             }
-            get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index ) );
+            get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, mode ) );
             self( level - 1, get_table( level - 1 ) );
         };
         while ( size-- ) {
@@ -121,8 +145,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     auto PageTableWalker::VTP_from( IN VOID * virtual_address, IN MemoryPageType mode, IN pmlxt & pmlx_t ) -> VOID * {
         lock.acquire( );
         pml1t  pml1t { };
-        pml2t  pml2t { mode };
-        pml3t  pml3t { mode };
+        pml2t  pml2t { };
+        pml3t  pml3t { };
         pml4t  pml4t { };
         pml5t  pml5t { };
         pmlxt *page_table[] {
@@ -144,12 +168,12 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             offset = 2;
         }
 
-        auto find_helper = [ &get_table, &offset ]( this auto &self, IN VOID *virtual_address, IN uint64_t level, IN pmlxt &pmlx_t ) -> uint64_t * {
+        auto find_helper = [ &get_table, &offset, &mode ]( this auto &self, IN VOID *virtual_address, IN uint64_t level, IN pmlxt &pmlx_t ) -> uint64_t * {
             auto index { pmlx_t.get_address_index_in( virtual_address ) };
             if ( !pmlx_t.flags_p( index ) ) {
                 return nullptr;
             }
-            auto entry = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index ) );
+            auto entry = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, mode ) );
             if ( !( ( level - offset ) - 1 ) ) {
                 return (uint64_t *)entry;
             }
@@ -176,8 +200,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     auto PageTableWalker::make( IN uint64_t flags, IN Level level, IN MemoryPageType mode, IN pmlxt & pmlx_t ) -> pmlxt & {
         lock.acquire( );
         pml1t  pml1t { };
-        pml2t  pml2t { mode };
-        pml3t  pml3t { mode };
+        pml2t  pml2t { };
+        pml3t  pml3t { };
         pml4t  pml4t { };
         pml5t  pml5t { };
         pmlxt *page_table[] {
@@ -218,11 +242,11 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
                     // 到底了，像2级页表每个项指向一个2M内存，
                     // 1级页表每个项指向一个4K内存，
                     // 并赋予属性，将整个页表填充
-                    pmlx_t = { i, address, later_flags };
+                    pmlx_t = { i, address, later_flags, mode };
                     address += page_size;
                 }
                 else {
-                    pmlx_t                = { i, taddress, flags };
+                    pmlx_t                = { i, taddress, flags, mode };
                     get_table( --tlevel ) = taddress;
                     taddress += 512;
                     // 还没到底，那么说明还要继续迭代，到低一级页表

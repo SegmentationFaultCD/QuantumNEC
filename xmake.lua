@@ -28,7 +28,7 @@ target("sys")
             "-Wall", 
             "-Wextra",
             "-Werror",
-            "-fno-lto",
+            "-fno-lto", 
             "-fPIC", {force = true}
     )
     set_kind("static")
@@ -58,7 +58,7 @@ target("c")
             "-Wall", 
             "-Wextra",
             "-Werror",
-            "-fno-lto",
+            "-fno-lto", 
             "-fPIC", {force = true}
     )
     set_kind("static")
@@ -89,7 +89,7 @@ target("cxx")
             "-Wall", 
             "-Wextra",
             "-Werror",
-            "-fno-lto",
+            "-fno-lto", 
             "-fPIC", {force = true}
     )
     set_kind("static")
@@ -171,8 +171,7 @@ target("micro_kernel")
             -- "-Wmissing-prototypes",
             -- "-Wmissing-declarations",
             -- "-Wredundant-decls",
-            -- "-Wnested-externs",
-            
+            -- "-Wnested-externs", 
             -- "-Wstrict-prototypes", 
             "-Wno-reorder", {force = true} -- 构造函数的初始化顺序不固定
     )
@@ -208,7 +207,7 @@ target("micro_kernel")
             ldfiles = ldfiles..val.." "
         end
         local ldflags = "-L./library"
-        local libs = "-lsys -lcxx -lc"
+        local libs = "-lsys -lcxx -lc -los_terminal"
         local lds = "scripts/linker/x86_64linker.lds"
         os.exec("ld "..ldflags.." -o "..run_dir.."/micro_kernel.elf "..ldfiles.." "..libs.." -T "..lds)
         os.cp(run_dir.."/micro_kernel.elf", "vm/QuantumNEC/")
@@ -227,7 +226,7 @@ target("qemu")
         local qemu_flags =  "-cpu qemu64,x2apic \
                              -drive if=pflash,format=raw,readonly=on,file=scripts/bios/x86_64efi.bios \
                              -drive file=fat:rw:vm,index=0,format=vvfat \
-                             -m 8G \
+                             -m 16G \
                              -smp 4,cores=4,threads=1,sockets=1 \
                              -device nec-usb-xhci,id=xhci \
                              -no-shutdown \

@@ -20,8 +20,6 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // init MAIN_CNT
         info->main_counter_value = 0;
         CPU::mfence( );
-
-        //   println< ostream::HeadLevel::OK >( "Initialize the high precision event timer." );
     }
     Hpet::~Hpet( VOID ) noexcept {
     }

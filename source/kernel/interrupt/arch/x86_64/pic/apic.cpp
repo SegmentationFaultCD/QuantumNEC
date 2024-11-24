@@ -83,7 +83,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->enable_x2apic( );
         }
         else {
-            println< ostream::HeadLevel::SYSTEM >( "Can not enable apic." );
+            println< print_level::SYSTEM >( "Can not enable apic." );
         }
         IOApicRedirectionEntry entry { };
         for ( auto i { 0ull }; i < ( ( read_apic( IOAPIC_REG_VER, ApicType::IO_APIC ) >> 16 ) & 0xFF ); i++ ) {

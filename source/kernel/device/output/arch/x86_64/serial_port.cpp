@@ -31,13 +31,13 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // 检查串行是否有故障（即：与发送的字节不同）
         if ( CPU::io_in8( COM1 + 0 ) != 0xAE ) {
             this->support_serial_port = FALSE;
-            std::println< std::ostream::HeadLevel::WARNING >( "Cannot enable serial port printing." );
+            std::println< print_level::WARNING >( "Cannot enable serial port printing." );
         }
         else {
             CPU::io_out8( COM1 + 4, 0x0F );
             // 如果串行没有故障，则将其设置为正常操作模式 （非环回，启用 IRQ 并启用 OUT#1 和 OUT#2 位）
             this->support_serial_port = TRUE;
-            std::println< std::ostream::HeadLevel::SYSTEM >( "serial port printing enable." );
+            std::println< print_level::SYSTEM >( "serial port printing enable." );
         }
     }
     auto SerialPort::read( VOID ) -> char_t {

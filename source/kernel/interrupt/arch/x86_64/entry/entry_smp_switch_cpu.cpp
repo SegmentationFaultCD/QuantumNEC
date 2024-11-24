@@ -8,7 +8,7 @@ using namespace QuantumNEC;
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     PRIVATE auto smp_switch_cpu _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t ) -> CONST InterruptDescriptorTable::InterruptFrame * {
         // 在这里进行任务调度
-
+        
         return frame;
     }
 

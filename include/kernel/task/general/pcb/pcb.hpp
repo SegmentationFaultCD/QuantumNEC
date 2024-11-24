@@ -11,11 +11,37 @@
 #include <libcxx/cstring.hpp>
 
 PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC constexpr CONST auto TASK_KERNEL_STACK_SIZE { PageAllocater::__page_size__< MemoryPageType::PAGE_4K > };     // 4KB
+    PUBLIC constexpr CONST auto TASK_KERNEL_STACK_SIZE { 4_KB };     // 4KB
+    PUBLIC constexpr CONST auto TASK_USER_STACK_SIZE { 8_MB };       // 8MB
     PUBLIC constexpr CONST auto PCB_STACK_MAGIC { 0x1145141919810ULL };
     PUBLIC constexpr CONST auto TASK_NAME_SIZE { 32ull };
 
     PUBLIC struct PCB {
+    public:
+        enum class State : uint64_t {
+            RUNNING   = 0,
+            READY     = 1,
+            BLOCKED   = 2,
+            SENDING   = 3,
+            RECEIVING = 4,
+            WAITING   = 5,
+            HANGING   = 6,
+            DIED      = 7,
+        };
+        enum class FpuEnable : uint64_t {
+            ENABLE  = 1,
+            DISABLE = 0
+        };
+        enum class FpuUsed : uint64_t {
+            USED   = 1,
+            UNUSED = 0,
+        };
+        enum class Type : uint64_t {
+            THREAD         = 0,
+            KERNEL_PROCESS = 1,
+            USER_PROCESS   = 2
+        };
+
     public:
         struct MM {
             pml4t page_table;     // 任务所持有的页表地址
@@ -44,13 +70,12 @@ PUBLIC namespace QuantumNEC::Kernel {
 #else
 #error Not any registers
 #endif
-            auto make( IN VOID *_entry, IN uint64_t _arg ) -> BOOL {
-            }
+            auto make( IN VOID *_entry, IN uint64_t _arg ) -> BOOL;
             // 栈顶
         };
         struct ProcessContext : Interrupt::InterruptFrame {
-            auto make( IN VOID *_entry, IN uint64_t kernel_stack_top ) -> BOOL {
-            }
+            auto make( IN VOID *_entry, IN uint64_t kernel_stack_top, IN Type type ) -> BOOL;
+            auto operator=( CONST Interrupt::InterruptFrame & ) -> ProcessContext &;
         };
         struct Context {
             ProcessContext *pcontext;
@@ -59,32 +84,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         };
 
     public:
-        enum class State : uint64_t {
-            RUNNING   = 0,
-            READY     = 1,
-            BLOCKED   = 2,
-            SENDING   = 3,
-            RECEIVING = 4,
-            WAITING   = 5,
-            HANGING   = 6,
-            DIED      = 7,
-        };
-        enum class FpuEnable : uint64_t {
-            ENABLE  = 1,
-            DISABLE = 0
-        };
-        enum class FpuUsed : uint64_t {
-            USED   = 1,
-            UNUSED = 0,
-        };
-        enum class Type : uint64_t {
-            THREAD         = 0,
-            KERNEL_PROCESS = 1,
-            USER_PROCESS   = 2
-        };
-
-    public:
-        Lib::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
+        Lib::ListTable< PCB >::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
 
         MM memory_manager;     // 记录内存分布
 
@@ -140,6 +140,4 @@ PUBLIC namespace QuantumNEC::Kernel {
             this->fpu_frame->load( );
         }
     };
-    inline auto get_current( VOID ) -> PCB * {
-    }
 }

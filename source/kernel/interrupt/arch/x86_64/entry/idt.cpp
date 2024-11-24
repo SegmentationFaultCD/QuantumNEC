@@ -89,7 +89,7 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     interrupt_name[ 31 ] = "--- System Reserved";
 
     /* 注册所有入口函数到中断描述符表 */
-    println< ostream::HeadLevel::INFO >( "Setting the interrupt handler entry for the interrupt descriptor table" );
+    println< print_level::INFO >( "Setting the interrupt handler entry for the interrupt descriptor table" );
     uint64_t function { };
     SET_TRAP_HANDLER( 0x00, 0 );
     SET_TRAP_HANDLER( 0x01, 0 );
@@ -348,11 +348,11 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     SET_INTERRUPT_HANDLER( 0xfe, 0 );
     SET_INTERRUPT_HANDLER( 0xff, 0 );
     /* 挂载 idt*/
-    println< ostream::HeadLevel::SYSTEM >( "Loading the interrupt descriptor table." );
+    println< print_level::SYSTEM >( "Loading the interrupt descriptor table." );
 
     this->idt->load( 0 );
 
-    println< ostream::HeadLevel::OK >( "Initialize the interrupt descriptor table management." );
+    println< print_level::OK >( "Initialize the interrupt descriptor table management." );
 }
 
 auto InterruptDescriptorTable::_IDT::load( [[maybe_unused]] IN uint64_t processor_id ) CONST -> VOID {
@@ -366,12 +366,12 @@ auto InterruptDescriptorTable::_IDT::read( [[maybe_unused]] IN uint64_t processo
 }
 
 auto InterruptDescriptorTable::display_registers( IN CONST RegisterFrame *registers ) -> VOID {
-    println< ostream::HeadLevel::INFO >( "RAX -> {:x} RBX -> {:x} RCX -> {:x} RDX -> {:x}", registers->rax, registers->rbx, registers->rcx, registers->rdx );
-    println< ostream::HeadLevel::INFO >( "R8  -> {:x} R9  -> {:x} R10 -> {:x} R11 -> {:x} R12 -> {:x} R13 -> {:x} R14 -> {:x} R15 -> {:x}", registers->r8, registers->r9, registers->r10, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15 );
-    println< ostream::HeadLevel::INFO >( "RDI -> {:x} RSI -> {:x} RBP -> {:x}", registers->rdi, registers->rsi, registers->rbp );
+    println< print_level::INFO >( "RAX -> {:x} RBX -> {:x} RCX -> {:x} RDX -> {:x}", registers->rax, registers->rbx, registers->rcx, registers->rdx );
+    println< print_level::INFO >( "R8  -> {:x} R9  -> {:x} R10 -> {:x} R11 -> {:x} R12 -> {:x} R13 -> {:x} R14 -> {:x} R15 -> {:x}", registers->r8, registers->r9, registers->r10, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15 );
+    println< print_level::INFO >( "RDI -> {:x} RSI -> {:x} RBP -> {:x}", registers->rdi, registers->rsi, registers->rbp );
     ControlRegisterFrame control_registers_frame { };
-    println< ostream::HeadLevel::INFO >( "DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}", registers->ds, registers->es, registers->fs, registers->gs );
-    println< ostream::HeadLevel::INFO >( "CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}", *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ) );
+    println< print_level::INFO >( "DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}", registers->ds, registers->es, registers->fs, registers->gs );
+    println< print_level::INFO >( "CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}", *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ) );
     return;
 }
 auto InterruptDescriptorTable::register_irq( IN uint64_t                     irq,

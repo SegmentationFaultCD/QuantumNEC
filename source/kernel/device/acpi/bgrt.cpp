@@ -6,7 +6,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     Bgrt::Bgrt( IN Xsdt & xsdt ) noexcept {
         this->bgrt = xsdt.find_table< Bgrt >( );
         if ( !this->bgrt ) {
-            println< ostream::HeadLevel::ERROR >( "Can not find bgrt." );
+            println< print_level::ERROR >( "Can not find bgrt." );
         }
     }
 }

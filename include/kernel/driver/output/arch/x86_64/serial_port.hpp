@@ -20,7 +20,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         STATIC auto read( VOID ) -> char_t;
         STATIC auto write( char_t ch ) -> VOID;
 
-        STATIC auto serial_print( IN char_t *string ) {
+        STATIC auto serial_print( IN const char_t *string ) {
             for ( auto ch = *string; ch; ch = *( ++string ) ) {
                 write( ch );
             }

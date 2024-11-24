@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdarg>
 #include <lib/Uefi.hpp>
-PUBLIC namespace QuantumNEC::Lib {
+PUBLIC namespace std {
     PUBLIC constexpr CONST auto ZEROPAD { 1 };
     PUBLIC constexpr CONST auto SIGN { 2 };
     PUBLIC constexpr CONST auto PLUS { 4 };
@@ -12,23 +12,22 @@ PUBLIC namespace QuantumNEC::Lib {
     /**
      *
      */
-    PUBLIC auto skip_atoi( IN CONST char_t * *str )
-        -> size_t;
+    PUBLIC _C_LINK auto skip_atoi( IN const char **str ) -> size_t;
     /**
      *
      */
-    PUBLIC auto number(
-        IN         OUT char_t * str,
+    PUBLIC _C_LINK auto number(
+        IN OUT const char *str,
         IN int64_t num, IN int32_t base,
         IN int32_t size,
         IN int32_t precision,
-        IN int32_t type ) -> char_t *;
+        IN int32_t type ) -> const char *;
     /**
      *
      */
-    PUBLIC auto vsprintf( IN char_t * buf,
-                          IN      CONST char_t * fmt,
-                          va_list args ) -> int32_t;
+    PUBLIC _C_LINK auto vsprintf( IN char       *buf,
+                                  IN const char *fmt,
+                                  va_list        args ) -> int32_t;
     /**
      * @brief 得到颜色
      * @param r 红

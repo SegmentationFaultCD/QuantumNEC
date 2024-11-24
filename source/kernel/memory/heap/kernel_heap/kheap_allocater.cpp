@@ -18,12 +18,12 @@ PUBLIC namespace QuantumNEC::Kernel {
             auto slab = slab_cache.cache_pool;
 
             if ( slab_cache.total_free ) {
-                slab = (Slab *)slab_cache.pool_list.traversal(
-                                                       []( Lib::ListNode *node, uint64_t ) static {
-                                                           return ( (Slab *)node->container )->free_count;
-                                                       },
-                                                       0 )
-                           ->container;
+                for ( auto &it : slab_cache.pool_list ) {
+                    if ( it.free_count ) {
+                        slab = &it;
+                        break;
+                    }
+                }
             }
             else {
                 if ( slab = [ &slab_cache, this ] -> Slab * {

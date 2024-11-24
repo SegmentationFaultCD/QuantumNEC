@@ -1,8 +1,8 @@
 #pragma once
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
+#include <lib/rbtree.hpp>
 #include <libcxx/bitset.hpp>
-
 PUBLIC namespace QuantumNEC::Kernel {
     PUBLIC consteval auto operator""_KB( IN CONST unsigned long long kib ) {
         return (uint64_t)kib * 1024;

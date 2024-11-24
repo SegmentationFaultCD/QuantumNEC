@@ -4,8 +4,18 @@
 #include <lib/spin_lock.hpp>
 #include <lib/utils.hpp>
 #include <libcxx/format.hpp>
-#include <libcxx/iostream.hpp>
+#include <tuple>
 PUBLIC namespace QuantumNEC {
+    enum class print_level {
+        INFO    = 0,     // indigo
+        DEBUG   = 1,     // gray
+        ERROR   = 2,     // red
+        SYSTEM  = 3,     // gray blue
+        USER    = 4,     // white
+        OK      = 5,     // green
+        START   = 6,     // yellow
+        WARNING = 7      // orange
+    };
     PUBLIC constexpr auto ZEROPAD { 1 };
     PUBLIC constexpr auto SIGN { 2 };
     PUBLIC constexpr auto PLUS { 4 };
@@ -80,10 +90,10 @@ PUBLIC namespace QuantumNEC {
     template < typename... Args >
     PUBLIC auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID;
 
-    template < std::ostream::HeadLevel level, typename... Args >
+    template < print_level level, typename... Args >
     PUBLIC auto print( IN const char *fmt, IN Args &&...args ) -> VOID {
         constexpr auto level_table = [ & ] consteval -> std::tuple< const char *, DisplayColor, DisplayColor > {
-            using enum std::ostream::HeadLevel;
+            using enum print_level;
             using enum DisplayColor;
             const char_t *level_string { };
             DisplayColor  fcolor, bcolor;
@@ -214,7 +224,7 @@ PUBLIC namespace QuantumNEC {
         }
     }
 
-    template < std::ostream::HeadLevel level, typename... Args >
+    template < print_level level, typename... Args >
     auto println( IN const char *fmt, IN Args &&...args ) {
         pri_lock.acquire( );
         print< level >( fmt, std::forward< Args >( args )... );

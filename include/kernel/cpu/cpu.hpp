@@ -9,7 +9,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         public CpuArch,
         public SymmetricMultiprocessingArch {
     public:
-        explicit CPU( VOID ) noexcept = default;
-        ~CPU( VOID ) noexcept         = default;
+        explicit CPU( VOID ) noexcept :
+            FloatPointUnit( ), CpuArch( ) {};
+        ~CPU( VOID ) noexcept = default;
     };
 }

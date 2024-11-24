@@ -22,6 +22,5 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->kernel_page_table     = pml4_t;
         }
         PageTableWalker { }.page_protect( FALSE );
-        std::println< std::ostream::HeadLevel::OK >( "Initialize paging." );
     }
 }

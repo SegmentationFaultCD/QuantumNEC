@@ -65,26 +65,20 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
         }
         else {
-            slab = (Slab *)( slab_cache->pool_list.traversal(
-                                                      []( Lib::ListNode *node, uint64_t ) static -> BOOL {
-                                                          if ( ( (Slab *)node->container )->free_count ) {
-                                                              return TRUE;
-                                                          }
-                                                          return FALSE;
-                                                      },
-                                                      0 )
-                                 ->container );     // slab 必然不可能为NULL
+            for ( auto& slab : slab_cache->pool_list ) {
+                if ( slab.free_count ) {
+                    VOID *pool { };
+                    for ( auto i = 0ul; i < slab.color_count; ++i ) {
+                        if ( *( slab.color_map + ( i >> 6 ) ) == ~0ul ) {
+                            i += 63;
+                            continue;
+                        }
 
-            VOID *pool { };
-            for ( auto i = 0ul; i < slab->color_count; ++i ) {
-                if ( *( slab->color_map + ( i >> 6 ) ) == ~0ul ) {
-                    i += 63;
-                    continue;
+                        pool = set_slab( i );
+                    }
+                    return pool;     // pool 必然不可能为NULL
                 }
-
-                pool = set_slab( i );
             }
-            return pool;     // pool 必然不可能为NULL
         }
         if ( !slab ) {
             slab_cache->pool_list.remove( slab->list );

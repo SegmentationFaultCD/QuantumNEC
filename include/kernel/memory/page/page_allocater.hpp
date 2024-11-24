@@ -42,7 +42,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 这个操作不会初始化分配的空间，需要手动清零
     };
 
-    PUBLIC inline Lib::ListTable allocate_information_list[ 4 ] { };
     template <>
     auto PageAllocater::allocate< MemoryPageType::PAGE_2M >( IN uint64_t __size__ ) -> VOID *;
     template <>

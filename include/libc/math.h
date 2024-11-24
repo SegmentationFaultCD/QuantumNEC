@@ -11,11 +11,17 @@
 #endif
 #ifdef __cplusplus
 extern "C" {
-constexpr auto PI { 3.1415926 };
+constexpr auto PI { 3.14159265358979323846264338327950288 };
+constexpr auto F32_EPSILON { 1e-5f };
+constexpr auto F64_EPSILON { 1e-10 };
+constexpr auto E { 2.718281828459045235360287 };
+// constexpr auto I { 1.i };
 #else
-#ifndef PI
-#define PI 3.1415926;
-#endif
+#define F32_EPSILON 1e-5f
+#define F64_EPSILON 1e-10
+#define PI 3.14159265358979323846264338327950288
+#define E 2.718281828459045235360287
+#define I 1.i
 #endif
 
 float min( IN OUT float a, IN OUT float b );
@@ -34,5 +40,4 @@ float ulltof( uint64_t x );
 float lltof( int64_t x );
 #ifdef __cplusplus
 }
-
 #endif

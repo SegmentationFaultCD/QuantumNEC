@@ -7,7 +7,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     Xsdt::Xsdt( IN Xsdp & xsdp ) noexcept {
         this->xsdt = (XSDT *)uint64_t( Kernel::physical_to_virtual( xsdp.get_rsdp( )->xsdt_address ) );
         if ( !this->xsdt || this->xsdt->signature != this->signature || !check_sum( this->xsdt, this->xsdt->length ) ) {
-             println< ostream::HeadLevel::ERROR >( "XSDT is not valid." );
+            println< print_level::ERROR >( "XSDT is not valid." );
             while ( true );
         }
     }

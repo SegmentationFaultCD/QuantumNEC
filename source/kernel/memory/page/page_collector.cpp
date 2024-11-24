@@ -9,230 +9,253 @@ PUBLIC namespace QuantumNEC::Kernel {
         if ( !__size__ || !__physical_address__ ) {
             return;
         }
-        auto &list { allocate_information_list[ PAGE_2M ] };
-        using PH  = __page_header__< PAGE_2M, PAGE_1G >;
-        using PHI = PH::__page_information__;
-        // 掩码方式取得所在组基地址
-        auto base_address = (uint64_t)__physical_address__ & ~( PageAllocater::__page_size__< PAGE_2M > * PH::page_descriptor_count * PH::page_header_count_of_zone - 1 );
+        using PH    = __page_header__< PAGE_2M, PAGE_1G >;
+        using PHI   = PH::__helper__::__page_information__;
+        auto &group = PH::__helper__::get_group( );
         lock.acquire( );
-        auto node = list.traversal(
-            []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
-                return ( (PHI *)node->container )->base_address == base_address;
-            },
-            base_address );     // 找到属于的组
-        if ( !node ) {
-            lock.release( );
-            return;
-        }
-        // 计算取得所在组的块的编号
-        auto &&base_index = ( (uint64_t)__physical_address__ - base_address ) / ( PH::page_descriptor_count * PageAllocater::__page_size__< PAGE_2M > );
-        // 取得处于所在组的块的bitmap中的编号
-        auto &&index = (((uint64_t)__physical_address__ & PageAllocater::__page_mask__< PAGE_2M >) / PageAllocater::__page_size__< PAGE_2M >) % PH::page_descriptor_count;
 
-        PH page_headers { (PHI *)node->container };
+        auto node = group.search( PH::__helper__::get_keys( __physical_address__ ) );
 
-        auto    &header        = std::get< PHI >( page_headers.get( base_index ) );
-        uint64_t end_remainder = index + __size__;
-        if ( end_remainder <= PH::page_descriptor_count ) {
-            // 所释放的不超过一个大组控制的大小
-            header.bitmap->free( index, __size__ );
-            header.free_memory_page_count += __size__;
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+        if ( node ) {
+            auto zone = node->_data;
+            if ( zone->owner ) {
+                zone = zone->owner;
+            }
+            auto &&base_address = ( (uint64_t)__physical_address__ - zone->base_address );
+            auto &&base_index   = ( base_address & PH::__helper__::__zone_memory_mask__( ) ) / PH::__helper__::__zone_min_memory__;                                               // 计算取得所在区域的header的编号
+            auto &&index        = (base_address & PageAllocater::__page_mask__< PAGE_2M >) / PageAllocater::__page_size__< PAGE_2M > % PH::__helper__::page_descriptor_count;     // 取得处于所在header的bitmap中的编号
+
+            PH       page_headers { zone };
+            auto    &header        = std::get< PHI >( page_headers.get( base_index ) );
+            uint64_t end_remainder = index + __size__;
+            if ( end_remainder <= PH::__helper__::page_descriptor_count ) {
+                // 所释放的不超过一个header控制的大小
+                header.bitmap->free( index, __size__ );
+                header.free_memory_page_count += __size__;
+                if ( header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                else {
+                    header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                }
+                goto finish;
             }
             else {
-                header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                // 超过了，那就属于多个header处理范围
+                end_remainder %= PH::__helper__::page_descriptor_count;
+                // 头
+                auto head_free_remainder = PH::__helper__::page_descriptor_count - index;     // 头的要释放根数量
+                header.free_memory_page_count += head_free_remainder;
+
+                if ( header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                else {
+                    header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                }
+
+                header.bitmap->free( index, head_free_remainder );
+
+                // 中
+                auto page_header_count = ( __size__ - head_free_remainder - end_remainder ) % PH::__helper__::page_descriptor_count;
+                for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
+                    auto &middle_header                  = std::get< PHI >( page_headers.get( i ) );
+                    middle_header.free_memory_page_count = PH::__helper__::page_descriptor_count;
+                    middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
+                    middle_header.bitmap->free( 0, PH::__helper__::page_descriptor_count );
+                }
+
+                // 尾
+                auto &end_header       = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
+                end_header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                end_header.free_memory_page_count += end_remainder;
+                if ( end_header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    end_header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                end_header.bitmap->free( 0, end_remainder );
+                for ( auto i = 0ul; i < zone->header_count; ++i ) {
+                    if ( page_headers.get( i ).first.flags.state != PHI::__page_flags__::__page_state__::ALL_FREE ) {
+                        goto finish;
+                    }
+                }
+                for ( auto i = 0ul; i < zone->header_count; ++i ) {
+                    auto node = &reinterpret_cast< PH::__helper__::__header__ * >( zone )[ i ].first.group_node;
+                    group.destroy( node );
+                }
+                KHeapWalker { }.free( zone );
             }
         }
-        else {
-            // 超过了，那就属于多个组处理范围
-            end_remainder %= PH::page_descriptor_count;
-            // 头
-            auto head_free_remainder = PH::page_descriptor_count - index;     // 头的要释放根数量
-            header.free_memory_page_count += head_free_remainder;
 
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
-            }
-            else {
-                header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
-            }
-
-            header.bitmap->free( index, head_free_remainder );
-
-            // 中
-            auto page_header_count = ( __size__ - head_free_remainder - end_remainder ) % PH::page_descriptor_count;
-            for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
-                auto &middle_header                  = std::get< PHI >( page_headers.get( i ) );
-                middle_header.free_memory_page_count = PH::page_descriptor_count;
-                middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
-                middle_header.bitmap->free( 0, PH::page_descriptor_count );
-            }
-
-            // 尾
-            auto &end_header       = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
-            end_header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
-            end_header.free_memory_page_count += end_remainder;
-            if ( end_header.free_memory_page_count == PH::page_descriptor_count ) {
-                end_header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
-            }
-            end_header.bitmap->free( 0, end_remainder );
-        }
-
+    finish:
         lock.release( );
+        return;
     }
     template <>
     auto PageCollector::free< MemoryPageType::PAGE_1G >( IN VOID * __physical_address__, IN uint64_t __size__ ) -> VOID {
         if ( !__size__ || !__physical_address__ ) {
             return;
         }
-        auto &list { allocate_information_list[ PAGE_1G ] };
-        using PH  = __page_header__< PAGE_1G, NONE >;
-        using PHI = PH::__page_information__;
-        // 掩码方式取得所在组基地址
-        auto base_address = (uint64_t)__physical_address__ & ~( PageAllocater::__page_size__< PAGE_1G > * PH::page_descriptor_count * PH::page_header_count_of_zone - 1 );
+        using PH    = __page_header__< PAGE_1G, NONE >;
+        using PHI   = PH::__helper__::__page_information__;
+        auto &group = PH::__helper__::get_group( );
         lock.acquire( );
-        auto node = list.traversal(
-            []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
-                return ( (PHI *)node->container )->base_address == base_address;
-            },
-            base_address );     // 找到属于的组
-        if ( !node ) {
-            lock.release( );
-            return;
-        }
-        // 计算取得所在组的块的编号
-        auto &&base_index = ( ( (uint64_t)__physical_address__ - base_address ) / (PH::page_descriptor_count * PageAllocater::__page_size__< PAGE_1G >));
-        // 取得处于所在组的块的bitmap中的编号
-        auto &&index = (((uint64_t)__physical_address__ & PageAllocater::__page_mask__< PAGE_1G >) / PageAllocater::__page_size__< PAGE_1G >) % PH::page_descriptor_count;
 
-        PH page_headers { (PHI *)node->container };
-
-        auto    &header        = std::get< PHI >( page_headers.get( base_index ) );
-        uint64_t end_remainder = index + __size__;
-        if ( end_remainder <= PH::page_descriptor_count ) {
-            // 所释放的不超过一个大组控制的大小
-            header.bitmap->free( index, __size__ );
-            header.free_memory_page_count += __size__;
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+        auto node = group.search( PH::__helper__::get_keys( __physical_address__ ) );
+        if ( node ) {
+            auto zone = node->_data;
+            if ( zone->owner ) {
+                zone = zone->owner;
+            }
+            auto   &&base_address = ( (uint64_t)__physical_address__ - zone->base_address );
+            auto   &&base_index   = ( base_address & PH::__helper__::__zone_memory_mask__( ) ) / PH::__helper__::__zone_min_memory__;                                               // 计算取得所在区域的header的编号
+            auto   &&index        = (base_address & PageAllocater::__page_mask__< PAGE_1G >) / PageAllocater::__page_size__< PAGE_1G > % PH::__helper__::page_descriptor_count;     // 取得处于所在header的bitmap中的编号
+            PH       page_headers { zone };
+            auto    &header        = std::get< PHI >( page_headers.get( base_index ) );
+            uint64_t end_remainder = index + __size__;
+            if ( end_remainder <= PH::__helper__::page_descriptor_count ) {
+                // 所释放的不超过一个header控制的大小
+                header.bitmap->free( index, __size__ );
+                header.free_memory_page_count += __size__;
+                if ( header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                else {
+                    header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                }
+                goto finish;
             }
             else {
-                header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                // 超过了，那就属于多个header处理范围
+                end_remainder %= PH::__helper__::page_descriptor_count;
+                // 头
+                auto head_free_remainder = PH::__helper__::page_descriptor_count - index;     // 头的要释放根数量
+                header.free_memory_page_count += head_free_remainder;
+
+                if ( header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                else {
+                    header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                }
+
+                header.bitmap->free( index, head_free_remainder );
+
+                // 中
+                auto page_header_count = ( __size__ - head_free_remainder - end_remainder ) % PH::__helper__::page_descriptor_count;
+                for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
+                    auto &middle_header                  = std::get< PHI >( page_headers.get( i ) );
+                    middle_header.free_memory_page_count = PH::__helper__::page_descriptor_count;
+                    middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
+                    middle_header.bitmap->free( 0, PH::__helper__::page_descriptor_count );
+                }
+
+                // 尾
+                auto &end_header       = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
+                end_header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                end_header.free_memory_page_count += end_remainder;
+                if ( end_header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    end_header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                end_header.bitmap->free( 0, end_remainder );
+                for ( auto i = 0ul; i < zone->header_count; ++i ) {
+                    if ( page_headers.get( i ).first.flags.state != PHI::__page_flags__::__page_state__::ALL_FREE ) {
+                        goto finish;
+                    }
+                }
+                for ( auto i = 0ul; i < zone->header_count; ++i ) {
+                    auto node = &reinterpret_cast< PH::__helper__::__header__ * >( zone )[ i ].first.group_node;
+                    group.destroy( node );
+                }
+                KHeapWalker { }.free( zone );
             }
         }
-        else {
-            // 超过了，那就属于多个组处理范围
-            end_remainder %= PH::page_descriptor_count;
-            // 头
-            auto head_free_remainder = PH::page_descriptor_count - index;     // 头的要释放根数量
-            header.free_memory_page_count += head_free_remainder;
 
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
-            }
-            else {
-                header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
-            }
-
-            header.bitmap->free( index, head_free_remainder );
-
-            // 中
-            auto page_header_count = ( __size__ - head_free_remainder - end_remainder ) % PH::page_descriptor_count;
-            for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
-                auto &middle_header                  = std::get< PHI >( page_headers.get( i ) );
-                middle_header.free_memory_page_count = PH::page_descriptor_count;
-                middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
-                middle_header.bitmap->free( 0, PH::page_descriptor_count );
-            }
-
-            // 尾
-            auto &end_header       = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
-            end_header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
-            end_header.free_memory_page_count += end_remainder;
-            if ( end_header.free_memory_page_count == PH::page_descriptor_count ) {
-                end_header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
-            }
-            end_header.bitmap->free( 0, end_remainder );
-        }
-
+    finish:
         lock.release( );
+        return;
     }
     template <>
-    auto PageCollector::free< MemoryPageType::PAGE_4K >( IN VOID * __physical_address, IN uint64_t __size ) -> VOID {
-        if ( !__size || !__physical_address ) {
+    auto PageCollector::free< MemoryPageType::PAGE_4K >( IN VOID * __physical_address__, IN uint64_t __size__ ) -> VOID {
+        if ( !__size__ || !__physical_address__ ) {
             return;
         }
-        auto &list { allocate_information_list[ PAGE_4K ] };
-        using PH  = __page_header__< PAGE_4K, PAGE_2M >;
-        using PHI = PH::__page_information__;
-        // 掩码方式取得所在组基地址
-        auto base_address = (uint64_t)__physical_address & ~( PageAllocater::__page_size__< PAGE_4K > * PH::page_descriptor_count * PH::page_header_count_of_zone - 1 );
+        using PH    = __page_header__< PAGE_4K, PAGE_2M >;
+        using PHI   = PH::__helper__::__page_information__;
+        auto &group = PH::__helper__::get_group( );
         lock.acquire( );
-        auto node = list.traversal(
-            []( Lib::ListNode *node, uint64_t base_address ) -> BOOL {
-                return ( (PHI *)node->container )->base_address == base_address;
-            },
-            base_address );     // 找到属于的组
-        if ( !node ) {
-            lock.release( );
-            return;
-        }
-        // 计算取得所在组的块的编号
-        auto &&base_index = ( ( (uint64_t)__physical_address - base_address ) / (PH::page_descriptor_count * PageAllocater::__page_size__< PAGE_4K >));
-        // 取得处于所在组的块的bitmap中的编号
-        auto &&index = (((uint64_t)__physical_address & PageAllocater::__page_mask__< PAGE_4K >) / PageAllocater::__page_size__< PAGE_4K >) % PH::page_descriptor_count;
 
-        PH page_headers { (PHI *)node->container };
-
-        auto    &header        = std::get< PHI >( page_headers.get( base_index ) );
-        uint64_t end_remainder = index + __size;
-        if ( end_remainder <= PH::page_descriptor_count ) {
-            // 所释放的不超过一个大组控制的大小
-            header.bitmap->free( index, __size );
-            header.free_memory_page_count += __size;
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+        auto node = group.search( PH::__helper__::get_keys( __physical_address__ ) );
+        if ( node ) {
+            auto zone = node->_data;
+            if ( zone->owner ) {
+                zone = zone->owner;
+            }
+            auto   &&base_address = ( (uint64_t)__physical_address__ - zone->base_address );
+            auto   &&base_index   = ( base_address & PH::__helper__::__zone_memory_mask__( ) ) / PH::__helper__::__zone_min_memory__;                                               // 计算取得所在区域的header的编号
+            auto   &&index        = (base_address & PageAllocater::__page_mask__< PAGE_4K >) / PageAllocater::__page_size__< PAGE_4K > % PH::__helper__::page_descriptor_count;     // 取得处于所在header的bitmap中的编号
+            PH       page_headers { zone };
+            auto    &header        = std::get< PHI >( page_headers.get( base_index ) );
+            uint64_t end_remainder = index + __size__;
+            if ( end_remainder <= PH::__helper__::page_descriptor_count ) {
+                // 所释放的不超过一个header控制的大小
+                header.bitmap->free( index, __size__ );
+                header.free_memory_page_count += __size__;
+                if ( header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                else {
+                    header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                }
+                goto finish;
             }
             else {
-                header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                // 超过了，那就属于多个header处理范围
+                end_remainder %= PH::__helper__::page_descriptor_count;
+                // 头
+                auto head_free_remainder = PH::__helper__::page_descriptor_count - index;     // 头的要释放根数量
+                header.free_memory_page_count += head_free_remainder;
+
+                if ( header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                else {
+                    header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                }
+
+                header.bitmap->free( index, head_free_remainder );
+
+                // 中
+                auto page_header_count = ( __size__ - head_free_remainder - end_remainder ) % PH::__helper__::page_descriptor_count;
+                for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
+                    auto &middle_header                  = std::get< PHI >( page_headers.get( i ) );
+                    middle_header.free_memory_page_count = PH::__helper__::page_descriptor_count;
+                    middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
+                    middle_header.bitmap->free( 0, PH::__helper__::page_descriptor_count );
+                }
+
+                // 尾
+                auto &end_header       = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
+                end_header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                end_header.free_memory_page_count += end_remainder;
+                if ( end_header.free_memory_page_count == PH::__helper__::page_descriptor_count ) {
+                    end_header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
+                }
+                end_header.bitmap->free( 0, end_remainder );
+                for ( auto i = 0ul; i < zone->header_count; ++i ) {
+                    if ( page_headers.get( i ).first.flags.state != PHI::__page_flags__::__page_state__::ALL_FREE ) {
+                        goto finish;
+                    }
+                }
+                for ( auto i = 0ul; i < zone->header_count; ++i ) {
+                    auto node = &reinterpret_cast< PH::__helper__::__header__ * >( zone )[ i ].first.group_node;
+                    group.destroy( node );
+                }
+                KHeapWalker { }.free( zone );
             }
         }
-        else {
-            // 超过了，那就属于多个组处理范围
-            end_remainder %= PH::page_descriptor_count;
-            // 头
-            auto head_free_remainder = PH::page_descriptor_count - index;     // 头的要释放根数量
-            header.free_memory_page_count += head_free_remainder;
 
-            if ( header.free_memory_page_count == PH::page_descriptor_count ) {
-                header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
-            }
-            else {
-                header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
-            }
-
-            header.bitmap->free( index, head_free_remainder );
-
-            // 中
-            auto page_header_count = ( __size - head_free_remainder - end_remainder ) % PH::page_descriptor_count;
-            for ( auto i = base_index + 1; i < base_index + page_header_count; ++i ) {
-                auto &middle_header                  = std::get< PHI >( page_headers.get( i ) );
-                middle_header.free_memory_page_count = PH::page_descriptor_count;
-                middle_header.flags.state            = PHI::__page_flags__::__page_state__::ALL_FREE;
-                middle_header.bitmap->free( 0, PH::page_descriptor_count );
-            }
-
-            // 尾
-            auto &end_header       = std::get< PHI >( page_headers.get( base_index + page_header_count + 1 ) );
-            end_header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
-            end_header.free_memory_page_count += end_remainder;
-            if ( end_header.free_memory_page_count == PH::page_descriptor_count ) {
-                end_header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
-            }
-            end_header.bitmap->free( 0, end_remainder );
-        }
-
+    finish:
         lock.release( );
+        return;
     }
 }

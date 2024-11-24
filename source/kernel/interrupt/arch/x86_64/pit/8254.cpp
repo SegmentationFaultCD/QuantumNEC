@@ -11,8 +11,6 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         CPU::io_out8( CONTRER0_PORT, static_cast< uint8_t >( COUNTER0_VALUE ) );
         /* 再写入 counter_value 的高 8 位 */
         CPU::io_out8( CONTRER0_PORT, static_cast< uint8_t >( COUNTER0_VALUE ) >> 8 );
-
-        // println< ostream::HeadLevel::OK >( "Initialize the 8254 programmable interval timer." );
     }
     P8254::~P8254( VOID ) noexcept {
     }

@@ -161,30 +161,28 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
     class pmlxt {
     public:
-        explicit pmlxt( IN Level _level ) noexcept :
-            level { _level } {
-        }
+        explicit pmlxt( VOID ) noexcept = default;
         virtual ~pmlxt( VOID ) noexcept = default;
 
     public:
-        virtual auto flags_p( IN uint64_t index ) -> uint64_t                   = 0;
-        virtual auto flags_rw( IN uint64_t index ) -> uint64_t                  = 0;
-        virtual auto flags_us( IN uint64_t index ) -> uint64_t                  = 0;
-        virtual auto flags_pcd( IN uint64_t index ) -> uint64_t                 = 0;
-        virtual auto flags_pwt( IN uint64_t index ) -> uint64_t                 = 0;
-        virtual auto flags_a( IN uint64_t index ) -> uint64_t                   = 0;
-        virtual auto flags_xd( IN uint64_t index ) -> uint64_t                  = 0;
-        virtual auto flags_base( IN uint64_t index ) -> uint64_t                = 0;
-        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t              = 0;
-        virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID            = 0;
-        virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID           = 0;
-        virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID           = 0;
-        virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID          = 0;
-        virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID          = 0;
-        virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID            = 0;
-        virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID           = 0;
-        virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID = 0;
-        virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID       = 0;
+        virtual auto flags_p( IN uint64_t index ) -> uint64_t                                            = 0;
+        virtual auto flags_rw( IN uint64_t index ) -> uint64_t                                           = 0;
+        virtual auto flags_us( IN uint64_t index ) -> uint64_t                                           = 0;
+        virtual auto flags_pcd( IN uint64_t index ) -> uint64_t                                          = 0;
+        virtual auto flags_pwt( IN uint64_t index ) -> uint64_t                                          = 0;
+        virtual auto flags_a( IN uint64_t index ) -> uint64_t                                            = 0;
+        virtual auto flags_xd( IN uint64_t index ) -> uint64_t                                           = 0;
+        virtual auto flags_base( IN uint64_t index, MemoryPageType mode ) -> uint64_t                    = 0;
+        virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t                                       = 0;
+        virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID                                     = 0;
+        virtual auto set_rw( IN uint64_t index, IN BOOL bit ) -> VOID                                    = 0;
+        virtual auto set_us( IN uint64_t index, IN BOOL bit ) -> VOID                                    = 0;
+        virtual auto set_pcd( IN uint64_t index, IN BOOL bit ) -> VOID                                   = 0;
+        virtual auto set_pwt( IN uint64_t index, IN BOOL bit ) -> VOID                                   = 0;
+        virtual auto set_a( IN uint64_t index, IN BOOL bit ) -> VOID                                     = 0;
+        virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID                                    = 0;
+        virtual auto set_base( IN uint64_t index, IN uint64_t address, IN MemoryPageType _mode ) -> VOID = 0;
+        virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID                                = 0;
 
     public:
         /**
@@ -221,15 +219,12 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             return 0ul;
         };
 
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID = 0;
-        virtual auto operator=( IN uint64_t table_address ) -> VOID                           = 0;
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> VOID = 0;
+        virtual auto operator=( IN uint64_t table_address ) -> VOID                                           = 0;
 
         virtual auto get_address_index_in( IN VOID *address ) -> uint64_t = 0;
 
         virtual auto get_table( VOID ) -> uint64_t * = 0;
-
-    public:
-        const Level level;
 
     protected:
         struct PmlxEntry {
@@ -269,17 +264,14 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         using huge_page_table_entry = void;
 
     public:
-        explicit pml1t( IN pml1t_entry *pml1t_address ) noexcept :
-            pmlxt { Level::PT } {
+        explicit pml1t( IN pml1t_entry *pml1t_address ) noexcept {
             this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml1t_address );
         }
 
-        explicit pml1t( IN pml1t &pml1t ) noexcept :
-            pmlxt { Level::PML4 } {
+        explicit pml1t( IN pml1t &pml1t ) noexcept {
             this->pmlx_entry = pml1t.pmlx_entry;
         }
-        explicit pml1t( VOID ) noexcept :
-            pmlxt { Level::PT } {
+        explicit pml1t( VOID ) noexcept {
         }
         virtual ~pml1t( VOID ) noexcept {
         }
@@ -306,7 +298,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
             return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd;
         }
-        virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
+        virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
             return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base << PAGE_4K_SHIFT;
         }
         virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
@@ -333,14 +325,14 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
             ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd = bit;
         }
-        virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
+        virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> VOID override {
             ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base = address >> PAGE_4K_SHIFT;
         }
         virtual auto set_ps_pat( IN uint64_t index, IN BOOL bit ) -> VOID override {
             ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pat = bit;
         }
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
-            auto &[ index, base, flags ] = group;
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> VOID override {
+            auto &[ index, base, flags, _mode ] = group;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -348,7 +340,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->set_pcd( index, !!( flags & PAGE_PCD ) );
             this->set_a( index, !!( flags & PAGE_ACCESSED ) );
             this->set_xd( index, !!( flags & PAGE_XD ) );
-            this->set_base( index, base );
+            this->set_base( index, base, _mode );
             this->set_ps_pat( index, 0 );
         }
         virtual auto operator=( IN uint64_t table_address ) -> VOID override {
@@ -384,13 +376,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // 一种是当分页模式为2M时继续找二级页表
         // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
     public:
-        explicit pml2t( IN page_table_entry *pml2t_address, IN MemoryPageType _mode ) noexcept :
-            pmlxt { Level::PD }, mode { _mode } {
+        explicit pml2t( IN page_table_entry *pml2t_address ) noexcept {
             this->pmlx_entry[ Level::PD ] = (uint64_t *)pml2t_address;
         }
-        explicit pml2t( IN MemoryPageType _mode ) noexcept :
-            pmlxt { Level::PD }, mode { _mode } {
-        }
+        explicit pml2t( VOID ) noexcept = default;
         virtual ~pml2t( VOID ) noexcept {
         }
 
@@ -421,8 +410,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
             return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd;
         }
-        virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
-            if ( mode == MemoryPageType::PAGE_2M ) {
+        virtual auto flags_base( IN uint64_t index, IN MemoryPageType _mode ) -> uint64_t override {
+            if ( _mode == MemoryPageType::PAGE_2M ) {
                 return ( (huge_page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base << PAGE_2M_SHIFT;
             }
             else {
@@ -459,8 +448,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd = bit;
         }
 
-        virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
-            if ( mode == MemoryPageType::PAGE_2M ) {
+        virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> VOID override {
+            if ( _mode == MemoryPageType::PAGE_2M ) {
                 ( (huge_page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base = address >> PAGE_2M_SHIFT;
             }
             else {
@@ -471,8 +460,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].ps = bit;
         }
 
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
-            auto &[ index, base, flags ] = group;
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> VOID override {
+            auto &[ index, base, flags, _mode ] = group;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -480,7 +469,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->set_pcd( index, !!( flags & PAGE_PCD ) );
             this->set_a( index, !!( flags & PAGE_ACCESSED ) );
             this->set_xd( index, !!( flags & PAGE_XD ) );
-            this->set_base( index, base );
+            this->set_base( index, base, _mode );
             this->set_ps_pat( index, !!( flags & PAGE_PS ) );
         }
         virtual auto operator=( IN uint64_t table_address ) -> VOID override {
@@ -497,9 +486,6 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->pmlx_entry[ Level::PD ] = (uint64_t *)entry;
             return *this;
         }
-
-    private:
-        const MemoryPageType mode;     // 2M或者4K
     };
     PUBLIC class pml3t : public pmlxt {
         friend pmlxt;
@@ -511,13 +497,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         // 一种是当分页模式为2M时继续找二级页表
         // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
     public:
-        explicit pml3t( IN page_table_entry *pml3t_address, IN MemoryPageType _mode ) noexcept :
-            pmlxt { Level::PDPT }, mode { _mode } {
+        explicit pml3t( IN page_table_entry *pml3t_address ) noexcept {
             this->pmlx_entry[ Level::PDPT ] = (uint64_t *)pml3t_address;
         }
-        explicit pml3t( IN MemoryPageType _mode ) noexcept :
-            pmlxt { Level::PDPT }, mode { _mode } {
-        }
+        explicit pml3t( VOID ) noexcept = default;
         virtual ~pml3t( VOID ) noexcept {
         }
 
@@ -550,8 +533,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
             return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd;
         }
-        virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
-            if ( mode == MemoryPageType::PAGE_1G ) {
+        virtual auto flags_base( IN uint64_t index, IN MemoryPageType _mode ) -> uint64_t override {
+            if ( _mode == MemoryPageType::PAGE_1G ) {
                 return ( (huge_page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base << PAGE_1G_SHIFT;
             }
             else {
@@ -589,16 +572,16 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps = bit;
         }
 
-        virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
-            if ( mode == MemoryPageType::PAGE_1G ) {
+        virtual auto set_base( IN uint64_t index, IN uint64_t address, IN MemoryPageType _mode ) -> VOID override {
+            if ( _mode == MemoryPageType::PAGE_1G ) {
                 ( (huge_page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_1G_SHIFT;
             }
             else {
                 ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_4K_SHIFT;
             }
         }
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
-            auto &[ index, base, flags ] = group;
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> VOID override {
+            auto &[ index, base, flags, _mode ] = group;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -606,7 +589,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->set_pcd( index, !!( flags & PAGE_PCD ) );
             this->set_a( index, !!( flags & PAGE_ACCESSED ) );
             this->set_xd( index, !!( flags & PAGE_XD ) );
-            this->set_base( index, base );
+            this->set_base( index, base, _mode );
             this->set_ps_pat( index, !!( flags & PAGE_PS ) );
         }
         virtual auto operator=( IN uint64_t table_address ) -> VOID override {
@@ -623,9 +606,6 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->pmlx_entry[ Level::PDPT ] = (uint64_t *)entry;
             return *this;
         }
-
-    private:
-        const MemoryPageType mode;
     };
     PUBLIC class pml4t : public pmlxt {
         friend pmlxt;
@@ -635,17 +615,14 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         using huge_page_table_entry = void;
         // 五级页表是最大的了
     public:
-        explicit pml4t( IN page_table_entry *pml4t_address ) noexcept :
-            pmlxt { Level::PML4 } {
+        explicit pml4t( IN page_table_entry *pml4t_address ) noexcept {
             this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml4t_address );
         }
 
-        explicit pml4t( IN pml4t &pml4t ) noexcept :
-            pmlxt { Level::PML4 } {
+        explicit pml4t( IN pml4t &pml4t ) noexcept {
             this->pmlx_entry = pml4t.pmlx_entry;
         }
-        explicit pml4t( VOID ) noexcept :
-            pmlxt { Level::PML4 } {
+        explicit pml4t( VOID ) noexcept {
         }
         virtual ~pml4t( VOID ) noexcept {
         }
@@ -672,7 +649,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
             return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd;
         }
-        virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
+        virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
             return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base << PAGE_4K_SHIFT;
         }
         virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
@@ -699,13 +676,13 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
             ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd = bit;
         }
-        virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
+        virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> VOID override {
             ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base = address >> PAGE_4K_SHIFT;
         }
         virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN BOOL bit ) -> VOID override {
         }
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
-            auto &[ index, base, flags ] = group;
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> VOID override {
+            auto &[ index, base, flags, _mode ] = group;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -713,7 +690,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->set_pcd( index, !!( flags & PAGE_PCD ) );
             this->set_a( index, !!( flags & PAGE_ACCESSED ) );
             this->set_xd( index, !!( flags & PAGE_XD ) );
-            this->set_base( index, base );
+            this->set_base( index, base, _mode );
             this->set_ps_pat( index, !!( flags & PAGE_PAT ) );
         }
         virtual auto operator=( IN uint64_t table_address ) -> VOID override {
@@ -749,17 +726,14 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         using huge_page_table_entry = void;
         // 五级页表是最大的了
     public:
-        explicit pml5t( IN page_table_entry *pml5t_address ) noexcept :
-            pmlxt { Level::PML5 } {
+        explicit pml5t( IN page_table_entry *pml5t_address ) noexcept {
             this->pmlx_entry[ Level::PML5 ] = (uint64_t *)( pml5t_address );
         }
 
-        explicit pml5t( IN pml5t &pml5t ) noexcept :
-            pmlxt { Level::PML5 } {
+        explicit pml5t( IN pml5t &pml5t ) noexcept {
             this->pmlx_entry = pml5t.pmlx_entry;
         }
-        explicit pml5t( VOID ) noexcept :
-            pmlxt { Level::PML5 } {
+        explicit pml5t( VOID ) noexcept {
         }
         virtual ~pml5t( VOID ) noexcept {
         }
@@ -789,7 +763,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
             return 0;
         }
-        virtual auto flags_base( IN uint64_t index ) -> uint64_t override {
+        virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
             return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base << PAGE_4K_SHIFT;
         }
         virtual auto set_p( IN uint64_t index, IN BOOL bit ) -> VOID override {
@@ -813,13 +787,13 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual auto set_xd( IN uint64_t index, IN BOOL bit ) -> VOID override {
             ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd = bit;
         }
-        virtual auto set_base( IN uint64_t index, IN uint64_t address ) -> VOID override {
+        virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> VOID override {
             ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base = address >> PAGE_4K_SHIFT;
         }
         virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN BOOL bit ) -> VOID override {
         }
-        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t > group ) -> VOID override {
-            auto &[ index, base, flags ] = group;
+        virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> VOID override {
+            auto &[ index, base, flags, _mode ] = group;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -827,7 +801,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             this->set_pcd( index, !!( flags & PAGE_PCD ) );
             this->set_a( index, !!( flags & PAGE_ACCESSED ) );
             this->set_xd( index, !!( flags & PAGE_XD ) );
-            this->set_base( index, base );
+            this->set_base( index, base, _mode );
             this->set_ps_pat( index, !!( flags & PAGE_PAT ) );
         }
         virtual auto operator=( IN uint64_t table_address ) -> VOID override {

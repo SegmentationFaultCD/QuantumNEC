@@ -5,15 +5,20 @@
 #include <kernel/memory/heap/kheap/kheap_collector.hpp>
 #include <kernel/memory/memory.hpp>
 #include <kernel/memory/page/page_collector.hpp>
+
 #include <kernel/print.hpp>
 #include <kernel/syscall/syscall.hpp>
+#include <kernel/task/process/process_walker.hpp>
 #include <kernel/task/task.hpp>
 #include <modules/modules.hpp>
+
 using namespace std;
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
+#define TERMINAL_EMBEDDED_FONT
+#include <extern/os_terminal.h>
 SpinLock _lock { };
-int64_t  ProcC( uint64_t ) {
+int64_t  ProcC( VOID ) {
     // Architecture::Message message { };
     // Architecture::Syscall::SyscallStatus a;
 
@@ -22,7 +27,7 @@ int64_t  ProcC( uint64_t ) {
     //     println< ostream::HeadLevel::DEBUG >( "Process Csfdsfsfsfsf" );
     //     send_receive( a, Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND, 3, message );
     // }
-    println< ostream::HeadLevel::DEBUG >( "Process Csfdsfsfsfsf" );
+    println< print_level::DEBUG >( "Process Csfdsfsfsfsf" );
     while ( true );
 
     return 0;
@@ -33,7 +38,7 @@ int64_t ProcD( uint64_t ) {
     // send_receive( a, Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND_RECEIVE, 2, message );
     // println< ostream::HeadLevel::DEBUG >( "Process D" );
     // send_receive( a, Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND_RECEIVE, 2, message );
-    println< ostream::HeadLevel::DEBUG >( "Process D" );
+    println< print_level::DEBUG >( "Process D" );
     while ( true );
     return 0;
 }
@@ -78,7 +83,7 @@ int64_t ThreadB( uint64_t ) {
     // while ( true ) {
     //     Lib::IO::sout << "E:" << ++i << '\n';
     // }
-    println< ostream::HeadLevel::DEBUG >( "HELLOWORLD" );
+    println< print_level::DEBUG >( "HELLOWORLD" );
     // Kernel::Message message { };
     // while ( true ) {
     //     message.send_receive( Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_RECEIVE, Kernel::ANY );
@@ -91,7 +96,13 @@ int64_t ThreadB( uint64_t ) {
 }
 SpinLock lock { };
 using namespace QuantumNEC;
-
+auto malloc( size_t size ) -> void * {
+    return Kernel::KHeapAllocater { }.allocate( size );
+};
+auto free( void *addr ) -> void {
+    Kernel::KHeapCollector { }.free( addr );
+};
+#include <lib/rbtree.hpp>
 auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::__config = config;
     // Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
@@ -106,70 +117,85 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::Acpi      acp { };
     Kernel::Interrupt intr { };
     Kernel::Memory    mem { };
-    Kernel::Sound     soun { };
-    Kernel::Time      tim { };
-    Kernel::Syscall   sysc { };
-    Kernel::CPU       cpu { };
-    Modules::Module   mod { };
-    Kernel::Task      task { };
 
-    println< ostream::HeadLevel::DEBUG >( "start allocate" );
+    Kernel::Sound   soun { };
+    Kernel::Time    tim { };
+    Kernel::Syscall sysc { };
+    Kernel::CPU     cpu { };
+    Modules::Module mod { };
 
-    println< ostream::HeadLevel::DEBUG >( "finish!" );
-    println< ostream::HeadLevel::DEBUG >( "Begin test malloc and free" );
-    char *a = (char *)Kernel::KHeapAllocater { }.allocate( 0x100 );
-    char *b = (char *)Kernel::KHeapAllocater { }.allocate( 0x200 );
-    char *c = (char *)Kernel::KHeapAllocater { }.allocate( 0x4000 );
-    println< ostream::HeadLevel::DEBUG >( "A: {:x}", (void *)a );
-    println< ostream::HeadLevel::DEBUG >( "B: {:x}", (void *)b );
-    println< ostream::HeadLevel::DEBUG >( "C: {:x}", (void *)c );
-    // bit pattern
-    for ( size_t i = 0; i < 0x100; i++ ) {
-        a[ i ] = 0x01;
-    }
-    // test if the memory is valid
-    for ( size_t i = 0; i < 0x100; i++ ) {
-        if ( a[ i ] != 0x01 ) {
-            println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)a );
-        }
-    }
-    println< ostream::HeadLevel::DEBUG >( "Free A" );
+    Kernel::Task task { };
 
-    for ( size_t i = 0; i < 0x200; i++ ) {
-        b[ i ] = 0x02;
-    }
-    for ( size_t i = 0; i < 0x200; i++ ) {
-        if ( b[ i ] != 0x02 ) {
-            println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)b );
-        }
-    }
-    println< ostream::HeadLevel::DEBUG >( "Free B" );
+    Kernel::ProcessCreater cre;
 
-    for ( size_t i = 0; i < 0x4000; i++ ) {
-        c[ i ] = 0x03;
-    }
-    for ( size_t i = 0; i < 0x4000; i++ ) {
-        if ( c[ i ] != 0x03 ) {
-            println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)c );
-        }
-    }
+    // STATIC TerminalDisplay s;
+    // s.address   = (QuantumNEC::uint8_t *)Kernel::__config.graphics_data.address;
+    // s.height    = Kernel::__config.graphics_data.height;
+    // s.width     = Kernel::__config.graphics_data.width;
+    // auto result = terminal_init(
+    //     &s,
+    //     12.0,
+    //     malloc,
+    //     free,
+    //     NULL );
+    // auto                   result = cre.create( "NAME!", 1, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
+    // std::println< std::ostream::HeadLevel::DEBUG >( "{}", result.value( )->virtual_deadline );
+    // println< ostream::HeadLevel::DEBUG >( "start allocate" );
 
-    Kernel::Interrupt::enable_interrupt( );
+    // println< ostream::HeadLevel::DEBUG >( "finish!" );
+    // println< ostream::HeadLevel::DEBUG >( "Begin test malloc and free" );
+    // char *a = (char *)Kernel::KHeapAllocater { }.allocate( 0x100 );
+    // char *b = (char *)Kernel::KHeapAllocater { }.allocate( 0x200 );
+    // char *c = (char *)Kernel::KHeapAllocater { }.allocate( 0x4000 );
+    // println< ostream::HeadLevel::DEBUG >( "A: {:x}", (void *)a );
+    // println< ostream::HeadLevel::DEBUG >( "B: {:x}", (void *)b );
+    // println< ostream::HeadLevel::DEBUG >( "C: {:x}", (void *)c );
+    // // bit pattern
+    // for ( size_t i = 0; i < 0x100; i++ ) {
+    //     a[ i ] = 0x01;
+    // }
+    // // test if the memory is valid
+    // for ( size_t i = 0; i < 0x100; i++ ) {
+    //     if ( a[ i ] != 0x01 ) {
+    //         println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)a );
+    //     }
+    // }
+    // println< ostream::HeadLevel::DEBUG >( "Free A" );
 
+    // for ( size_t i = 0; i < 0x200; i++ ) {
+    //     b[ i ] = 0x02;
+    // }
+    // for ( size_t i = 0; i < 0x200; i++ ) {
+    //     if ( b[ i ] != 0x02 ) {
+    //         println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)b );
+    //     }
+    // }
+    // println< ostream::HeadLevel::DEBUG >( "Free B" );
+
+    // for ( size_t i = 0; i < 0x4000; i++ ) {
+    //     c[ i ] = 0x03;
+    // }
+    // for ( size_t i = 0; i < 0x4000; i++ ) {
+    //     if ( c[ i ] != 0x03 ) {
+    //         println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)c );
+    //     }
+    // }
+
+    // Kernel::Interrupt::enable_interrupt( );
     // for ( auto i = 0; i < 2000; ++i ) {
     //     auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 1 );
     //     println< ostream::HeadLevel::DEBUG >( "{:x} {}", s, i );
     // }
-    // println< ostream::HeadLevel::DEBUG >( "Free C" );
+    // println< print_level::DEBUG >( "Free C" );
     // auto g = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 12 );
-    // println< ostream::HeadLevel::DEBUG >( "{:x}", g );
+    // println< print_level::DEBUG >( "{:x}", g );
     // auto h = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 100 );
-    // println< ostream::HeadLevel::DEBUG >( "{:x}", h );
+    // println< print_level::DEBUG >( "{:x}", h );
     // auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 1523 );
-    // println< ostream::HeadLevel::DEBUG >( "{:x}", s );
+    // println< print_level::DEBUG >( "{:x}", s );
     // Kernel::PageCollector { }.free< Kernel::PAGE_2M >( s, 1523 );
     // auto r = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 2048 );
-    // println< ostream::HeadLevel::DEBUG >( "{:x}", r );
+    // println< print_level::DEBUG >( "{:x}", r );
 
     // task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
     // task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
@@ -193,7 +219,6 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     // icr.destination.x2apic_destination = 1;
     // icr.deliver_mode = Architecture::APIC_ICR_IOAPIC_FIXED;
     // architecture.wrmsr( 0x830, icr );
-
     while ( true ) {
         Kernel::CPU::hlt( );
     }

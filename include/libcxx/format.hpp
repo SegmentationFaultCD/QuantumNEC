@@ -1,48 +1,40 @@
 #pragma once
 #include <concepts>
-#include <cstdint>
 #include <lib/Uefi.hpp>
 #include <lib/utils.hpp>
-#include <libcxx/iostream.hpp>
-#include <libcxx/string_view.hpp>
-#include <tuple>
-#include <utility>
+#include <libcxx/cstring.hpp>
 
 PUBLIC namespace std {
-    inline std::int16_t number_format { };
-    inline char_t       fmt_buffer[ 1024 * 64 ] { };
-    inline char_t       _buffer[ 1024 ] { };
+    inline int16_t number_format { };
+    inline char    fmt_buffer[ 1024 * 64 ] { };
+    inline char    _buffer[ 1024 ] { };
     struct format_context {
     };
-
     template < typename... Args >
     class format_string {
     private:
-        string_view str;
+        const char *str;
 
     public:
         template < typename T >
-            requires std::convertible_to< const T &, string_view >
-        format_string( const T &s ) :
+            requires std::convertible_to< const T &, const char * >
+        constexpr format_string( const T &s ) :
             str { s } {
             std::size_t actual_number { };
-            for ( auto i { 0ul }; i + 1 < str.length( ); ++i ) {
+            auto        length = std::strlen( str );
+            for ( auto i { 0ul }; i + 1 < length; ++i ) {
                 if (
                     ( str[ i ] == '{' && str[ i + 1 ] == ':' && str[ i + 3 ] == '}' ) || ( str[ i ] == '{' && str[ i + 1 ] == '}' ) ) {
                     actual_number++;
                 }
             }
-
             constexpr auto expectd_number { sizeof...( Args ) };
-
             if ( actual_number != expectd_number ) {
-                while ( true )
-                    __asm__( "hlt" );
+                while ( TRUE );
             }
         }
-
         auto get( void ) const -> const char * {
-            return str.c_str( );
+            return str;
         }
     };
     template < class T, class CharT = char >
@@ -129,7 +121,6 @@ PUBLIC namespace std {
     struct formatter< std::uint8_t > {
         auto format( std::uint8_t value ) -> char *;
     };
-
     template <>
     struct formatter< double64_t > {
         auto format( double64_t value ) -> char *;
@@ -169,13 +160,11 @@ PUBLIC namespace std {
             }
         }
     }
-
     template < typename... Args >
     auto format( format_string< std::type_identity_t< Args >... > fmt, Args && ...args ) -> char_t * {
         memset( fmt_buffer, 0, strlen( fmt_buffer ) );
         auto _fmt = fmt.get( );
         ( _to_format( _fmt, args ), ... );
-
         strcat( fmt_buffer, _fmt );
         return fmt_buffer;
     }

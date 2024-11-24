@@ -14,7 +14,26 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
         CPU::switch_cpu( );
 
+        if ( auto current = ProcessManager::get_running_task( ); current != ProcessManager::main_pcb ) {
+            *ProcessManager::get_running_task( )->context.pcontext = *frame;
+        }
+
+        auto result = Scheduler { }.schedule( );
+        if ( result.has_value( ) ) {
+            std::println( "YEP!! " );
+            if ( result.value( ) == ProcessManager::main_pcb ) {
+                return frame;
+            }
+            else {
+                return result.value( )->context.pcontext;
+            }
+        }
+        else {
+            std::println( "Error! {}", uint64_t( result.error( ) ) );
+            while ( true );
+        }
         // 在这里进行任务调度
+
         return frame;
     }
     Cascade_TimerEntry::Cascade_TimerEntry( VOID ) noexcept {

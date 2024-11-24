@@ -1,7 +1,7 @@
 #pragma once
-#include <lib/Uefi.hpp>
 #include <kernel/global/arch/x86_64/descriptor.hpp>
 #include <kernel/global/arch/x86_64/global.hpp>
+#include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     /**
      * @brief 全局段描述符
@@ -15,12 +15,12 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             12 任务状态段描述符(TSS)高地址
             13 ~ 8192 保留，作为以后扩充
         */
-        uint16_t limit_low;       // 0-15 limit1
-        uint16_t base_low;        // 16 - 31 base0
-        uint8_t base_middle;      // 32 - 39 base1
-        uint8_t access_right;     // 40 - 47 flag descType privilege isVaild
-        uint8_t limit_high;       // 48 - 55 limit1 usused
-        uint8_t base_high;        // 56 - 63 base2 ’
+        uint16_t limit_low;        // 0-15 limit1
+        uint16_t base_low;         // 16 - 31 base0
+        uint8_t  base_middle;      // 32 - 39 base1
+        uint8_t  access_right;     // 40 - 47 flag descType privilege isVaild
+        uint8_t  limit_high;       // 48 - 55 limit1 usused
+        uint8_t  base_high;        // 56 - 63 base2 ’
 
     public:
         explicit GlobalSegmentDescriptor( VOID ) noexcept = default;
@@ -70,15 +70,13 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     /**
      * @brief 全局段描述符表
      */
-    PUBLIC class GlobalSegmentDescriptorTable
-    {
+    PUBLIC class GlobalSegmentDescriptorTable {
     public:
         explicit GlobalSegmentDescriptorTable( VOID ) noexcept;
         virtual ~GlobalSegmentDescriptorTable( VOID ) noexcept = default;
 
     public:
-        class _GDT : public Descriptor< GlobalSegmentDescriptor, GLOBAL_SEGMENT_DESCRIPTOR_TABLE_COUNT, SEGMENT_DESCRIPTOR_COUNT >
-        {
+        class _GDT : public Descriptor< GlobalSegmentDescriptor, GLOBAL_SEGMENT_DESCRIPTOR_TABLE_COUNT, SEGMENT_DESCRIPTOR_COUNT > {
         public:
             /**
              * @brief 载入GDT

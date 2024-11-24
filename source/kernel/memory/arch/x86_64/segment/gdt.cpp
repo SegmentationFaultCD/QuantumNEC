@@ -46,7 +46,7 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( VOID ) noexcept {
     this->gdt->load( 0 );
     // 加载全局段中的TSS
     this->gdt->tss[ 0 ].load_tr( SELECTOR_TSS );
-    println< ostream::HeadLevel::OK >( "Initialize segment." );
+    println< print_level::OK >( "Initialize segment." );
 }
 auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) CONST -> VOID {
     ASM( "LGDT %[GDTR]" ::[ GDTR ] "m"( this->xdtr[ processor_id ] ) );

@@ -13,7 +13,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
             lock.release( );
         }
-        std::println< std::ostream::HeadLevel::OK >( "Initialize Symmetric Multiprocessing" );
+        std::println< print_level::OK >( "Initialize Symmetric Multiprocessing" );
     }
     auto SymmetricMultiprocessing::send_IPI( IN Apic::InterruptCommandRegister icr ) -> VOID {
         Apic::write_apic( LOCAL_BASE_APIC_ICRL1, icr >> 32, Apic::ApicType::LOCAL_APIC );

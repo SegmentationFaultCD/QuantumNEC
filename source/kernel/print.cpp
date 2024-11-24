@@ -311,102 +311,15 @@ PUBLIC uint8_t FONT_ASCII[ 256 ][ 16 ] {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
 };
 PUBLIC namespace QuantumNEC {
-    auto printk(
-        IN DisplayColor FRcolor, IN DisplayColor BKcolor,
-        IN CONST char_t * fmt,
-        IN... )
-        -> VOID {
-        // 用于输出格式字符串的函数basePrintk
-
-        int64_t len { };
-        int64_t count { };
-        int64_t line = LINEEOF;
-        va_list args;
-        va_start( args, fmt );
-        len = vsprintf( buffer, fmt, args );
-        va_end( args );
-
-        for ( count = 0; count < len || line; ++count ) {
-            if ( line > LINEEOF ) {
-                --count;
-                goto L_tab;
-            }
-            if ( *( buffer + count ) == '\a' )     // 判断字符否为\a
-            {
-            }
-            if ( *( buffer + count ) == '\n' )     // 判断字符否为\n
-            {
-                Pos.YPosition++;
-                Pos.XPosition = Pos.column;
-                // 如果是，将光标行数加1, 列数设为 Pos->column
-            }
-            if ( *( buffer + count ) == '\r' )     // 判断字符否为\r
-            {
-                Pos.XPosition = Pos.column + 1;
-                // 如果是，将光标列数设置为最前
-            }
-
-            else if ( *( buffer + count ) == '\b' )     // 判断字符否为\b
-            {
-                Pos.XPosition--;
-                if ( Pos.XPosition < LINEEOF ) {
-                    Pos.XPosition = ( Pos.XResolution / Pos.XCharSize - 1 )
-                                    * Pos.XCharSize;
-                    Pos.YPosition--;
-                    if ( Pos.YPosition < LINEEOF ) {
-                        Pos.YPosition = ( Pos.YResolution / Pos.YCharSize )
-                                        * Pos.YCharSize;
-                    }
-                }
-                putc( Pos.FB_addr, Pos.XResolution,
-                      Pos.XPosition * Pos.XCharSize,
-                      Pos.YPosition * Pos.YCharSize, FRcolor,
-                      BKcolor, ' ' );
-                // 如果是, 调用putc函数打印空格来覆盖"\b", 并调整位置
-            }
-            else if ( *( buffer + count ) == '\t' )     // 判断字符否为\t
-            {
-                line = ( ( Pos.XPosition + 4 ) & ~( 4 - 1 ) )
-                       - Pos.XPosition;     // 表示一个制表符需要4个字符位置
-            L_tab:
-                --line;
-                putc( Pos.FB_addr, Pos.XResolution,
-                      Pos.XPosition * Pos.XCharSize,
-                      Pos.YPosition * Pos.YCharSize, FRcolor,
-                      BKcolor, ' ' );
-                ++( Pos.XPosition );
-                // 如果是\t, 那么计算一个制表符所需要的空格数, 并填充空格
-            }
-            else {     // 将字符打印在屏幕上
-                putc( Pos.FB_addr, Pos.XResolution,
-                      Pos.XPosition * Pos.XCharSize,
-                      Pos.YPosition * Pos.YCharSize, FRcolor,
-                      BKcolor, ( *( buffer + count ) ) );
-                ++( Pos.XPosition );
-            }
-            // 结尾部分
-            if ( Pos.XPosition
-                 >= ( Pos.XResolution / Pos.XCharSize ) ) {
-                ++( Pos.YPosition );
-                Pos.XPosition = LINEEOF;
-            }
-            if ( Pos.YPosition
-                 >= ( Pos.YResolution / Pos.YCharSize ) ) {
-                Pos.YPosition = LINEEOF;
-            }
-        }
-
-        return;
-    }
     auto putc(
         IN uint64_t * FB,
         IN int64_t Xsize, IN int64_t X,
         IN int64_t Y, IN DisplayColor FRcolor,
         IN DisplayColor BKcolor, IN uchar_t Font )
         -> VOID {
-        int32_t i { }, j { };
+        int32_t   i { }, j { };
         uint32_t *Address { };
-        uint8_t *FontPtr { FONT_ASCII[ Font ] };
+        uint8_t  *FontPtr { FONT_ASCII[ Font ] };
 
         int32_t testval { };
 
