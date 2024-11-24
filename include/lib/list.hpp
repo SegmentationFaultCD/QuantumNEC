@@ -1,6 +1,5 @@
 #pragma once
 #include <concepts>
-#include <iterator>
 #include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Lib {
     // 双向链表
@@ -104,17 +103,17 @@ PUBLIC namespace QuantumNEC::Lib {
         };
         using iterator       = ListIterator< T, T &, T       *>;
         using const_iterator = const ListIterator< T, T &, T * >;
-        iterator end( ) {
-            return iterator( _end.prev );
+        auto end( ) {
+            return iterator { &_end };
         }
-        iterator begin( ) {
-            return iterator( _head.next );
+        auto begin( ) {
+            return iterator { _head.next };
         }
-        const_iterator end( ) const {
-            return const_iterator( _end.prev );
+        auto end( ) const {
+            return const_iterator { &_end };
         }
-        const_iterator begin( ) const {
-            return const_iterator( _head.next );
+        auto begin( ) const {
+            return const_iterator { _head.next };
         }
 
     public:

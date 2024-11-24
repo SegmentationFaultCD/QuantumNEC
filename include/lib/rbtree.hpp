@@ -125,6 +125,7 @@ PUBLIC namespace QuantumNEC {
     public:
         using iterator       = RBTreeIterator< T, T &, T       *>;
         using const_iterator = const RBTreeIterator< T, T &, T * >;
+
         iterator end( ) {
             return iterator( _head );
         }

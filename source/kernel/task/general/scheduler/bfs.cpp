@@ -25,11 +25,13 @@ PUBLIC namespace QuantumNEC::Kernel {
                 // EEVDF算法在剩余三个队列中整理并查找
                 Lib::ListTable< PCB >::ListNode *p, *q, *tail;
                 auto                             count = SchedulerHelper::task_queue[ i ].length( );
+
                 for ( auto i = 0ul; i < count - 1; i++ ) {
                     auto num = count - i - 1;
                     q        = head;
                     p        = q->next;
                     tail     = head->prev;
+
                     while ( num-- ) {
                         if ( auto pcb = ( (PCB *)q->container ); pcb->virtual_deadline < Interrupt::global_jiffies ) {
                             // deadline小于当前进程则直接弹出这个
@@ -79,6 +81,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 
                 SchedulerHelper::global_lock.release( );
                 Interrupt::enable_interrupt( );
+
                 CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
                 return pcb;
                 std::unreachable( );
@@ -98,7 +101,6 @@ PUBLIC namespace QuantumNEC::Kernel {
     }
 
     auto BrainFuckScheduler::__schedule__( VOID ) -> std::expected< PCB *, ErrorCode > {
-        std::println( "S" );
         for ( auto cpu_id = Apic::apic_id( ); auto &pcb : SchedulerHelper::running_queue ) {
             if ( cpu_id == pcb.cpu_id ) {
                 if ( pcb.jiffies ) {
@@ -108,6 +110,9 @@ PUBLIC namespace QuantumNEC::Kernel {
                 else {
                     // 时间片耗尽
                     auto result = this->__pick_next__( );
+
+                    while ( true ) {
+                    }
                     if ( result.has_value( ) ) {
                         auto new_pcb = result.value( );
                         SchedulerHelper::task_queue[ new_pcb->priority ].remove( new_pcb->general_task_node );

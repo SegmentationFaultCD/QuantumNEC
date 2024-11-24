@@ -6,6 +6,12 @@ auto operator delete( void * ) noexcept -> void {
 }
 auto operator delete[]( void * ) noexcept -> void {
 }
+auto operator new( long unsigned int, void *addr ) noexcept -> void * {
+    return addr;
+}
+auto operator new[]( long unsigned int, void *addr ) noexcept -> void * {
+    return addr;
+}
 extern "C" {
 void hcf( ) {
     for ( ;; ) {

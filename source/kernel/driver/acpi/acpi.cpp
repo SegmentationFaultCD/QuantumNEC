@@ -1,10 +1,12 @@
 #include <kernel/driver/acpi/acpi.hpp>
 #include <kernel/global/arch/x86_64/global.hpp>
+#include <new>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     Acpi::Acpi( VOID ) noexcept {
         STATIC byte_t buffer[ sizeof( Xsdp ) + sizeof( Xsdt ) + sizeof( Madt ) + sizeof( Bgrt ) + sizeof( Fadt ) + sizeof( Dsdt ) + sizeof( Ssdt ) + sizeof( Srat ) ] { };
-        auto p = buffer;
-        this->xsdp = new ( p ) Xsdp { (uint64_t)__config.acpi_table.address };
+        auto          p = buffer;
+        this->xsdp      = new ( p ) Xsdp { (uint64_t)__config.acpi_table.address };
+        this->xsdp      = new ( p ) Xsdp { (uint64_t)__config.acpi_table.address };
         p += sizeof( Xsdp );
         this->xsdt = new ( p ) Xsdt { *this->xsdp };
         p += sizeof( Xsdt );

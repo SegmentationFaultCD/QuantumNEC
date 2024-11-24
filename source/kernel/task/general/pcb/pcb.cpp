@@ -1,6 +1,7 @@
 #include <kernel/memory/heap/kheap/kheap_walker.hpp>
 #include <kernel/memory/page/page_walker.hpp>
 #include <kernel/task/general/pcb/pcb.hpp>
+#include <kernel/task/task.hpp>
 PUBLIC namespace QuantumNEC::Kernel {
     PCB::PCB( CONST char_t * _name_, uint64_t _priority_, Flags _flags_, VOID * _entry_, IN uint64_t _arg_ ) noexcept {
         // 内核栈处理
@@ -10,24 +11,28 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto kernel_stack = this->kernel_stack_base + this->kernel_stack_size;
         kernel_stack -= sizeof( ProcessContext );
         this->context.pcontext = reinterpret_cast< ProcessContext * >( kernel_stack );
+
         // 设置用户栈
         this->user_stack_base = (uint64_t)PageWalker { }.allocate< MemoryPageType::PAGE_2M >( TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M > );     // 用户栈8M大小
         this->user_stack_size = TASK_USER_STACK_SIZE;
+
         if ( flags.task_type != Type::THREAD ) {
             // 不是线程，那就设置进程栈
             this->context.pcontext->make( _entry_, this->user_stack_base + this->user_stack_size - 1, _flags_.task_type );
         }     // 是线程，那就空着作为承载
         // 线程栈
+
         kernel_stack -= sizeof( ThreadContext );
         this->context.tcontext = reinterpret_cast< ThreadContext * >( kernel_stack );
-        if ( flags.task_type == Type::THREAD ) {
-            // 是线程，就设置标准的线程栈
-            this->context.tcontext->make( _entry_, _arg_ );
-        }
-        else {
-            // 不是线程，就设置指向进程栈的线程栈
-            // this->context.tcontext->make( (VOID *)Architecture::ArchitectureManager< TARGET_ARCH >::to_process, (uint64_t)this->context.pcontext );
-        }
+
+        // if ( flags.task_type == Type::THREAD ) {
+        //     // 是线程，就设置标准的线程栈
+        //     this->context.tcontext->make( _entry_, _arg_ );
+        // }
+        // else {
+        //     // 不是线程，就设置指向进程栈的线程栈
+        //     // this->context.tcontext->make( (VOID *)Architecture::ArchitectureManager< TARGET_ARCH >::to_process, (uint64_t)this->context.pcontext );
+        // }
 
         if ( flags.task_type == Type::USER_PROCESS ) {
             // 用户进程有自己的页表，所以复制内核页表
@@ -48,6 +53,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             // 用户栈栈底存PCB的地址
             *(uint64_t *)physical_to_virtual( this->user_stack_base ) = uint64_t( this );
         }
+
         // 浮点栈放在PCB后面
         this->fpu_frame = reinterpret_cast< decltype( this->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *this->fpu_frame ) );
         // 分配PID
@@ -63,6 +69,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         this->flags.fpu_used   = _flags_.fpu_used;
         this->flags.state      = _flags_.state;
         this->flags.task_type  = _flags_.task_type;
+        this->virtual_deadline = SchedulerHelper::make_virtual_deadline( this->priority );
 #ifdef APIC
         // 当前cpu的id
         this->cpu_id = Interrupt::apic_id( );

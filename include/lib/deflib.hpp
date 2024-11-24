@@ -12,7 +12,6 @@
 #define _aligned( n ) alignas( n )
 #define _used [[gnu::used]]
 #define _unused [[gnu::unused]]
-#pragma once
 #define VOID void
 #define CONST const
 #define THIS this
