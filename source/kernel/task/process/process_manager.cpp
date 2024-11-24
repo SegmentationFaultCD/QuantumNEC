@@ -8,7 +8,8 @@ PUBLIC namespace QuantumNEC::Kernel {
     ProcessManager::ProcessManager( VOID ) noexcept {
         main_pcb = reinterpret_cast< PCB * >( KHeapWalker { }.allocate( sizeof( PCB ) ) );
         // 内核栈处理
-        main_pcb->kernel_stack_base = (uint64_t)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) - TASK_KERNEL_STACK_SIZE;
+        main_pcb->kernel_stack_base = (uint64_t)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) );
+
         main_pcb->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
         // 设置内核栈
         auto kernel_stack = main_pcb->kernel_stack_base + main_pcb->kernel_stack_size;
@@ -40,7 +41,8 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 魔术字节
         main_pcb->stack_magic = PCB_STACK_MAGIC;
 
-        SchedulerHelper { }.running_queue.append( main_pcb->general_task_node );
+        SchedulerHelper::running_queue.append( main_pcb->general_task_node );
+
         main_pcb->general_task_node.container = main_pcb;
         main_pcb->jiffies                     = SchedulerHelper::rr_interval;
         main_pcb->PPID                        = 0;

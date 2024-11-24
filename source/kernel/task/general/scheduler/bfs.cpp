@@ -3,6 +3,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     auto BrainFuckScheduler::__pick_next__( VOID ) -> std::expected< PCB *, ErrorCode > {
         // 针对不同优先级采用的pick next方法
         auto index = 0;
+
         for ( ; index < SchedulerHelper::total_priority; ++index ) {
             // 遍历队列查看是否有空
             if ( SchedulerHelper::bitmap[ index ] ) {
@@ -97,6 +98,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     }
 
     auto BrainFuckScheduler::__schedule__( VOID ) -> std::expected< PCB *, ErrorCode > {
+        std::println( "S" );
         for ( auto cpu_id = Apic::apic_id( ); auto &pcb : SchedulerHelper::running_queue ) {
             if ( cpu_id == pcb.cpu_id ) {
                 if ( pcb.jiffies ) {

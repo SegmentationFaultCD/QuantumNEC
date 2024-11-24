@@ -15,12 +15,13 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto index        = 0ul;
         auto bitmap_index = 0ul;
         auto header_count = Lib::DIV_ROUND_UP( __size__, PH::__helper__::page_descriptor_count );
-        lock.acquire( );
 
+        lock.acquire( );
         PHI *node { };
         if ( __size__ < PH::__helper__::page_descriptor_count ) {
             for ( auto &zone : group ) {
                 if ( !zone.owner ) {     // owner为说明为此区域第一个header
+
                     for ( auto i = 0ul; i < zone.header_count; ++i ) {
                         auto header = reinterpret_cast< PH::__helper__::__header__ * >( &zone );
                         if ( auto result = std::get< PHI >( header[ i ] ).bitmap->find< false >( __size__ ); result.has_value( ) ) {
@@ -57,6 +58,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                             }
                             index = i;
                             node  = &zone;
+
                             goto finish;
                         }
                     }
@@ -93,7 +95,6 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
             auto address = std::get< PHI >( reinterpret_cast< PH::__helper__::__header__ * >( node )[ index ] ).base_address + bitmap_index * this->__page_size__< PAGE_4K >;
 
-            std::memset( physical_to_virtual( address ), 0, __size__ * this->__page_size__< PAGE_4K > );
             lock.release( );
             return (VOID *)address;
         }
@@ -106,7 +107,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         page_headers.__allocate_headers__( __size__ );
         // 拿第一个头的base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).base_address;
-        std::memset( physical_to_virtual( address ), 0, __size__ * this->__page_size__< PAGE_4K > );
+
         lock.release( );
         return (void *)address;
     }

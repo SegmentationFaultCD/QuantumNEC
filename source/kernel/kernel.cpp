@@ -118,16 +118,14 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::Interrupt intr { };
     Kernel::Memory    mem { };
 
-    Kernel::Sound   soun { };
-    Kernel::Time    tim { };
-    Kernel::Syscall sysc { };
-    Kernel::CPU     cpu { };
-    Modules::Module mod { };
-
-    Kernel::Task task { };
-
+    Kernel::Sound          soun { };
+    Kernel::Time           tim { };
+    Kernel::Syscall        sysc { };
+    Kernel::CPU            cpu { };
+    Modules::Module        mod { };
+    Kernel::Task           task { };
     Kernel::ProcessCreater cre;
-
+    Kernel::Interrupt::enable_interrupt( );
     // STATIC TerminalDisplay s;
     // s.address   = (QuantumNEC::uint8_t *)Kernel::__config.graphics_data.address;
     // s.height    = Kernel::__config.graphics_data.height;
