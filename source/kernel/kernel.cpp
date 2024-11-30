@@ -117,17 +117,22 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::Acpi      acp { };
     Kernel::Interrupt intr { };
     Kernel::Memory    mem { };
-    Kernel::CPU       cpu { };
-    Kernel::Sound     soun { };
-    Kernel::Time      tim { };
-    Kernel::Syscall   sysc { };
+    for ( auto i = 0; i < 2048; ++i ) {
+        auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 1 );
+        // println< print_level::DEBUG >( "{:x} {}", s, i );
+    }
+    Kernel::CPU     cpu { };
+    Kernel::Sound   soun { };
+    Kernel::Time    tim { };
+    Kernel::Syscall sysc { };
 
     Modules::Module        mod { };
     Kernel::Task           task { };
     Kernel::ProcessCreater cre;
     cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
 
-    Kernel::Interrupt::enable_interrupt( );
+    // Kernel::Interrupt::enable_interrupt( );
+    //
     // STATIC TerminalDisplay s;
     // s.address   = (QuantumNEC::uint8_t *)Kernel::__config.graphics_data.address;
     // s.height    = Kernel::__config.graphics_data.height;
@@ -182,10 +187,8 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     // }
 
     // Kernel::Interrupt::enable_interrupt( );
-    // for ( auto i = 0; i < 2000; ++i ) {
-    //     auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 1 );
-    //     println< ostream::HeadLevel::DEBUG >( "{:x} {}", s, i );
-    // }
+
+    std::println< std::print_level::DEBUG >( "finish!" );
     // println< print_level::DEBUG >( "Free C" );
     // auto g = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 12 );
     // println< print_level::DEBUG >( "{:x}", g );

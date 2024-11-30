@@ -10,6 +10,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             lock.acquire( );
             __config.smp.cpus[ i ]->goto_address = apu_entry;
             auto stack_start                     = PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+
             Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
             lock.release( );
         }

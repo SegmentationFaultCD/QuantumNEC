@@ -74,6 +74,13 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
         }
 
+        // auto i = PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+        // println< print_level::SYSTEM >( "OS Can Use Memory : {}MB", i );
+        // PageWalker { }.free< MemoryPageType::PAGE_4K >( i, 1 );
+        // i = PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+        // println< print_level::SYSTEM >( "OS Can Use Memory : {}MB", i );
+        // PageWalker { }.free< MemoryPageType::PAGE_4K >( i, 1 );
+
         println< print_level::SYSTEM >( "OS Can Use Memory : {}MB", this->free_memory_total / 1_MB );
     }
 }

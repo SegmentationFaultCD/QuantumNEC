@@ -6,7 +6,6 @@ PUBLIC namespace QuantumNEC {
     class RBTree {
     public:
         // 红黑树节点的定义
-
         class RBTreeNode {
             friend RBTree;
 
@@ -68,6 +67,12 @@ PUBLIC namespace QuantumNEC {
                 this->decreament( );
                 return temp;
             }
+            bool operator==( const self &s ) const {
+                return _pnode == s._pnode;
+            }
+            bool operator!=( const self &s ) const {
+                return _pnode != s._pnode;
+            }
             // 将当前迭代器指针的值放到后面大的值上
             void increament( ) {
                 // 如果当前迭代器存在右子树的时候我们将_pnode更新到右子树
@@ -110,322 +115,361 @@ PUBLIC namespace QuantumNEC {
                     _pnode = parent;
                 }
             }
-            bool operator==( const self &s ) const {
-                return _pnode == s._pnode;
-            }
-            bool operator!=( const self &s ) const {
-                return _pnode != s._pnode;
-            }
+
+        private:
             Node *_pnode;
         };
 
     private:
-        Node start_node;
+        Node parent;     // 始祖
 
     public:
         using iterator       = RBTreeIterator< T, T &, T       *>;
         using const_iterator = const RBTreeIterator< T, T &, T * >;
 
         iterator end( ) {
-            return iterator( _head );
+            return iterator( NULL );
         }
         iterator begin( ) {
-            return iterator( _head->_left );
+            return iterator( this->left_most( ) );
         }
         const_iterator end( ) const {
-            return const_iterator( _head );
+            return const_iterator( NULL );
         }
         const_iterator begin( ) const {
-            return const_iterator( _head->_left );
+            return const_iterator( this->left_most( ) );
         }
 
     public:
         auto init( VOID ) {
-            start_node._key   = 0;
-            start_node._color = RBTreeNode::Color::RED;
-            _head             = &start_node;
-            _size             = 0;
-            _head->_left      = _head;
-            _head->_right     = _head;
+            this->parent._color = RBTreeNode::Color::RED;
         }
         explicit RBTree( VOID ) noexcept :
-            start_node { 0 } {
+            parent { 0 } {
             this->init( );
         }
 
         auto insert( IN Node &_node )     // 插入节点
         {
-            auto node = &_node;
-            // 先按照二叉搜索树的方式插入
+            auto z = &_node;
 
-            auto *&_root = this->get_root( );
+            if ( !this->_root ) {     // 为空树
+                this->_root          = z;
+                this->_root->_parent = &this->parent;
+                this->_root->_color  = Node::Color::BLACK;
+                this->_root->_left   = NULL;
+                this->_root->_right  = NULL;
+                this->_size          = 1;
+                this->_nil           = this->_root;
 
-            if ( !_root ) {     // 为空树
-                _root          = node;
-                node->_color   = Node::Color::RED;
-                _root->_parent = this->_head;
+                return;
             }
-            else {     // 树非空
-                auto cur    = _root;
-                auto parent = this->_head;
-                while ( cur ) {
-                    parent = cur;
-                    if ( node->_key < ( cur->_key ) ) {
-                        cur = cur->_left;
-                    }
-                    else if ( node->_key > ( cur->_key ) ) {
-                        cur = cur->_right;
-                    }
-                    else {     // 我们这里不允许插入相同值域的节点
-                        return FALSE;
-                    }
-                }
-                cur = node;
-                if ( node->_key < ( parent->_key ) ) {
-                    parent->_left = cur;
-                }
-                else {
-                    parent->_right = cur;
-                }
-                cur->_parent = parent;
-                // 插入成功之后我们调整当前红黑树的节点：
-                // 这里我们在插入红黑树中调整的时候只有当第一中情况才继续向上更新节点，那么我们只要考虑第一中情况的终止条件即可
-                // 第一中情况中如果parent为红色节点那么当前节点就需要继续向上更新，但是我们将head节点也设为红色那么当我们parent
-                // 节点更新到head节点那么当前也就不更新了
-                while ( parent != _head && parent->_color == Node::Color::RED ) {
-                    // 插入节点双亲为黑色：
-                    if ( parent->_color == Node::Color::BLACK ) {
-                        break;
-                    }
-                    else {                                                          // 插入节点双亲为红色
-                        auto grandparent = parent->_parent;                         // 这里如果双亲的节点是红色那么双亲一定是有双亲节点的
-                        if ( parent == grandparent->_left ) {                       // 第一大类插入节点在红黑树的左子树：
-                            auto uncle = grandparent->_right;                       // 当前节点的叔叔节点
-                            if ( uncle && uncle->_color == Node::Color::RED ) {     // 第一种情况：叔叔节点存在而且为红色：
-                                parent->_color      = Node::Color::BLACK;
-                                uncle->_color       = Node::Color::BLACK;
-                                grandparent->_color = Node::Color::RED;
-                                cur                 = grandparent;
-                                parent              = cur->_parent;
-                            }
-                            // 第二三种情况：
-                            else {
-                                // 因为我们要将第三种情况转化为第二种情况处理所以我们先写第三种情况：cur插在内侧
-                                if ( cur == parent->_right ) {
-                                    this->rotate_left( parent );
-                                    std::swap( parent, cur );
-                                }
-                                // 第二种情况：先将parent和grandparent颜色互换然后右旋
-                                parent->_color      = Node::Color::BLACK;
-                                grandparent->_color = Node::Color::RED;
-                                this->rotate_right( grandparent );
-                            }
-                        }
-                        else {                                                      // 第二大类插入节点在红黑树的右子树：
-                            auto uncle = grandparent->_left;                        // 当前节点的叔叔节点
-                            if ( uncle && uncle->_color == Node::Color::RED ) {     // 第一种情况：叔叔节点存在而且为红色：
-                                parent->_color      = Node::Color::BLACK;
-                                uncle->_color       = Node::Color::BLACK;
-                                grandparent->_color = Node::Color::RED;
-                                cur                 = grandparent;
-                                parent              = cur->_parent;
-                            }
-                            // 第二三种情况：
-                            else {
-                                // 因为我们要将第三种情况转化为第二种情况处理所以我们先写第三种情况：cur插在内侧
-                                if ( cur == parent->_left ) {
-                                    this->rotate_right( parent );
-                                    std::swap( parent, cur );
-                                }
-                                // 第二种情况：先将parent和grandparent颜色互换然后右旋
-                                parent->_color      = Node::Color::BLACK;
-                                grandparent->_color = Node::Color::RED;
-                                this->rotate_left( grandparent );
-                            }
-                        }
-                    }
-                }
+
+            auto *y = this->_nil;
+            auto *x = this->_root;
+
+            while ( x != this->_nil ) {
+                y = x;
+                if ( z->_key < x->_key )
+                    x = x->_left;
+                else if ( z->_key > x->_key )
+                    x = x->_right;
+                else
+                    return;
             }
-            _root->_color       = Node::Color::BLACK;
-            this->_head->_left  = this->get_mostleftnode( );
-            this->_head->_right = this->get_mostrightnode( );
-            return TRUE;
+
+            z->_parent = y;
+            if ( y == this->_nil )
+                this->_root = z;
+            else {
+                if ( y->_key > z->_key )
+                    y->_left = z;
+                else
+                    y->_right = z;
+            }
+
+            z->_left = z->_right = this->_nil;
+            z->_color            = Node::Color::RED;
+            _size++;
+            this->insert_fixup( z );
         }
 
-        void destroy( Node *&root ) {
-            if ( root ) {
-                this->destroy( root->_left );
-                this->destroy( root->_right );
-                root = nullptr;
+        auto remove( Node &node ) {
+            auto y = this->_nil;
+            auto x = this->_nil;
+            auto z = &node;
+            if ( ( z->_left == this->_nil ) || ( z->_right == this->_nil ) ) {
+                y = z;
             }
+            else {
+                y = this->successor( z );
+            }
+
+            if ( y->_left != this->_nil )
+                x = y->_left;
+            else if ( y->_right != this->_nil )
+                x = y->_right;
+            x->_parent = y->_parent;
+            if ( y->_parent == this->_nil )
+                this->_root = x;
+            else if ( y == y->_parent->_left )
+                y->_parent->_left = x;
+            else
+                y->_parent->_right = x;
+
+            if ( y != z ) {
+                z->_key  = y->_key;
+                z->_data = y->_data;
+            }
+            // 调整
+            if ( y->_color == Node::Color::BLACK ) {
+                this->remove_fixup( x );
+            }
+            this->_size--;
         }
+
         auto clear( ) {
-            this->destroy( this->get_root( ) );
+            this->remove( *this->_root );
             this->_size = 0;
         }
         ~RBTree( ) {
-            this->destroy( this->get_root( ) );
         }
+
         // 查找方法
         auto search( IN Keyofvalue key ) -> Node * {
-            auto *cur = this->get_root( );
-            while ( cur ) {
-                if ( ( cur->_key ) < key ) {
-                    cur = cur->_right;
+            auto *node = this->_root->_parent;
+            while ( node != this->_nil ) {
+                if ( key < node->_key ) {
+                    node = node->_left;
                 }
-                else if ( ( cur->_key ) > key ) {
-                    cur = cur->_left;
+                else if ( key > node->_key ) {
+                    node = node->_right;
                 }
                 else {
-                    return cur;
+                    return node;
                 }
             }
-            return NULL;
+
+            return this->_nil;
         }
         auto swap( IN RBTree< T, Keyofvalue > _t ) {
-            std::swap( _head, _t._head );
+            std::swap( _root, _t._root );
         }
 
         auto size( ) const {
-            return _size;
+            return this->_size;
         }
         auto empty( ) const {
-            return !_size;
+            return !this->_size;
         }
 
         auto inoder( ) {
-            auto *_root = this->get_root( );
+            auto *_root = this->_root->_parent;
             this->mid( _root );
         }
 
-        auto is_RBtree( ) {
-            auto *root = this->get_root( );
-            if ( !root ) {
-                return TRUE;
-            }
-            // 判断根节点是否是黑色节点：
-            if ( root->_color == Node::Color::RED ) {
-                return FALSE;
-            }
-            // 判断每条路径中黑色节点个数是否相同
-            auto black_count = 0ul;
-            auto cur         = root;
-            while ( cur ) {
-                if ( cur->_color == Node::Color::BLACK ) {
-                    black_count++;
-                }
-                cur = cur->_left;
-            }
-            auto k = 0;
-            return this->is_RBtree( black_count, k, root );
-        }
-        // 判断红黑树中是否满足性质三（两个红色节点不挨在一起）性质四（每条路径中黑色节点树相同）
-        auto is_RBtree( size_t black_count, int k, Node *root ) {
-            if ( !root ) {
-                if ( k != black_count ) {
-                    return FALSE;
-                }
-                return TRUE;
-            }
-            if ( root->_color == Node::Color::BLACK ) {
-                k++;
-            }
-            else {
-                if ( root->_parent->_color == Node::Color::RED ) {
-                    return FALSE;
-                }
-            }
-            return this->is_RBtree( black_count, k, root->_left ) && this->is_RBtree( black_count, k, root->_right );
-        }
-
     private:
-        // 中序遍历：
+        // // 中序遍历：
         auto mid( Node *root ) {
             if ( root ) {
                 this->mid( root->_left );
                 this->mid( root->_right );
             }
         }
-        // 这里因为我们红黑树中没有设置根节点在代码实现的时候不容易理解所以这里我们写一个私有函数返回红黑树的根节点：
-        auto *&get_root( ) {
-            return _head->_parent;
+        auto left_most( ) {
+            auto left = _root->_left;
+            while ( left && left->_left )
+                left = left->_left;
+            return left;
         }
-        // 获取最左侧节点也就是最小节点：
-        auto get_mostleftnode( ) {
-            auto *_root = get_root( );
-            if ( _root ) {
-                while ( _root->_left ) {
-                    _root = _root->_left;
+        auto right_most( ) {
+            auto right = _root->_right;
+            while ( right && right->_right )
+                right = right->_right;
+            return right;
+        }
+        auto insert_fixup( Node *node ) {
+            while ( node->_parent->_color == Node::Color::RED ) {
+                auto grandparent = node->_parent->_parent;
+                if ( node->_parent == grandparent->_left ) {
+                    auto uncle = grandparent->_right;
+
+                    if ( uncle->_color == Node::Color::RED )     // 叔父结点为红色
+                    {
+                        node->_parent->_color = Node::Color::BLACK;
+                        uncle->_color         = Node::Color::BLACK;
+                        grandparent->_color   = Node::Color::RED;
+                        node                  = grandparent;
+                    }
+                    else {
+                        if ( node == node->_parent->_right ) {
+                            node = node->_parent;
+                            this->rotate_left( node );
+                        }
+                        node->_parent->_color = Node::Color::BLACK;
+                        grandparent->_color   = Node::Color::RED;
+                        // 祖父结点旋转
+                        this->rotate_right( grandparent );
+                    }
+                }
+                else {
+                    auto *uncle = grandparent->_left;
+                    if ( uncle->_color == Node::Color::RED )     // 叔父结点为红色
+                    {
+                        node->_parent->_color = Node::Color::BLACK;
+                        uncle->_color         = Node::Color::BLACK;
+                        grandparent->_color   = Node::Color::RED;
+                        uncle                 = uncle->_parent->_parent;
+                    }
+                    else {
+                        if ( node == node->_parent->_left ) {
+                            node = node->_parent;
+                            this->rotate_right( node );
+                        }
+                        node->_parent->_color = Node::Color::BLACK;
+                        grandparent->_color   = Node::Color::RED;
+                        this->rotate_left( grandparent );
+                    }
                 }
             }
-            return _root;
-        }
-        // 获取最右侧节点也就是最大节点：
-        auto get_mostrightnode( ) {
-            auto *_root = this->get_root( );
-            if ( _root ) {
-                while ( _root->_right ) {
-                    _root = _root->_right;
-                }
-            }
-            return _root;
+            this->_root->_color = Node::Color::BLACK;
         }
         // 左单旋
-        auto rotate_left( Node *parent ) {
-            auto pparent   = parent->_parent;
-            auto subR      = parent->_right;
-            auto subRL     = subR->_left;
-            parent->_right = subRL;
-            // 更新subRL的双亲：
-            if ( subRL ) {
-                subRL->_parent = parent;
+        auto rotate_left( Node *x ) {
+            auto y    = x->_right;
+            x->_right = y->_left;
+            if ( y->_left != this->_nil ) {
+                y->_left->_parent = x;
             }
-            subR->_left     = parent;
-            parent->_parent = subR;
-            subR->_parent   = pparent;
-            if ( pparent == _head ) {
-                _head->_parent = subR;
+            y->_parent = x->_parent;
+            if ( x->_parent == this->_nil ) {
+                this->_root = y;
             }
-            if ( pparent ) {
-                if ( pparent->_left == parent ) {
-                    pparent->_left = subR;
-                }
-                else {
-                    pparent->_right = subR;
-                }
+            else if ( x == x->_parent->_left ) {
+                x->_parent->_left = y;
             }
+            else {
+                x->_parent->_right = y;
+            }
+            y->_left   = x;
+            x->_parent = y;
         }
         // 右单旋
-        auto rotate_right( Node *parent ) {
-            auto subL     = parent->_left;
-            auto subLR    = subL->_right;
-            auto pparent  = parent->_parent;
-            parent->_left = subLR;
-            // 如果subLR存在那么将其父节点更新
-            if ( subLR ) {
-                subLR->_parent = parent;
+        auto rotate_right( Node *y ) {
+            auto x   = y->_left;
+            y->_left = x->_right;
+            if ( x->_right != this->_nil ) {
+                x->_right->_parent = y;
             }
-            // 将parent右旋下来：
-            subL->_right = parent;
-            // parent旋下来就要更新parent的父节点
-            parent->_parent = subL;
-            // 此时subL就要更新父节点
-            subL->_parent = pparent;
-            if ( pparent == _head ) {
-                _head->_parent = subL;
+            x->_parent = y->_parent;
+            if ( y->_parent == this->_nil ) {
+                this->_root = x;
             }
-            if ( pparent ) {
-                if ( parent == pparent->_right ) {
-                    pparent->_right = subL;
+            else if ( y == y->_parent->_right ) {
+                y->_parent->_right = x;
+            }
+            else {
+                y->_parent->_left = x;
+            }
+            // 3
+            x->_right  = y;
+            y->_parent = x;
+        }
+
+        auto mini( Node *x ) {
+            while ( x->_left != this->_nil ) {
+                x = x->_left;
+            }
+            return x;
+        }
+
+        auto maxi( Node *x ) {
+            while ( x->_right != this->_nil ) {
+                x = x->_right;
+            }
+            return x;
+        }
+
+        auto successor( Node *x ) {
+            auto y = x->_parent;
+            if ( x->_right != this->_nil ) {
+                return this->mini( x->_right );
+            }
+            while ( ( y != this->_nil ) && ( x == y->_right ) ) {
+                x = y;
+                y = y->_parent;
+            }
+            return y;
+        }
+        // 调整
+        void remove_fixup( Node *x ) {
+            while ( ( x != this->_root ) && ( x->_color == Node::Color::BLACK ) ) {
+                if ( x == x->_parent->_left ) {
+                    auto w = x->_parent->_right;
+                    if ( w->_color == Node::Color::RED ) {
+                        w->_color          = Node::Color::BLACK;
+                        x->_parent->_color = Node::Color::RED;
+                        this->rotate_left( x->_parent );
+                        w = x->_parent->_right;
+                    }
+                    if ( ( w->_left->_color == Node::Color::BLACK ) && ( w->_right->_color == Node::Color::BLACK ) ) {
+                        w->_color = Node::Color::RED;
+                        x         = x->_parent;
+                    }
+                    else {
+                        if ( w->_right->_color == Node::Color::BLACK ) {
+                            w->_left->_color = Node::Color::BLACK;
+                            w->_color        = Node::Color::RED;
+                            rotate_right( w );
+                            w = x->_parent->_right;
+                        }
+
+                        w->_color          = x->_parent->_color;
+                        x->_parent->_color = Node::Color::BLACK;
+                        w->_right->_color  = Node::Color::BLACK;
+                        rotate_left( x->_parent );
+
+                        x = this->_root;
+                    }
                 }
                 else {
-                    pparent->_left = subL;
+                    auto w = x->_parent->_left;
+                    if ( w->_color == Node::Color::RED ) {
+                        w->_color          = Node::Color::BLACK;
+                        x->_parent->_color = Node::Color::RED;
+                        rotate_right( x->_parent );
+                        w = x->_parent->_left;
+                    }
+
+                    if ( ( w->_left->_color == Node::Color::BLACK ) && ( w->_right->_color == Node::Color::BLACK ) ) {
+                        w->_color = Node::Color::RED;
+                        x         = x->_parent;
+                    }
+                    else {
+                        if ( w->_left->_color == Node::Color::BLACK ) {
+                            w->_right->_color = Node::Color::BLACK;
+                            w->_color         = Node::Color::RED;
+                            rotate_left( w );
+                            w = x->_parent->_left;
+                        }
+
+                        w->_color          = x->_parent->_color;
+                        x->_parent->_color = Node::Color::BLACK;
+                        w->_left->_color   = Node::Color::BLACK;
+                        rotate_right( x->_parent );
+
+                        x = this->_root;
+                    }
                 }
             }
+
+            x->_color = Node::Color::BLACK;
         }
 
     private:
         uint64_t _size;
-        Node    *_head;
+        // Node    *_head;
+        Node *_root;
+        Node *_nil;
     };
 }

@@ -15,7 +15,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         lock.acquire( );
 
         auto node = group.search( PH::__helper__::get_keys( __physical_address__ ) );
-
         if ( node ) {
             auto zone = node->_data;
             if ( zone->owner ) {
@@ -80,7 +79,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 }
                 for ( auto i = 0ul; i < zone->header_count; ++i ) {
                     auto node = &reinterpret_cast< PH::__helper__::__header__ * >( zone )[ i ].first.group_node;
-                    group.destroy( node );
+                    group.remove( *node );
                 }
                 KHeapWalker { }.free( zone );
             }
@@ -164,7 +163,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 }
                 for ( auto i = 0ul; i < zone->header_count; ++i ) {
                     auto node = &reinterpret_cast< PH::__helper__::__header__ * >( zone )[ i ].first.group_node;
-                    group.destroy( node );
+                    group.remove( *node );
                 }
                 KHeapWalker { }.free( zone );
             }
@@ -248,7 +247,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 }
                 for ( auto i = 0ul; i < zone->header_count; ++i ) {
                     auto node = &reinterpret_cast< PH::__helper__::__header__ * >( zone )[ i ].first.group_node;
-                    group.destroy( node );
+                    group.remove( *node );
                 }
                 KHeapWalker { }.free( zone );
             }

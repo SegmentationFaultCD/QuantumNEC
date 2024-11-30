@@ -7,6 +7,7 @@
 #include <kernel/print.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/rbtree.hpp>
+#include <lib/spin_lock.hpp>
 #include <utility>
 PUBLIC namespace QuantumNEC::Kernel {
     template < MemoryPageType __allocater_to_bind__, MemoryPageType __mmap_allocater__ >
@@ -54,14 +55,6 @@ PUBLIC namespace QuantumNEC::Kernel {
             };
 
             constexpr static auto header_size { sizeof( __header__ ) };
-
-        private:
-            constexpr static __node_key__ keys[] {
-                50, 28, 78, 45,
-                64, 34, 67, 23,
-                68, 25, 82, 87,
-                54, 46, 43, 81
-            };
 
         public:
             constexpr static auto __zone_min_memory__ = PageWalker::__page_size__< __allocater_to_bind__ > * page_descriptor_count;
@@ -157,6 +150,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             this->zone                             = header_start_address.template get_address< __address__::HEADER_START_ADDRESS >( this->all_memory_header_count );
             auto base_address_                     = base_address.template get_address< __address__::BASE_ADDRESS >( this->all_memory_header_count );
 
+            this->lock.acquire( );
             for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
                 auto &[ info, bitmap ]      = this->zone[ i ];
                 info.owner                  = &this->zone[ 0 ].first;
@@ -172,6 +166,8 @@ PUBLIC namespace QuantumNEC::Kernel {
                 info.group_node._data = &info;
                 group.insert( info.group_node );
             }
+            this->lock.release( );
+
             this->zone[ 0 ].first.header_count = this->all_memory_header_count;
             this->zone[ 0 ].first.owner        = NULL;
         }
@@ -184,7 +180,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto __allocate_headers__( IN uint64_t __size__ ) {
             auto &&remainder = __size__ % __helper__::page_descriptor_count;
             auto &&end       = Lib::DIV_ROUND_UP( __size__, __helper__::page_descriptor_count );
-
+            this->lock.acquire( );
             uint64_t i { };
             while ( i < this->all_memory_header_count ) {
                 auto &header = this->zone[ i ].first;
@@ -211,6 +207,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             end_info.flags.state = __page_state__::NORMAL;
             end_info.free_memory_page_count -= remainder;
             end_info.bitmap->set( 0, remainder );
+            this->lock.release( );
         }
         auto get( IN uint64_t index ) const & -> __helper__::__header__ & {
             return this->zone[ index ];
@@ -218,5 +215,6 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     private:
         __helper__::__header__ *zone;
+        Lib::SpinLock           lock;
     };
 }
