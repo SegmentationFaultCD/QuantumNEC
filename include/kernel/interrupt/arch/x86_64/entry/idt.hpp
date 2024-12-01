@@ -103,37 +103,5 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             virtual auto read( IN uint64_t processor_id ) const -> InterruptDescriptor * override;
         };
         inline static _IDT *idt;
-
-    public:
-        /**
-         * @brief 输出寄存器状态
-         * @param regs 寄存器数据
-         */
-        STATIC auto display_registers( IN CONST RegisterFrame *registers ) -> VOID;
-        /**
-         * @brief 设置中断入口函数
-         */
-        STATIC auto register_irq( IN uint64_t                     irq,
-                                  IN VOID                        *arg,
-                                  IN InterruptEntry               handler,
-                                  IN uint64_t                     parameter,
-                                  IN CONST char_t                *irq_name,
-                                  IN InterruptFunctionController *controller ) -> VOID;
-
-        STATIC auto register_IPI( IN uint64_t                     irq,
-                                  IN VOID                        *arg,
-                                  IN InterruptEntry               handler,
-                                  IN uint64_t                     parameter,
-                                  IN CONST char_t                *irq_name,
-                                  IN InterruptFunctionController *controller ) -> VOID;
-
-    public:
-        /**
-         * @brief 中断入口函数表
-         */
-        inline static InterruptEntry         interrupt_entry_table[ INTERRUPT_DESCRIPTOR_COUNT ] { };
-        inline static CONST char_t          *interrupt_name[ INTERRUPT_DESCRIPTOR_COUNT ] { };     // 各个中断的名字
-        inline static InterruptFunctionTable interrupt_function_table[ IDT_IRQ_SMP_INTERRUPT_0 - IDT_ENTRY_IRQ_0 ];
-        inline static InterruptFunctionTable SMP_IPI_function_table[ INTERRUPT_DESCRIPTOR_COUNT - IDT_IRQ_SMP_INTERRUPT_0 ];
     };
 }

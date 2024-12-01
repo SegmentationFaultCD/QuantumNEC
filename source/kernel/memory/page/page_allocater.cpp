@@ -21,6 +21,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         auto header_count = Lib::DIV_ROUND_UP( __size__, PH::__helper__::page_descriptor_count );
 
         PHI *node { };
+
         if ( __size__ < PH::__helper__::page_descriptor_count ) {
             if ( group.empty( ) ) {
                 goto finish;
@@ -28,12 +29,19 @@ PUBLIC namespace QuantumNEC::Kernel {
 
             lock.acquire( );
             for ( auto &zone : group ) {
+                if ( __size__ == 38 ) {
+                    std::println( "HI{}", ui++ );
+                    std::println( "HI{}", (void *)&zone );
+                }
+
                 if ( !zone.owner ) {     // zone.owner is null, that means it is the head of the zone.
+
                     for ( auto i = 0ul; i < zone.header_count; ++i ) {
                         auto header = reinterpret_cast< PH::__helper__::__header__ * >( &zone );
 
                         // If the header's state is ALL_FULL, that means there is no need to search the header's bitmap.
                         // Because the bitmap's the all of bits are filled, it also means there is no memory can be allocated from the memory space managed by the header.
+
                         if ( auto page_information = std::get< PHI >( header[ i ] ); page_information.flags.state != PHI::__page_flags__::__page_state__::ALL_FULL ) {
                             // If the zone's state isn't ALL_FULL, that means we can allocate memory from the memory space managed by the header.
 
@@ -48,10 +56,9 @@ PUBLIC namespace QuantumNEC::Kernel {
                             }
                         }
                         else {
-                            // Go to the next header.
+                            // switch to the next header.
                             continue;
                         }
-                        
                     }
                     // If you has arrived there, that means this zone of the group has no enough memory space to allocate.
                 }
@@ -68,6 +75,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 goto finish;
             }
             lock.acquire( );
+
             for ( auto &zone : group ) {
                 if ( !zone.owner ) {     // owner为NULL说明为此区域第一个header
                     if ( zone.header_count < header_count ) {
@@ -97,6 +105,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 }
             }
             lock.release( );
+
             // If you has arrived there, that means the group has no enough space to allocate.
             // So we should go to create a new zone.
         }
@@ -134,14 +143,13 @@ PUBLIC namespace QuantumNEC::Kernel {
         }
         // 先前开辟的全没符合要求
         // 那么就得开辟新块
-
         PH page_headers { header_count, { }, {} };
 
         // 开块
         page_headers.__allocate_headers__( __size__ );
         // 拿第一个头的base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).base_address;
-        std::println( "{}", header_count );
+
         return (void *)address;
     }
     template <>

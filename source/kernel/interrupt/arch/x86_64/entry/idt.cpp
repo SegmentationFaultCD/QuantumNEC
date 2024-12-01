@@ -55,41 +55,40 @@ InterruptDescriptorTable::InterruptDescriptorTable( VOID ) noexcept {
     this->idt = new ( &_idt ) _IDT { };
     CPU::cli( );     // 关中断
     memset( this->idt->xdtr->descriptor, 0, INTERRUPT_DESCRIPTOR_COUNT * sizeof( InterruptDescriptor ) );
-    for ( uint16_t i { }; i < INTERRUPT_DESCRIPTOR_COUNT; ++i ) {
-        interrupt_name[ i ] = "unknown";     // 先统一赋值为unknown
-    }
-    interrupt_name[ 0 ]  = "#DE Divide-by-zero";
-    interrupt_name[ 1 ]  = "#DB Debug";
-    interrupt_name[ 2 ]  = "--- Non Maskable Interrupt(NMI)";
-    interrupt_name[ 3 ]  = "#BP Breakpoint";
-    interrupt_name[ 4 ]  = "#OF Overflow";
-    interrupt_name[ 5 ]  = "#BR Bound Range Exceeded";
-    interrupt_name[ 6 ]  = "#UD Invalid Opcode";
-    interrupt_name[ 7 ]  = "#NM Device Not Available";
-    interrupt_name[ 8 ]  = "#DF Double Fault";
-    interrupt_name[ 9 ]  = "--- Coprocessor Segment Overrun";
-    interrupt_name[ 10 ] = "#TS Invalid TSS";
-    interrupt_name[ 11 ] = "#NP Segment Not Present";
-    interrupt_name[ 12 ] = "#SS Stack-Segment Fault";
-    interrupt_name[ 13 ] = "#GP General Protection Fault";
-    interrupt_name[ 14 ] = "#PF Page Fault";
-    interrupt_name[ 15 ] = "--- Intel Reserved";     // 第15项是intel保留项，未使用
-    interrupt_name[ 16 ] = "#MF x87 Floating-Point Exception";
-    interrupt_name[ 17 ] = "#AC Alignment Check";
-    interrupt_name[ 18 ] = "#MC Machine Check";
-    interrupt_name[ 19 ] = "#XM/#XF SIMD Floating-Point Exception";
-    interrupt_name[ 20 ] = "#VE Virtualization Exception";
-    interrupt_name[ 21 ] = "#CP Control Protection Exception";
-    for ( uint16_t i { 22 }; i <= 27; ++i ) {
-        interrupt_name[ i ] = "--- System Reserved";
-    }
-    interrupt_name[ 28 ] = "#HV Exception Injected By The Virtual Machine";
-    interrupt_name[ 29 ] = "#VC VMM Communication Failed";
-    interrupt_name[ 30 ] = "#SX Security Exception";
-    interrupt_name[ 31 ] = "--- System Reserved";
+    // for ( uint16_t i { }; i < INTERRUPT_DESCRIPTOR_COUNT; ++i ) {
+    //     interrupt_name[ i ] = "unknown";     // 先统一赋值为unknown
+    // }
+    // interrupt_name[ 0 ]  = "#DE Divide-by-zero";
+    // interrupt_name[ 1 ]  = "#DB Debug";
+    // interrupt_name[ 2 ]  = "--- Non Maskable Interrupt(NMI)";
+    // interrupt_name[ 3 ]  = "#BP Breakpoint";
+    // interrupt_name[ 4 ]  = "#OF Overflow";
+    // interrupt_name[ 5 ]  = "#BR Bound Range Exceeded";
+    // interrupt_name[ 6 ]  = "#UD Invalid Opcode";
+    // interrupt_name[ 7 ]  = "#NM Device Not Available";
+    // interrupt_name[ 8 ]  = "#DF Double Fault";
+    // interrupt_name[ 9 ]  = "--- Coprocessor Segment Overrun";
+    // interrupt_name[ 10 ] = "#TS Invalid TSS";
+    // interrupt_name[ 11 ] = "#NP Segment Not Present";
+    // interrupt_name[ 12 ] = "#SS Stack-Segment Fault";
+    // interrupt_name[ 13 ] = "#GP General Protection Fault";
+    // interrupt_name[ 14 ] = "#PF Page Fault";
+    // interrupt_name[ 15 ] = "--- Intel Reserved";     // 第15项是intel保留项，未使用
+    // interrupt_name[ 16 ] = "#MF x87 Floating-Point Exception";
+    // interrupt_name[ 17 ] = "#AC Alignment Check";
+    // interrupt_name[ 18 ] = "#MC Machine Check";
+    // interrupt_name[ 19 ] = "#XM/#XF SIMD Floating-Point Exception";
+    // interrupt_name[ 20 ] = "#VE Virtualization Exception";
+    // interrupt_name[ 21 ] = "#CP Control Protection Exception";
+    // for ( uint16_t i { 22 }; i <= 27; ++i ) {
+    //     interrupt_name[ i ] = "--- System Reserved";
+    // }
+    // interrupt_name[ 28 ] = "#HV Exception Injected By The Virtual Machine";
+    // interrupt_name[ 29 ] = "#VC VMM Communication Failed";
+    // interrupt_name[ 30 ] = "#SX Security Exception";
+    // interrupt_name[ 31 ] = "--- System Reserved";
 
     /* 注册所有入口函数到中断描述符表 */
-    println< print_level::INFO >( "Setting the interrupt handler entry for the interrupt descriptor table" );
     uint64_t function { };
     SET_TRAP_HANDLER( 0x00, 0 );
     SET_TRAP_HANDLER( 0x01, 0 );
@@ -365,53 +364,6 @@ auto InterruptDescriptorTable::_IDT::read( [[maybe_unused]] IN uint64_t processo
     return this->xdtr->descriptor;
 }
 
-auto InterruptDescriptorTable::display_registers( IN CONST RegisterFrame *registers ) -> VOID {
-    println< print_level::INFO >( "RAX -> {:x} RBX -> {:x} RCX -> {:x} RDX -> {:x}", registers->rax, registers->rbx, registers->rcx, registers->rdx );
-    println< print_level::INFO >( "R8  -> {:x} R9  -> {:x} R10 -> {:x} R11 -> {:x} R12 -> {:x} R13 -> {:x} R14 -> {:x} R15 -> {:x}", registers->r8, registers->r9, registers->r10, registers->r11, registers->r12, registers->r13, registers->r14, registers->r15 );
-    println< print_level::INFO >( "RDI -> {:x} RSI -> {:x} RBP -> {:x}", registers->rdi, registers->rsi, registers->rbp );
-    ControlRegisterFrame control_registers_frame { };
-    println< print_level::INFO >( "DS -> {:x} ES -> {:x} FS -> {:x} GS -> {:x}", registers->ds, registers->es, registers->fs, registers->gs );
-    println< print_level::INFO >( "CR0 -> {:x} CR2 -> {:x} CR3 -> {:x} CR4 -> {:x} CR8 -> {:x}", *( (uint64_t *)&control_registers_frame.cr0 ), control_registers_frame.cr2.PFLA, *( (uint64_t *)&control_registers_frame.cr3 ), *( (uint64_t *)&control_registers_frame.cr4 ), *( (uint64_t *)&control_registers_frame.cr8 ) );
-    return;
-}
-auto InterruptDescriptorTable::register_irq( IN uint64_t                     irq,
-                                             IN VOID                        *arg,
-                                             IN InterruptEntry               handler,
-                                             IN uint64_t                     parameter,
-                                             IN CONST char_t                *irq_name,
-                                             IN InterruptFunctionController *controller )
-    -> VOID {
-    if ( irq > IDT_IRQ_SMP_INTERRUPT_0 )
-        return;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].handler    = handler;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].irq_name   = irq_name;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].parameter  = parameter;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].flags      = 0;
-    interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].controller = *controller;
-    if ( controller ) {
-        if ( controller->install )
-            interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].controller.install( irq, arg );
-        if ( controller->enable )
-            interrupt_function_table[ irq - IDT_ENTRY_IRQ_0 ].controller.enable( irq );
-    }
-    return;
-}
-auto InterruptDescriptorTable::register_IPI( IN uint64_t                     irq,
-                                             IN VOID                        *arg,
-                                             IN InterruptEntry               handler,
-                                             IN uint64_t                     parameter,
-                                             IN CONST char_t                *irq_name,
-                                             IN InterruptFunctionController *controller )
-    -> VOID {
-    if ( irq < IDT_IRQ_SMP_INTERRUPT_0 )
-        return;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].irq_name  = irq_name;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].parameter = parameter;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].flags     = 0;
-    SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].handler   = handler;
-    std::memset( &SMP_IPI_function_table[ irq - IDT_IRQ_SMP_INTERRUPT_0 ].controller, 0, sizeof( InterruptFunctionController ) );
-    return;
-}
 auto InterruptDescriptor::make( IN CONST uint64_t entry_point,
                                 IN CONST uint16_t selector,
                                 IN CONST uint8_t  ist,

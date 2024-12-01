@@ -117,10 +117,12 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::Acpi      acp { };
     Kernel::Interrupt intr { };
     Kernel::Memory    mem { };
-    for ( auto i = 0; i < 2048; ++i ) {
-        auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 1 );
-        // println< print_level::DEBUG >( "{:x} {}", s, i );
-    }
+    // for ( auto i = 0; i < 1009; ++i ) {
+    //     auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 1 );
+    //     // println< print_level::DEBUG >( "{:x} {}", s, i );
+    // }
+    // std::println( "|{}|", 11 );
+    // auto            s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 38 );
     Kernel::CPU     cpu { };
     Kernel::Sound   soun { };
     Kernel::Time    tim { };
@@ -131,7 +133,7 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::ProcessCreater cre;
     cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
 
-    // Kernel::Interrupt::enable_interrupt( );
+    Kernel::Interrupt::enable_interrupt( );
     //
     // STATIC TerminalDisplay s;
     // s.address   = (QuantumNEC::uint8_t *)Kernel::__config.graphics_data.address;

@@ -22,7 +22,7 @@ PUBLIC namespace QuantumNEC {
                 _left( NULL ), _right( NULL ), _parent( NULL ), _color( color ), _key( key ), _data( data ) {
             }
 
-        private:
+        public:
             RBTreeNode *_left;       // 节点的左孩子
             RBTreeNode *_right;      // 节点的右孩子
             RBTreeNode *_parent;     // 节点的双亲(红黑树需要旋转，为了实现简单给出该字段)
@@ -38,7 +38,7 @@ PUBLIC namespace QuantumNEC {
         struct RBTreeIterator {
             using self = RBTreeIterator< T, Ref, Ptr >;
             // 构造函数就将红黑树的节点指针传入进来：
-            RBTreeIterator( Node *node = nullptr ) :
+            RBTreeIterator( Node *node = NULL ) :
                 _pnode { node } {
             }
             // 迭代器解引用：
@@ -46,7 +46,7 @@ PUBLIC namespace QuantumNEC {
                 return *_pnode->_data;
             }
             Ptr operator->( ) {
-                return ( &operator*( ) );
+                return _pnode->_data;
             }
             // 迭代器加加:前置加加
             self operator++( ) {
@@ -63,52 +63,44 @@ PUBLIC namespace QuantumNEC {
                 return *this;
             }
             self operator--( int ) {
-                self temp = *this;
+                auto temp = *this;
                 this->decreament( );
                 return temp;
             }
-            bool operator==( const self &s ) const {
+            auto operator==( const self &s ) const {
                 return _pnode == s._pnode;
             }
-            bool operator!=( const self &s ) const {
+            auto operator!=( const self &s ) const {
                 return _pnode != s._pnode;
             }
             // 将当前迭代器指针的值放到后面大的值上
-            void increament( ) {
-                // 如果当前迭代器存在右子树的时候我们将_pnode更新到右子树
+            auto increament( ) {
                 if ( _pnode->_right ) {
                     _pnode = _pnode->_right;
-                    // 去右子树中找最小的节点：
                     while ( _pnode->_left ) {
                         _pnode = _pnode->_left;
                     }
                 }
-                else {
+                else     // 2.若结点的右子树不存在，则找到结点不是其父亲右孩子的结点
+                {
                     auto parent = _pnode->_parent;
-                    while ( parent->_right == _pnode ) {
+                    while ( parent && parent->_right == _pnode ) {
                         _pnode = parent;
                         parent = _pnode->_parent;
                     }
-                    if ( _pnode->_right != parent ) {
-                        _pnode = parent;
-                    }
+                    _pnode = parent;
                 }
             }
-            void decreament( ) {
-                if ( _pnode->_parent->_parent == _pnode && _pnode->_color == Node::Color::RED ) {
-                    _pnode = _pnode->_right;
-                }
-                // 如果当前的pnode的左子树存在那么我们就将节点放在左子树
-                else if ( _pnode->_left ) {
+            auto decreament( ) {
+                if ( _pnode->_left ) {
                     _pnode = _pnode->_left;
-                    while ( _pnode->_right ) {
+                    while ( _pnode->_right )
                         _pnode = _pnode->_right;
-                    }
                 }
                 else {
+                    // 2.若结点的左孩子不存在，则向上寻找直到其不为父亲的左孩子
                     auto parent = _pnode->_parent;
-                    // 这里如果_pnode到了begin的位置就不可以再减了
-                    while ( _pnode == parent->_left ) {
+                    while ( parent && parent->_left == _pnode ) {
                         _pnode = parent;
                         parent = _pnode->_parent;
                     }
@@ -128,16 +120,16 @@ PUBLIC namespace QuantumNEC {
         using const_iterator = const RBTreeIterator< T, T &, T * >;
 
         iterator end( ) {
-            return iterator( NULL );
+            return iterator { };
         }
         iterator begin( ) {
-            return iterator( this->left_most( ) );
+            return iterator { this->left_most( ) };
         }
         const_iterator end( ) const {
-            return const_iterator( NULL );
+            return const_iterator { };
         }
         const_iterator begin( ) const {
-            return const_iterator( this->left_most( ) );
+            return const_iterator { this->left_most( ) };
         }
 
     public:
@@ -469,6 +461,7 @@ PUBLIC namespace QuantumNEC {
     private:
         uint64_t _size;
         // Node    *_head;
+    public:
         Node *_root;
         Node *_nil;
     };

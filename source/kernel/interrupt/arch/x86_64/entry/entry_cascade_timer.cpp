@@ -1,6 +1,6 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/global/arch/x86_64/global.hpp>
-#include <kernel/interrupt/arch/x86_64/entry/entry.hpp>
+#include <kernel/interrupt/arch/x86_64/entry/entry_cascade_timer.hpp>
 #include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
 #include <kernel/interrupt/arch/x86_64/pic/pic.hpp>
 #include <kernel/print.hpp>
@@ -9,8 +9,13 @@ using namespace QuantumNEC;
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     _C_LINK auto save_current_frame( IN CONST InterruptDescriptorTable::InterruptFrame * frame ) -> VOID;
 
-    PRIVATE auto cascade_timer_handler _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t ) -> CONST InterruptDescriptorTable::InterruptFrame * {
-        Cascade_TimerEntry::global_jiffies++;
+    auto CascadeTimerEntry::name( VOID ) noexcept -> VOID {
+    }
+    auto CascadeTimerEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexcept -> VOID {
+    }
+    auto CascadeTimerEntry::handler( Frame * frame ) noexcept -> Frame * {
+        Apic::eoi( frame->vector );
+        Interrupt::global_jiffies++;
 
         CPU::switch_cpu( );
 
@@ -36,15 +41,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
         return frame;
     }
-    Cascade_TimerEntry::Cascade_TimerEntry( VOID ) noexcept {
-        InterruptDescriptorTable::InterruptFunctionController controller {
-            .install   = Apic::install_ioapic,
-            .uninstall = Apic::uninstall_ioapic,
-            .enable    = Apic::enable_ioapic,
-            .disable   = Apic::disable_ioapic,
-            .ack       = Apic::eoi
-        };
-
+    auto CascadeTimerEntry::do_register( VOID ) -> VOID {
         Apic::IOApicRedirectionEntry entry { };
         entry.vector         = IRQ_CASCADE_TIMER;
         entry.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
@@ -54,7 +51,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         entry.irr            = APIC_IOAPIC_IRR_RESET;
         entry.trigger        = APIC_ICR_IOAPIC_EDGE;
         entry.mask           = APIC_ICR_IOAPIC_MASKED;
-
-        InterruptDescriptorTable::register_irq( IRQ_CASCADE_TIMER, &entry, cascade_timer_handler, 0, "CASCADE / HPET Timer 0", &controller );
+        Apic::install_ioapic( IRQ_CASCADE_TIMER, &entry );
+        Apic::enable_ioapic( IRQ_CASCADE_TIMER );
+        std::println< print_level::DEBUG >( "S" );
     }
 }

@@ -1,12 +1,16 @@
 #pragma once
+#include <kernel/interrupt/arch/x86_64/entry/entry.hpp>
 #include <lib/Uefi.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    PUBLIC class Cascade_TimerEntry
-    {
+    PUBLIC class CascadeTimerEntry : public InterruptEntry {
     public:
-        explicit Cascade_TimerEntry( VOID ) noexcept;
-        virtual ~Cascade_TimerEntry( VOID ) noexcept = default;
+        explicit CascadeTimerEntry( VOID ) noexcept = default;
+        virtual ~CascadeTimerEntry( VOID ) noexcept = default;
 
-        inline STATIC uint64_t global_jiffies { };
+    private:
+        virtual auto name( VOID ) noexcept -> VOID override;
+        virtual auto error_code( uint64_t error_code ) noexcept -> VOID override;
+        virtual auto handler( Frame *frame ) noexcept -> Frame * override;
+        virtual auto do_register( VOID ) -> VOID override;
     };
 }

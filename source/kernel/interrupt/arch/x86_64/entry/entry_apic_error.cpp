@@ -1,22 +1,18 @@
 #include <kernel/global/arch/x86_64/global.hpp>
-#include <kernel/interrupt/arch/x86_64/entry/entry.hpp>
+#include <kernel/interrupt/arch/x86_64/entry/entry_apic_error.hpp>
 #include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
 #include <kernel/interrupt/arch/x86_64/pic/pic.hpp>
 #include <kernel/print.hpp>
 using namespace QuantumNEC;
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
-    PRIVATE auto apic_error_handler _asmcall( IN CONST InterruptDescriptorTable::InterruptFrame * frame, IN uint64_t ) -> CONST InterruptDescriptorTable::InterruptFrame * {
+    auto ApicErrorEntry::name( VOID ) noexcept -> VOID {
+    }
+    auto ApicErrorEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexcept -> VOID {
+    }
+    auto ApicErrorEntry::handler( Frame * frame ) noexcept -> Frame * {
         return frame;
     }
-    ApicErrorEntry::ApicErrorEntry( VOID ) noexcept {
-        InterruptDescriptorTable::InterruptFunctionController controller {
-            .install   = nullptr,
-            .uninstall = nullptr,
-            .enable    = nullptr,
-            .disable   = nullptr,
-            .ack       = Apic::eoi
-        };
-
+    auto ApicErrorEntry::do_register( VOID ) -> VOID {
         Apic::IOApicRedirectionEntry entry { };
         entry.vector         = IRQ_APIC_LVT_ERROR;
         entry.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
@@ -26,7 +22,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         entry.irr            = APIC_IOAPIC_IRR_RESET;
         entry.trigger        = APIC_ICR_IOAPIC_EDGE;
         entry.mask           = APIC_ICR_IOAPIC_MASKED;
-
-        InterruptDescriptorTable::register_irq( IRQ_APIC_LVT_ERROR, &entry, apic_error_handler, 0, "Local Apic LVT Error", &controller );
+        Apic::install_ioapic( IRQ_APIC_LVT_ERROR, &entry );
+        Apic::enable_ioapic( IRQ_APIC_LVT_ERROR );
     }
 }

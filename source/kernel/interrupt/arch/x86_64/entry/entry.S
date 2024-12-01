@@ -154,7 +154,7 @@ InterruptHandler0x00:
     PUSH 0x00   // 压入vector
     PUSH RAX      // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_divide_error]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
 error_code:
@@ -197,7 +197,7 @@ InterruptHandler0x01:
     PUSH 0x01 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_debug]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -234,7 +234,7 @@ InterruptHandler0x02:
 	MOV	 DS, RDX
 	MOV	 ES, RDX
     MOV RDI, RSP
-    CALL do_nmi
+    CALL do_IRQ
     JMP return_from_isr
 InterruptHandler0x03:
     CLI
@@ -242,7 +242,7 @@ InterruptHandler0x03:
     PUSH 0x03 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_int3]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -252,7 +252,7 @@ InterruptHandler0x04:
     PUSH 0x04 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_overflow]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -262,7 +262,7 @@ InterruptHandler0x05:
     PUSH 0x05 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_bounds]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -272,7 +272,7 @@ InterruptHandler0x06:
     PUSH 0x06 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_undefined_opcode]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -282,7 +282,7 @@ InterruptHandler0x07:
     PUSH 0x07 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_dev_not_available]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -292,7 +292,7 @@ InterruptHandler0x08:
     PUSH 0x08 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_double_fault]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -302,7 +302,7 @@ InterruptHandler0x09:
     PUSH 0x09 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_coprocessor_segment_overrun]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -312,7 +312,7 @@ InterruptHandler0x0a:
     PUSH 0x0a // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_invalid_TSS]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -322,7 +322,7 @@ InterruptHandler0x0b:
     PUSH 0x0b // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_segment_not_present]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -332,7 +332,7 @@ InterruptHandler0x0c:
     PUSH 0x0c // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_stack_segment_fault]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -342,7 +342,7 @@ InterruptHandler0x0d:
     PUSH 0x0d // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_general_protection]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -352,7 +352,7 @@ InterruptHandler0x0e:
     PUSH 0x0e // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_page_fault]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -367,7 +367,7 @@ InterruptHandler0x10:
     PUSH 0x10 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_x87_FPU_error]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -379,7 +379,7 @@ InterruptHandler0x11:
     PUSH 0x11 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_alignment_check]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -389,7 +389,7 @@ InterruptHandler0x12:
     PUSH 0x12 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_machine_check]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -399,7 +399,7 @@ InterruptHandler0x13:
     PUSH 0x13 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_SIMD_exception]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -409,7 +409,7 @@ InterruptHandler0x14:
     PUSH 0x14 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_virtualization_exception]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -419,7 +419,7 @@ InterruptHandler0x15:
     PUSH 0x15 // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_control_protection_exception]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -441,7 +441,7 @@ InterruptHandler0x1c:
     PUSH 0x1c // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_exception_injected_by_the_virtual_machine]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -451,7 +451,7 @@ InterruptHandler0x1d:
     PUSH 0x1d // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_VMM_communication_failed]
+	LEA	 RAX, [RIP + do_IRQ]
 	XCHG [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code
@@ -461,7 +461,7 @@ InterruptHandler0x1e:
     PUSH 0x1d // 压入编号
     PUSH RAX    // 把rax压入栈
     PUSH RAX    
-	LEA	 RAX, [RIP + do_security_exception]
+	LEA	 RAX, [RIP + do_IRQ]
 	XOR [RSP],	RAX  // 将头函数压入
     XOR RAX, RAX
     JMP error_code

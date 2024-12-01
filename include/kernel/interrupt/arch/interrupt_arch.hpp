@@ -1,8 +1,8 @@
 #pragma once
 #include <lib/Uefi.hpp>
 #if defined( __x86_64__ )
-#include <kernel/interrupt/arch/x86_64/entry/entry.hpp>
 #include <kernel/interrupt/arch/x86_64/entry/idt.hpp>
+#include <kernel/interrupt/arch/x86_64/entry/register.hpp>
 #include <kernel/interrupt/arch/x86_64/pic/pic.hpp>
 #include <kernel/interrupt/arch/x86_64/pit/pit.hpp>
 #elif defined( __aarch64__ )
