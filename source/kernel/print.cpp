@@ -310,12 +310,12 @@ PUBLIC uint8_t FONT_ASCII[ 256 ][ 16 ] {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
 };
-PUBLIC namespace QuantumNEC {
+PUBLIC namespace std {
     auto putc(
         IN uint64_t * FB,
         IN int64_t Xsize, IN int64_t X,
         IN int64_t Y, IN DisplayColor FRcolor,
-        IN DisplayColor BKcolor, IN uchar_t Font )
+        IN DisplayColor BKcolor, IN QuantumNEC::uchar_t Font )
         -> VOID {
         int32_t   i { }, j { };
         uint32_t *Address { };

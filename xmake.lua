@@ -1,4 +1,4 @@
--- set_project("QuantumNEC")
+set_project("QuantumNEC")
 
 add_rules("mode.debug", "mode.release")
 
@@ -139,7 +139,7 @@ target("servicer.elf")
         run_dir = target:rundir()
         print("模块文件servicer.elf编译完成，在"..run_dir)
     end)
-    
+  
 target("micro_kernel")
     add_deps("sys", "c", "cxx")
     add_deps("servicer.elf")

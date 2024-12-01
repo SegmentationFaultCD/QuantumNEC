@@ -53,6 +53,5 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         entry.mask           = APIC_ICR_IOAPIC_MASKED;
         Apic::install_ioapic( IRQ_CASCADE_TIMER, &entry );
         Apic::enable_ioapic( IRQ_CASCADE_TIMER );
-        std::println< print_level::DEBUG >( "S" );
     }
 }

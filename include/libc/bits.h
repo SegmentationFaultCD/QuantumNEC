@@ -14,22 +14,22 @@ extern "C" {
         unsigned long: __builtin_clzl( x ),                    \
         unsigned long long: __builtin_clzll( x ) )
 
-__ssize_t fhsb8( uint8_t x ) {
+static __ssize_t fhsb8( uint8_t x ) {
     if ( x == 0 )
         return -1;
     return 7 - clz( x );
 }
-__ssize_t fhsb16( uint16_t x ) {
+static __ssize_t fhsb16( uint16_t x ) {
     if ( x == 0 )
         return -1;
     return 15 - clz( x );
 }
-__ssize_t fhsb32( uint32_t x ) {
+static __ssize_t fhsb32( uint32_t x ) {
     if ( x == 0 )
         return -1;
     return 31 - clz( x );
 }
-__ssize_t fhsb64( uint64_t x ) {
+static __ssize_t fhsb64( uint64_t x ) {
     if ( x == 0 )
         return -1;
     return 63 - clz( x );
@@ -48,20 +48,20 @@ __ssize_t fhsb64( uint64_t x ) {
 // --------------------------------------------------
 //; 位逆序
 
-uint8_t bit_reverse_8( uint8_t x ) {
+static uint8_t bit_reverse_8( uint8_t x ) {
     x = ( ( x & 0x55 ) << 1 ) | ( ( x >> 1 ) & 0x55 );
     x = ( ( x & 0x33 ) << 2 ) | ( ( x >> 2 ) & 0x33 );
     x = ( ( x & 0x0f ) << 4 ) | ( ( x >> 4 ) & 0x0f );
     return x;
 }
-uint16_t bit_reverse_16( uint16_t x ) {
+static uint16_t bit_reverse_16( uint16_t x ) {
     x = ( ( x & 0x5555 ) << 1 ) | ( ( x >> 1 ) & 0x5555 );
     x = ( ( x & 0x3333 ) << 2 ) | ( ( x >> 2 ) & 0x3333 );
     x = ( ( x & 0x0f0f ) << 4 ) | ( ( x >> 4 ) & 0x0f0f );
     x = ( ( x & 0x00ff ) << 8 ) | ( ( x >> 8 ) & 0x00ff );
     return x;
 }
-uint32_t bit_reverse_32( uint32_t x ) {
+static uint32_t bit_reverse_32( uint32_t x ) {
     x = ( ( x & 0x55555555 ) << 1 ) | ( ( x >> 1 ) & 0x55555555 );
     x = ( ( x & 0x33333333 ) << 2 ) | ( ( x >> 2 ) & 0x33333333 );
     x = ( ( x & 0x0f0f0f0f ) << 4 ) | ( ( x >> 4 ) & 0x0f0f0f0f );
@@ -69,7 +69,7 @@ uint32_t bit_reverse_32( uint32_t x ) {
     x = ( x << 16 ) | ( x >> 16 );
     return x;
 }
-bit_reverse_64( uint64_t x ) {
+static uint64_t bit_reverse_64( uint64_t x ) {
     x = ( ( x & 0x5555555555555555 ) << 1 ) | ( ( x >> 1 ) & 0x5555555555555555 );
     x = ( ( x & 0x3333333333333333 ) << 2 ) | ( ( x >> 2 ) & 0x3333333333333333 );
     x = ( ( x & 0x0f0f0f0f0f0f0f0f ) << 4 ) | ( ( x >> 4 ) & 0x0f0f0f0f0f0f0f0f );
@@ -92,19 +92,19 @@ bit_reverse_64( uint64_t x ) {
 // --------------------------------------------------
 //; 字节逆序
 
-finline u8 byteswap8( u8 x ) {
+static uint8_t byteswap8( uint8_t x ) {
     return x;
 }
-finline u16 byteswap16( u16 x ) {
+static uint16_t byteswap16( uint16_t x ) {
     x = ( ( x & 0x00ff ) << 8 ) | ( ( x >> 8 ) & 0x00ff );
     return x;
 }
-finline u32 byteswap32( u32 x ) {
+static uint32_t byteswap32( uint32_t x ) {
     x = ( ( x & 0x00ff00ff ) << 8 ) | ( ( x >> 8 ) & 0x00ff00ff );
     x = ( x << 16 ) | ( x >> 16 );
     return x;
 }
-finline u64 byteswap64( u64 x ) {
+static uint64_t byteswap64( uint64_t x ) {
     x = ( ( x & 0x00ff00ff00ff00ff ) << 8 ) | ( ( x >> 8 ) & 0x00ff00ff00ff00ff );
     x = ( ( x & 0x0000ffff0000ffff ) << 16 ) | ( ( x >> 16 ) & 0x0000ffff0000ffff );
     x = ( x << 32 ) | ( x >> 32 );

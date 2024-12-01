@@ -1,20 +1,17 @@
 #pragma once
-#include <lib/Uefi.hpp>
-#include <utility>
 #include <cstdint>
 #include <libcxx/expected.hpp>
+#include <utility>
 PUBLIC namespace std {
     enum class bitset_error_code {
         ScopeStackoverflow,
         NotFound
     };
     template < std::size_t N >
-    class bitset
-    {
+    class bitset {
     public:
     public:
-        class reference
-        {
+        class reference {
             friend bitset< N >;
 
         private:
@@ -53,7 +50,7 @@ PUBLIC namespace std {
 
         private:
             uint64_t *bit_;
-            uint64_t pos_;
+            uint64_t  pos_;
         };
 
     public:
@@ -156,7 +153,7 @@ PUBLIC namespace std {
                 used_length = tmp / 64 + 1;
             }
             auto &&head_mask = ( ( ( 1ul << ( 63 - pos % 64 ) ) - 1 ) << pos % 64 ) | ( ( 1ul << ( 63 - pos % 64 ) ) << pos % 64 );
-            auto &&end_mask = ( ( ( 1ul << ( ( size - ( 64 - pos % 64 ) - 1 ) % 64 ) ) - 1 ) | ( ( 1ul << ( ( size - ( 64 - pos % 64 ) - 1 ) % 64 ) ) ) );
+            auto &&end_mask  = ( ( ( 1ul << ( ( size - ( 64 - pos % 64 ) - 1 ) % 64 ) ) - 1 ) | ( ( 1ul << ( ( size - ( 64 - pos % 64 ) - 1 ) % 64 ) ) ) );
             if constexpr ( value ) {
                 bitmap[ bitmap_index ] |= head_mask;
                 this->bitmap[ bitmap_index + used_length ] |= end_mask;
@@ -273,6 +270,6 @@ PUBLIC namespace std {
 
     private:
         inline static constexpr auto length = ( N % 64 == 0 ? N / 64 : N / 64 + 1 );
-        uint64_t bitmap[ length ] { };
+        uint64_t                     bitmap[ length ] { };
     };
 }

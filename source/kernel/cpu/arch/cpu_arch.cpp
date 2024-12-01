@@ -1,7 +1,7 @@
 #include <kernel/cpu/arch/cpu_arch.hpp>
 #include <kernel/print.hpp>
 QuantumNEC::Kernel::CpuArch::CpuArch( VOID ) noexcept {
-    using enum DisplayColor;
+    using enum std::DisplayColor;
     using namespace std;
     CpuidStatus status { };
     char_t      factoryName[ 17 ] { };

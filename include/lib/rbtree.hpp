@@ -3,11 +3,11 @@
 #include <utility>
 PUBLIC namespace QuantumNEC {
     template < typename T, typename Keyofvalue >
-    class RBTree {
+    class RedBlackTree {
     public:
         // 红黑树节点的定义
-        class RBTreeNode {
-            friend RBTree;
+        class RedBlackTreeNode {
+            friend RedBlackTree;
 
         public:
             enum class Color {
@@ -16,29 +16,29 @@ PUBLIC namespace QuantumNEC {
             };
 
         public:
-            RBTreeNode( Keyofvalue key, T *data = NULL, Color color = Color::RED ) noexcept
+            RedBlackTreeNode( Keyofvalue key, T *data = NULL, Color color = Color::RED ) noexcept
                 // 这里构造节点的时候颜色默认给为红色因为如果给为黑色就有可能会破坏当前红黑树的性质，导致每条路径的黑色节点个数不同
                 :
                 _left( NULL ), _right( NULL ), _parent( NULL ), _color( color ), _key( key ), _data( data ) {
             }
 
         public:
-            RBTreeNode *_left;       // 节点的左孩子
-            RBTreeNode *_right;      // 节点的右孩子
-            RBTreeNode *_parent;     // 节点的双亲(红黑树需要旋转，为了实现简单给出该字段)
-            Color       _color;      // 节点的颜色
+            RedBlackTreeNode *_left;       // 节点的左孩子
+            RedBlackTreeNode *_right;      // 节点的右孩子
+            RedBlackTreeNode *_parent;     // 节点的双亲(红黑树需要旋转，为了实现简单给出该字段)
+            Color             _color;      // 节点的颜色
         public:
-            Keyofvalue _key;      // 节点的键值
             T         *_data;     // 节点的值域
+            Keyofvalue _key;      // 节点的键值
         };
-        using Node = RBTreeNode;
+        using Node = RedBlackTreeNode;
 
         // 红黑树迭代器：
         template < typename _T, typename Ref, typename Ptr >
-        struct RBTreeIterator {
-            using self = RBTreeIterator< T, Ref, Ptr >;
+        struct RedBlackTreeIterator {
+            using self = RedBlackTreeIterator< T, Ref, Ptr >;
             // 构造函数就将红黑树的节点指针传入进来：
-            RBTreeIterator( Node *node = NULL ) :
+            RedBlackTreeIterator( Node *node = NULL ) :
                 _pnode { node } {
             }
             // 迭代器解引用：
@@ -116,27 +116,27 @@ PUBLIC namespace QuantumNEC {
         Node parent;     // 始祖
 
     public:
-        using iterator       = RBTreeIterator< T, T &, T       *>;
-        using const_iterator = const RBTreeIterator< T, T &, T * >;
+        using Iterator      = RedBlackTreeIterator< T, T &, T      *>;
+        using ConstIterator = const RedBlackTreeIterator< T, T &, T * >;
 
-        iterator end( ) {
-            return iterator { };
+        Iterator end( ) {
+            return Iterator { };
         }
-        iterator begin( ) {
-            return iterator { this->left_most( ) };
+        Iterator begin( ) {
+            return Iterator { this->left_most( ) };
         }
-        const_iterator end( ) const {
-            return const_iterator { };
+        ConstIterator end( ) const {
+            return ConstIterator { };
         }
-        const_iterator begin( ) const {
-            return const_iterator { this->left_most( ) };
+        ConstIterator begin( ) const {
+            return ConstIterator { this->left_most( ) };
         }
 
     public:
         auto init( VOID ) {
-            this->parent._color = RBTreeNode::Color::RED;
+            this->parent._color = RedBlackTreeNode::Color::RED;
         }
-        explicit RBTree( VOID ) noexcept :
+        explicit RedBlackTree( VOID ) noexcept :
             parent { 0 } {
             this->init( );
         }
@@ -224,7 +224,7 @@ PUBLIC namespace QuantumNEC {
             this->remove( *this->_root );
             this->_size = 0;
         }
-        ~RBTree( ) {
+        ~RedBlackTree( ) {
         }
 
         // 查找方法
@@ -244,7 +244,7 @@ PUBLIC namespace QuantumNEC {
 
             return this->_nil;
         }
-        auto swap( IN RBTree< T, Keyofvalue > _t ) {
+        auto swap( IN RedBlackTree< T, Keyofvalue > &_t ) {
             std::swap( _root, _t._root );
         }
 

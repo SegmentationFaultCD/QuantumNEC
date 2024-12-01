@@ -605,8 +605,8 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
 
 namespace std {
 template <>
-struct formatter< Kernel::x86_64::RFlags > {
-    auto format( IN const Kernel::x86_64::RFlags &flags ) -> char * {
+struct formatter< QuantumNEC::Kernel::x86_64::RFlags > {
+    auto format( IN const QuantumNEC::Kernel::x86_64::RFlags &flags ) -> char * {
         auto val = *( (uint64_t *)&flags );
         return formatter< uint64_t > { }.format( val );
     }

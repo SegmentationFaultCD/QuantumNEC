@@ -1,6 +1,6 @@
 #pragma once
 #include <kernel/driver/output/arch/output_arch.hpp>
-#include <kernel/driver/output/display/graphics.hpp>
+#include <kernel/driver/output/screen/graphics.hpp>
 #include <lib/Uefi.hpp>
 
 PUBLIC namespace QuantumNEC::Kernel {

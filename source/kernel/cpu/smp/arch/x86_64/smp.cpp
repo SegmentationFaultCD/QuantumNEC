@@ -6,6 +6,7 @@ PUBLIC namespace QuantumNEC::Kernel {
     SymmetricMultiprocessing::SymmetricMultiprocessing( VOID ) noexcept {
         Lib::SpinLock lock { };
         using namespace QuantumNEC::Kernel;
+        using namespace std;
         for ( auto i { 1ul }; i < __config.smp.cpu_count; ++i ) {
             lock.acquire( );
             __config.smp.cpus[ i ]->goto_address = apu_entry;
@@ -14,7 +15,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
             lock.release( );
         }
-        std::println< print_level::OK >( "Initialize Symmetric Multiprocessing" );
+        println< print_level::OK >( "Initialize Symmetric Multiprocessing" );
     }
     auto SymmetricMultiprocessing::send_IPI( IN Apic::InterruptCommandRegister icr ) -> VOID {
         Apic::write_apic( LOCAL_BASE_APIC_ICRL1, icr >> 32, Apic::ApicType::LOCAL_APIC );

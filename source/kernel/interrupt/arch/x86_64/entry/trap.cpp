@@ -1,6 +1,7 @@
 #include <kernel/interrupt/arch/x86_64/entry/entry_trap.hpp>
 #include <kernel/print.hpp>
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
+    using namespace std;
     auto DivisionError::name( VOID ) noexcept -> VOID {
         std::println< print_level::ERROR >( "IRQ->0x00: #DE Divide-by-zero" );
     }

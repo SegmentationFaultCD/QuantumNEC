@@ -24,11 +24,12 @@ PUBLIC namespace QuantumNEC::Kernel {
             struct __page_information__;
 
             using __node_key__   = uint64_t;
-            using __group_type__ = RBTree< __page_information__, __node_key__ >;
+            using __group_type__ = RedBlackTree< __page_information__, __node_key__ >;
+            using __node_type__  = __group_type__::RedBlackTreeNode;
             using __header__     = std::pair< __page_information__, std::bitset< __helper__::page_descriptor_count > >;
 
             struct _aligned( page_information_block_size ) __page_information__ {
-                __group_type__::RBTreeNode group_node;     // 连接每个页头
+                __node_type__ group_node;     // 连接每个页头
                 struct __page_flags__ {
                     enum class __page_state__ : uint64_t {
                         ALL_FULL = 0,

@@ -6,6 +6,7 @@
 #include <kernel/task/general/pcb/pcb.hpp>
 using namespace QuantumNEC;
 PUBLIC namespace QuantumNEC::Kernel::x86_64 {
+    using namespace std;
     auto InterruptEntry::registers( Frame * frame ) noexcept -> VOID {
         ControlRegisterFrame control_registers_frame { };
         println< print_level::ERROR >( "\t\t\t Rflags -> {:x}\n"

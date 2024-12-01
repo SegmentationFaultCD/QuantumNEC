@@ -2,10 +2,9 @@
 #include <kernel/driver/driver.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/spin_lock.hpp>
-#include <lib/utils.hpp>
 #include <libcxx/format.hpp>
 #include <tuple>
-PUBLIC namespace QuantumNEC {
+PUBLIC namespace std {
     enum class print_level {
         INFO    = 0,     // indigo
         DEBUG   = 1,     // gray
@@ -65,8 +64,8 @@ PUBLIC namespace QuantumNEC {
      * @param fmt 格式字符串
      * @param args 参数
      */
-    PUBLIC auto            printk( IN DisplayColor FRcolor, IN DisplayColor BKcolor, IN CONST char_t * fmt, IN... ) -> VOID;
-    PUBLIC inline char_t   buffer[ 0x10000 ] { };     // 64kb缓冲区
+    PUBLIC auto            printk( IN DisplayColor FRcolor, IN DisplayColor BKcolor, IN const char *fmt, IN... ) -> VOID;
+    PUBLIC inline char     buffer[ 0x10000 ] { };     // 64kb缓冲区
     PUBLIC inline Position Pos { };
 
     /**
@@ -83,9 +82,9 @@ PUBLIC namespace QuantumNEC {
         IN uint64_t * FB,
         IN int64_t Xsize, IN int64_t X,
         IN int64_t Y, IN DisplayColor FRcolor,
-        IN DisplayColor BKcolor, IN uchar_t Font )
+        IN DisplayColor BKcolor, IN QuantumNEC::uchar_t Font )
         -> VOID;
-    inline Lib::SpinLock pri_lock { };
+    inline QuantumNEC::Lib::SpinLock pri_lock { };
 
     template < typename... Args >
     PUBLIC auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID;
@@ -95,8 +94,8 @@ PUBLIC namespace QuantumNEC {
         constexpr auto level_table = [ & ] consteval -> std::tuple< const char *, DisplayColor, DisplayColor > {
             using enum print_level;
             using enum DisplayColor;
-            const char_t *level_string { };
-            DisplayColor  fcolor, bcolor;
+            const char  *level_string { };
+            DisplayColor fcolor, bcolor;
             switch ( level ) {
             case SYSTEM:
                 level_string = "[ SYSTEM ]   ";
@@ -144,14 +143,14 @@ PUBLIC namespace QuantumNEC {
                       Pos.XPosition * Pos.XCharSize,
                       Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
                       _bcolor, *level_str );
-                Kernel::Output::write( *level_str );
+                QuantumNEC::Kernel::Output::write( *level_str );
             }
             else {
                 putc( Pos.FB_addr, Pos.XResolution,
                       Pos.XPosition * Pos.XCharSize,
                       Pos.YPosition * Pos.YCharSize, _fcolor,
                       _bcolor, *level_str );
-                Kernel::Output::write( *level_str );
+                QuantumNEC::Kernel::Output::write( *level_str );
             }
             ++( Pos.XPosition );
             level_str++;
@@ -159,7 +158,7 @@ PUBLIC namespace QuantumNEC {
         print( fmt, args... );
     }
     template < typename... Args >
-    PUBLIC auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID {
+    auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args && ...args ) -> VOID {
         auto fmt_str = format( fmt, std::forward< Args >( args )... );
 
         while ( *fmt_str ) {
@@ -168,7 +167,7 @@ PUBLIC namespace QuantumNEC {
             case '\n':
                 Pos.YPosition++;
                 Pos.XPosition = Pos.column;     // 如果是，将光标行数加1, 列数设为BasePrint::Pos->column
-                Kernel::Output::write( '\n' );
+                QuantumNEC::Kernel::Output::write( '\n' );
                 break;
             case '\t':
                 for ( auto i { 0 }; i < 4; ++i ) {
@@ -176,7 +175,7 @@ PUBLIC namespace QuantumNEC {
                           Pos.XPosition * Pos.XCharSize,
                           Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
                           DisplayColor::BLACK, ' ' );
-                    Kernel::Output::write( ' ' );
+                    QuantumNEC::Kernel::Output::write( ' ' );
                     ++Pos.XPosition;
                 }
 
@@ -199,7 +198,7 @@ PUBLIC namespace QuantumNEC {
                       Pos.XPosition * Pos.XCharSize,
                       Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
                       DisplayColor::BLACK, ' ' );
-                Kernel::Output::write( ' ' );
+                QuantumNEC::Kernel::Output::write( ' ' );
                 break;
             default:
                 putc( Pos.FB_addr, Pos.XResolution,
@@ -207,7 +206,7 @@ PUBLIC namespace QuantumNEC {
                       Pos.YPosition * Pos.YCharSize, DisplayColor::WHITE,
                       DisplayColor::BLACK, *fmt_str );
                 ++Pos.XPosition;
-                Kernel::Output::write( *fmt_str );
+                QuantumNEC::Kernel::Output::write( *fmt_str );
             }
 
             // 结尾部分
@@ -230,7 +229,7 @@ PUBLIC namespace QuantumNEC {
         print< level >( fmt, std::forward< Args >( args )... );
         Pos.YPosition++;
         Pos.XPosition = Pos.column;
-        Kernel::Output::write( '\n' );
+        QuantumNEC::Kernel::Output::write( '\n' );
         pri_lock.release( );
     }
     template < typename... Args >
@@ -239,7 +238,7 @@ PUBLIC namespace QuantumNEC {
         print( fmt, std::forward< Args >( args )... );
         Pos.YPosition++;
         Pos.XPosition = Pos.column;
-        Kernel::Output::write( '\n' );
+        QuantumNEC::Kernel::Output::write( '\n' );
         pri_lock.release( );
     }
 }
