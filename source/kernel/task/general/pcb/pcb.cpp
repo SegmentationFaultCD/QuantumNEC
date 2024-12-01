@@ -36,14 +36,13 @@ PUBLIC namespace QuantumNEC::Kernel {
 
         if ( flags.task_type == Type::USER_PROCESS ) {
             // 用户进程有自己的页表，所以复制内核页表
-            PageTableWalker { }.copy( this->memory_manager.page_table );
+            this->memory_manager.page_table.copy( this->memory_manager.page_table );
             // 将这一段内存映射为用户页
-            PageTableWalker { }.map( this->user_stack_base,
-                                     USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size,
-                                     TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M >,
-                                     PAGE_PRESENT | PAGE_RW_W | PAGE_US_U,
-                                     MemoryPageType::PAGE_2M,
-                                     this->memory_manager.page_table );
+            this->memory_manager.page_table.map( this->user_stack_base,
+                                                 USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size,
+                                                 TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M >,
+                                                 PAGE_PRESENT | PAGE_RW_W | PAGE_US_U,
+                                                 MemoryPageType::PAGE_2M );
             // 用户栈栈底存PCB的地址
             *(uint64_t *)( USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size ) = uint64_t( this );
             // 将RSP指向用户栈栈顶
@@ -63,16 +62,16 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 暂时没啥用
         this->signal = 0;
         // 时间片越多优先级越高
-        this->priority = _priority_;
+        this->schedule.priority = _priority_;
         // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
-        this->flags.fpu_enable = _flags_.fpu_enable;
-        this->flags.fpu_used   = _flags_.fpu_used;
-        this->flags.state      = _flags_.state;
-        this->flags.task_type  = _flags_.task_type;
-        this->virtual_deadline = SchedulerHelper::make_virtual_deadline( this->priority );
+        this->flags.fpu_enable          = _flags_.fpu_enable;
+        this->flags.fpu_used            = _flags_.fpu_used;
+        this->flags.state               = _flags_.state;
+        this->flags.task_type           = _flags_.task_type;
+        this->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( this->schedule.priority );
 #ifdef APIC
         // 当前cpu的id
-        this->cpu_id = Interrupt::apic_id( );
+        this->schedule.cpu_id = Interrupt::apic_id( );
 #endif
         // 魔术字节
         this->stack_magic = PCB_STACK_MAGIC;

@@ -28,7 +28,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 暂时没啥用
         main_pcb->signal = 0;
         // 时间片越多优先级越高
-        main_pcb->priority = Scheduler::Priority::IDLEPRIO;
+        main_pcb->schedule.priority = Scheduler::Priority::IDLEPRIO;
         // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
         main_pcb->flags.fpu_enable = PCB::FpuEnable::ENABLE;
         main_pcb->flags.fpu_used   = PCB::FpuUsed::USED;
@@ -36,18 +36,18 @@ PUBLIC namespace QuantumNEC::Kernel {
         main_pcb->flags.task_type  = PCB::Type::KERNEL_PROCESS;
 #ifdef APIC
         // 当前cpu的id
-        main_pcb->cpu_id = Interrupt::apic_id( );
+        main_pcb->schedule.cpu_id = Interrupt::apic_id( );
 #endif
         // 魔术字节
         main_pcb->stack_magic = PCB_STACK_MAGIC;
 
-        SchedulerHelper::running_queue.append( main_pcb->general_task_node );
+        SchedulerHelper::running_queue.append( main_pcb->schedule.general_task_node );
 
-        main_pcb->general_task_node.container = main_pcb;
-        main_pcb->jiffies                     = SchedulerHelper::rr_interval;
-        main_pcb->PPID                        = 0;
-        main_pcb->memory_manager.page_table   = reinterpret_cast< decltype( main_pcb->memory_manager.page_table )::page_table_entry   *>( CPU::get_page_table( ) );
-        main_pcb->virtual_deadline            = SchedulerHelper::make_virtual_deadline( main_pcb->priority );
+        main_pcb->schedule.general_task_node.container = main_pcb;
+        main_pcb->schedule.jiffies                     = SchedulerHelper::rr_interval;
+        main_pcb->PPID                                 = 0;
+        main_pcb->memory_manager.page_table            = reinterpret_cast< decltype( main_pcb->memory_manager.page_table )::page_table_entry            *>( CPU::get_page_table( ) );
+        main_pcb->schedule.virtual_deadline            = SchedulerHelper::make_virtual_deadline( main_pcb->schedule.priority );
     }
     auto ProcessManager::get_running_task( VOID ) -> PCB * {
         // 得到正在运行的任务

@@ -24,7 +24,7 @@ PUBLIC namespace QuantumNEC::Modules {
 
         auto relocate_base { (uint64_t)physical_to_virtual( Kernel::PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( page_count ) ) };
 
-        Kernel::PageTableWalker { }.map( (uint64_t)Kernel::virtual_to_physical( relocate_base ), relocate_base, 1, Kernel::PAGE_PRESENT | Kernel::PAGE_RW_W | Kernel::PAGE_US_U, MemoryPageType::PAGE_2M );
+        Kernel::Paging::kernel_page_table->map( (uint64_t)Kernel::virtual_to_physical( relocate_base ), relocate_base, 1, Kernel::PAGE_PRESENT | Kernel::PAGE_RW_W | Kernel::PAGE_US_U, MemoryPageType::PAGE_2M );
 
         auto relocate_offset = relocate_base - low_address;
         auto zero_start      = reinterpret_cast< uint64_t      *>( relocate_base );

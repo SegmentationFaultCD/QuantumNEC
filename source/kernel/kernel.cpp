@@ -131,6 +131,7 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Modules::Module        mod { };
     Kernel::Task           task { };
     Kernel::ProcessCreater cre;
+
     cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
 
     Kernel::Interrupt::enable_interrupt( );

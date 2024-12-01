@@ -143,15 +143,11 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     public:
         explicit __page_header__( IN uint64_t header_count, IN __address__ header_start_address, IN __address__ base_address ) {
-            auto &group = __helper__::get_group( );
-
+            auto &group                            = __helper__::get_group( );
             this->all_memory_header_count          = header_count;
             this->all_memory_page_desvriptor_count = all_memory_header_count * __helper__::page_descriptor_count;
             this->zone                             = header_start_address.template get_address< __address__::HEADER_START_ADDRESS >( this->all_memory_header_count );
             auto base_address_                     = base_address.template get_address< __address__::BASE_ADDRESS >( this->all_memory_header_count );
-            if ( __allocater_to_bind__ == PAGE_4K ) {
-                std::println( "{}", (void *)this->zone );
-            }
             this->lock.acquire( );
             for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
                 auto &[ info, bitmap ]      = this->zone[ i ];
@@ -163,18 +159,11 @@ PUBLIC namespace QuantumNEC::Kernel {
                 info.base_address           = base_address_ + __helper__::page_descriptor_count * PageAllocater::__page_size__< __allocater_to_bind__ > * i;
                 info.header_count           = 0;
                 // 插入红黑树中
-                if ( __allocater_to_bind__ == PAGE_4K )
-                    std::println( "{}", (void *)group.size( ) );
                 info.group_node._key  = __helper__::get_keys( info.base_address );
                 info.group_node._data = &info;
                 group.insert( info.group_node );
-                if ( __allocater_to_bind__ == PAGE_4K )
-                    std::println( "{}", (void *)info.group_node._key );
             }
             this->lock.release( );
-            if ( group.size( ) == 2 ) {
-                std::println( "{} {}", (void *)group._root->_key, (void *)group._root->_left->_key );
-            }
             this->zone[ 0 ].first.header_count = this->all_memory_header_count;
             this->zone[ 0 ].first.owner        = NULL;
         }

@@ -20,7 +20,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 if ( SchedulerHelper::task_queue[ i ].is_empty( ) ) {
                     continue;
                 }
-                auto head = &SchedulerHelper::task_queue[ i ].begin( )->general_task_node;
+                auto head = &SchedulerHelper::task_queue[ i ].begin( )->schedule.general_task_node;
 
                 // EEVDF算法在剩余三个队列中整理并查找
                 Lib::ListTable< PCB >::ListNode *p, *q, *tail;
@@ -33,12 +33,12 @@ PUBLIC namespace QuantumNEC::Kernel {
                     tail     = head->prev;
 
                     while ( num-- ) {
-                        if ( auto pcb = ( (PCB *)q->container ); pcb->virtual_deadline < Interrupt::global_jiffies ) {
+                        if ( q->container->schedule.virtual_deadline < Interrupt::global_jiffies ) {
                             // deadline小于当前进程则直接弹出这个
 
-                            return pcb;
+                            return q->container;
                         }
-                        if ( ( (PCB *)q->container )->virtual_deadline > ( (PCB *)p->container )->virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
+                        if ( q->container->schedule.virtual_deadline > p->container->schedule.virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
                         {
                             q->next    = p->next;
                             p->next    = q;
@@ -65,19 +65,19 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 遍历运行队列查找是否可以抢占VD大于插入任务的CPU
 
         for ( auto &running_pcb : SchedulerHelper::running_queue ) {
-            if ( running_pcb.virtual_deadline > pcb->virtual_deadline ) {
+            if ( running_pcb.schedule.virtual_deadline > pcb->schedule.virtual_deadline ) {
                 // 不为空，说明有任务的VD比这个任务VS大
                 // 那就抢占
 
                 // 处理抢占的任务，将它归入所对应优先级的队列之中，并从运行队列中删除
-                SchedulerHelper::running_queue.remove( running_pcb.general_task_node );
-                SchedulerHelper::task_queue[ running_pcb.priority ].append( running_pcb.general_task_node );
+                SchedulerHelper::running_queue.remove( running_pcb.schedule.general_task_node );
+                SchedulerHelper::task_queue[ running_pcb.schedule.priority ].append( running_pcb.schedule.general_task_node );
                 running_pcb.flags.state = PCB::State::READY;
                 // 处理抢占者，从任务队列中剔除，加入运行队列
-                SchedulerHelper::task_queue[ pcb->priority ].append( pcb->general_task_node );
-                SchedulerHelper::running_queue.append( pcb->general_task_node );
-                pcb->cpu_id      = running_pcb.cpu_id;
-                pcb->flags.state = PCB::State::RUNNING;
+                SchedulerHelper::task_queue[ pcb->schedule.priority ].append( pcb->schedule.general_task_node );
+                SchedulerHelper::running_queue.append( pcb->schedule.general_task_node );
+                pcb->schedule.cpu_id = running_pcb.schedule.cpu_id;
+                pcb->flags.state     = PCB::State::RUNNING;
 
                 SchedulerHelper::global_lock.release( );
                 Interrupt::enable_interrupt( );
@@ -90,7 +90,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         // 为空，说明这个要插入的任务VD太大了
         // 那就根据优先级插入任务等待队列
         // 插入队尾
-        SchedulerHelper::task_queue[ pcb->priority ].append( pcb->general_task_node );
+        SchedulerHelper::task_queue[ pcb->schedule.priority ].append( pcb->schedule.general_task_node );
         pcb->flags.state = PCB::State::READY;
         SchedulerHelper::global_lock.release( );
         Interrupt::enable_interrupt( );
@@ -102,9 +102,9 @@ PUBLIC namespace QuantumNEC::Kernel {
 
     auto BrainFuckScheduler::__schedule__( VOID ) -> std::expected< PCB *, ErrorCode > {
         for ( auto cpu_id = Apic::apic_id( ); auto &pcb : SchedulerHelper::running_queue ) {
-            if ( cpu_id == pcb.cpu_id ) {
-                if ( pcb.jiffies ) {
-                    pcb.jiffies--;
+            if ( cpu_id == pcb.schedule.cpu_id ) {
+                if ( pcb.schedule.jiffies ) {
+                    pcb.schedule.jiffies--;
                     return &pcb;
                 }
                 else {
@@ -115,19 +115,19 @@ PUBLIC namespace QuantumNEC::Kernel {
                     }
                     if ( result.has_value( ) ) {
                         auto new_pcb = result.value( );
-                        SchedulerHelper::task_queue[ new_pcb->priority ].remove( new_pcb->general_task_node );
+                        SchedulerHelper::task_queue[ new_pcb->schedule.priority ].remove( new_pcb->schedule.general_task_node );
 
-                        SchedulerHelper::running_queue.remove( pcb.general_task_node );
-                        SchedulerHelper::task_queue[ pcb.priority ].append( pcb.general_task_node );
+                        SchedulerHelper::running_queue.remove( pcb.schedule.general_task_node );
+                        SchedulerHelper::task_queue[ pcb.schedule.priority ].append( pcb.schedule.general_task_node );
                         pcb.flags.state = PCB::State::READY;
                         // 重新计算VD，填充时间片
-                        pcb.virtual_deadline = SchedulerHelper::make_virtual_deadline( pcb.priority );
-                        pcb.jiffies          = SchedulerHelper::rr_interval;
+                        pcb.schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( pcb.schedule.priority );
+                        pcb.schedule.jiffies          = SchedulerHelper::rr_interval;
 
-                        new_pcb->flags.state = PCB::State::RUNNING;
-                        new_pcb->cpu_id      = pcb.cpu_id;
+                        new_pcb->flags.state     = PCB::State::RUNNING;
+                        new_pcb->schedule.cpu_id = pcb.schedule.cpu_id;
 
-                        SchedulerHelper::running_queue.append( new_pcb->general_task_node );
+                        SchedulerHelper::running_queue.append( new_pcb->schedule.general_task_node );
                         return new_pcb;
                     }
                 }

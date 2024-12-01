@@ -43,14 +43,6 @@ PUBLIC namespace QuantumNEC::Kernel {
         };
 
     public:
-        struct MM {
-            pml4t page_table;     // 任务所持有的页表地址
-            explicit MM( VOID ) = default;
-            auto operator=( MM &mm ) -> MM & {
-                this->page_table = mm.page_table;
-                return *this;
-            }
-        };
         struct _packed ThreadContext     // 栈底
         {
 #if defined( __x86_64__ )
@@ -77,32 +69,29 @@ PUBLIC namespace QuantumNEC::Kernel {
             auto make( IN VOID *_entry, IN uint64_t kernel_stack_top, IN Type type ) -> BOOL;
             auto operator=( CONST Interrupt::InterruptFrame & ) -> ProcessContext &;
         };
-        struct Context {
-            ProcessContext *pcontext;
-            ThreadContext  *tcontext;
-            explicit Context( VOID ) = default;
-        };
 
     public:
-        Lib::ListTable< PCB >::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
-
-        MM memory_manager;     // 记录内存分布
+        struct MM {
+            pml4t page_table;     // 任务所持有的页表地址
+            explicit MM( VOID ) = default;
+        } memory_manager;     // 记录内存分布
 
         uint64_t kernel_stack_base;     // 内核栈栈底
         uint64_t kernel_stack_size;     // 内核栈大小
         uint64_t user_stack_base;       // 用户栈栈底
         uint64_t user_stack_size;       // 用户栈大小
-        Context  context;               // 上下文 记录寄存器状态
+        struct Context {
+            ProcessContext *pcontext;
+            ThreadContext  *tcontext;
+            explicit Context( VOID ) = default;
+        } context;     // 上下文 记录寄存器状态
 
         Message message;     // 进程消息体
 
         uint64_t PID;                        // 任务ID
         uint64_t PPID;                       // 父进程ID
         char_t   name[ TASK_NAME_SIZE ];     // 任务名
-
-        uint64_t jiffies;      // 可运行的时间片
-        uint64_t signal;       // 任务持有的信号
-        uint64_t priority;     // 任务优先级
+        uint64_t signal;                     // 任务持有的信号
 
         struct Flags {
             State     state : 7;          // 任务状态
@@ -112,8 +101,13 @@ PUBLIC namespace QuantumNEC::Kernel {
             uint64_t  red : 53;
         } flags;
 
-        uint64_t virtual_deadline;     // 虚拟截止时间
-        uint64_t cpu_id;               // CPU ID
+        struct Schedule {
+            uint64_t                        jiffies;               // 可运行的时间片
+            uint64_t                        priority;              // 任务优先级
+            uint64_t                        virtual_deadline;      // 虚拟截止时间
+            uint64_t                        cpu_id;                // CPU ID
+            Lib::ListTable< PCB >::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
+        } schedule;
 
         FloatPointUnit::FpuFrame *fpu_frame;
 
@@ -136,7 +130,7 @@ PUBLIC namespace QuantumNEC::Kernel {
 #error Not any registers
 #endif
             // 激活页表
-            PageTableWalker { }.activate( this->memory_manager.page_table );
+            this->memory_manager.page_table.activate( );
             this->fpu_frame->load( );
         }
     };
