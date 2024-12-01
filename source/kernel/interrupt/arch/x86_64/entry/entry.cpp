@@ -9,7 +9,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     using namespace std;
     auto InterruptEntry::registers( Frame * frame ) noexcept -> VOID {
         ControlRegisterFrame control_registers_frame { };
-        println< print_level::ERROR >( "\t\t\t Rflags -> {:x}\n"
+        println< print_level::ERROR >( "Rflags -> {:x}\n"
                                        "\t\t\t RIP -> {} RSP -> {:x} SS -> {:x} CS -> {:x}\n"
                                        "\t\t\t RAX -> {:x} RBX -> {:x} RCX -> {:x} RDX -> {:x}\n"
                                        "\t\t\t R8  -> {:x} R9  -> {:x} R10 -> {:x} R11 -> {:x} R12 -> {:x} R13 -> {:x} R14 -> {:x} R15 -> {:x}\n"
@@ -37,12 +37,13 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
     }
     auto InterruptEntry::cpu( VOID ) noexcept -> VOID {
         ControlRegisterFrame control_registers_frame { };
-        println< print_level::ERROR >( "\t\t\t CPU -> {}", Apic::apic_id( ) );
+        println< print_level::ERROR >( "CPU -> {}", Apic::apic_id( ) );
     }
     auto InterruptEntry::task( VOID ) noexcept -> VOID {
     }
     auto InterruptEntry::error_code( uint64_t error_code ) noexcept -> VOID {
         ErrorCode code { error_code };
+
         if ( code.external ) {
             std::println< print_level::ERROR >( "The exception originated externally to the processor." );
         }

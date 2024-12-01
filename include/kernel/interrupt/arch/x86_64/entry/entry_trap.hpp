@@ -200,7 +200,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             uint32_t software_guard_extensions : 1;
             uint32_t : 16;
             PFErrorCode( uint64_t error_code ) {
-                *this = *reinterpret_cast< PFErrorCode * >( error_code );
+                *reinterpret_cast< uint64_t * >( this ) = error_code;
             }
         };
     };

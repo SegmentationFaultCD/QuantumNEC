@@ -37,7 +37,7 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
             uint32_t index : 13;
             uint32_t reserved : 16;
             ErrorCode( uint64_t error_code ) {
-                *this = *reinterpret_cast< ErrorCode * >( error_code );
+                *reinterpret_cast< uint64_t * >( this ) = error_code;
             }
         };
     };

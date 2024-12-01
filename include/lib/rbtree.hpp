@@ -112,9 +112,6 @@ PUBLIC namespace QuantumNEC {
             Node *_pnode;
         };
 
-    private:
-        Node parent;     // 始祖
-
     public:
         using Iterator      = RedBlackTreeIterator< T, T &, T      *>;
         using ConstIterator = const RedBlackTreeIterator< T, T &, T * >;
@@ -133,33 +130,28 @@ PUBLIC namespace QuantumNEC {
         }
 
     public:
-        auto init( VOID ) {
-            this->parent._color = RedBlackTreeNode::Color::RED;
+        auto init( ) {
+            this->_nil  = NULL;
+            this->_root = NULL;
+            this->_size = 0;
         }
-        explicit RedBlackTree( VOID ) noexcept :
-            parent { 0 } {
-            this->init( );
+        explicit RedBlackTree( void ) noexcept {
         }
 
-        auto insert( IN Node &_node )     // 插入节点
+        auto insert( Node &_node )     // 插入节点
         {
             auto z = &_node;
-
             if ( !this->_root ) {     // 为空树
-                this->_root          = z;
-                this->_root->_parent = &this->parent;
-                this->_root->_color  = Node::Color::BLACK;
-                this->_root->_left   = NULL;
-                this->_root->_right  = NULL;
-                this->_size          = 1;
-                this->_nil           = this->_root;
-
+                this->_root         = z;
+                this->_root->_color = Node::Color::BLACK;
+                this->_root->_left  = NULL;
+                this->_root->_right = NULL;
+                this->_size         = 1;
+                this->_nil          = this->_root;
                 return;
             }
-
             auto *y = this->_nil;
             auto *x = this->_root;
-
             while ( x != this->_nil ) {
                 y = x;
                 if ( z->_key < x->_key )
@@ -228,7 +220,7 @@ PUBLIC namespace QuantumNEC {
         }
 
         // 查找方法
-        auto search( IN Keyofvalue key ) -> Node * {
+        auto search( Keyofvalue key ) -> Node * {
             auto *node = this->_root->_parent;
             while ( node != this->_nil ) {
                 if ( key < node->_key ) {
@@ -244,7 +236,7 @@ PUBLIC namespace QuantumNEC {
 
             return this->_nil;
         }
-        auto swap( IN RedBlackTree< T, Keyofvalue > &_t ) {
+        auto swap( RedBlackTree< T, Keyofvalue > &_t ) {
             std::swap( _root, _t._root );
         }
 
@@ -259,19 +251,34 @@ PUBLIC namespace QuantumNEC {
             auto *_root = this->_root->_parent;
             this->mid( _root );
         }
+        // // 中序遍历：
+        auto mid( auto func ) -> void
+            requires std::invocable< decltype( func ), T & >
+        {
+            auto translate = [ &func ]( this auto &self, Node *root ) {
+                if ( root ) {
+                    if ( func( *root->_data ) ) {
+                        return TRUE;
+                    }
+                    if ( self( root->_left ) ) {
+                        return TRUE;
+                    }
+                    if ( self( root->_right ) ) {
+                        return TRUE;
+                    }
+                }
+                return FALSE;
+            };
+            translate( this->_root );
+            return;
+        }
 
     private:
-        // // 中序遍历：
-        auto mid( Node *root ) {
-            if ( root ) {
-                this->mid( root->_left );
-                this->mid( root->_right );
-            }
-        }
         auto left_most( ) {
             auto left = _root->_left;
-            while ( left && left->_left )
+            while ( left && left->_left ) {
                 left = left->_left;
+            }
             return left;
         }
         auto right_most( ) {
@@ -459,10 +466,8 @@ PUBLIC namespace QuantumNEC {
         }
 
     private:
-        uint64_t _size;
-        // Node    *_head;
-    public:
-        Node *_root;
-        Node *_nil;
+        uint64_t _size = 0;
+        Node    *_root = nullptr;
+        Node    *_nil  = nullptr;
     };
 }

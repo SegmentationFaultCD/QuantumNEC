@@ -31,10 +31,6 @@
     } )
 
 PUBLIC namespace QuantumNEC::Lib {
-    PUBLIC constexpr auto CHECKFLAG( auto &&field, auto &&flag ) {
-        return field & flag;
-    }
-
     PUBLIC constexpr const auto CRLF { "\r\n" };
     PUBLIC constexpr auto       IS_DIGIT( auto &&c ) {
         return c >= '0' && c <= '9';
@@ -63,16 +59,8 @@ PUBLIC namespace QuantumNEC::Lib {
 }     // namespace QuantumNEC::Lib::Base
 
 #if defined( __x86_64__ )
-#define _BARRIER "mfence\n\t"
+
 #define BARRIER ASM( _BARRIER );
-#define DO_DIV( n, base )                             \
-    ( {                                               \
-        int __res;                                    \
-        __asm__( "divq %%rcx"                         \
-                 : "=a"( n ), "=d"( __res )           \
-                 : "0"( n ), "1"( 0 ), "c"( base ) ); \
-        __res;                                        \
-    } )
 
 #elif defined( __aarch64__ )
 #else
