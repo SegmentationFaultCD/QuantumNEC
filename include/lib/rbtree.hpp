@@ -252,24 +252,26 @@ PUBLIC namespace QuantumNEC {
             this->mid( _root );
         }
         // // 中序遍历：
-        auto mid( auto func ) -> void
+        auto translate( auto func ) -> void
             requires std::invocable< decltype( func ), T & >
         {
-            auto translate = [ &func ]( this auto &self, Node *root ) {
+            auto _helper_ = [ &func ]( this auto &self, Node *root ) -> BOOL {
                 if ( root ) {
                     if ( func( *root->_data ) ) {
-                        return TRUE;
+                        return FALSE;
                     }
+
                     if ( self( root->_left ) ) {
-                        return TRUE;
+                        return FALSE;
                     }
                     if ( self( root->_right ) ) {
-                        return TRUE;
+                        return FALSE;
                     }
                 }
-                return FALSE;
+                return TRUE;
             };
-            translate( this->_root );
+
+            _helper_( this->_root );
             return;
         }
 

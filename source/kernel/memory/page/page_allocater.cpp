@@ -26,10 +26,10 @@ PUBLIC namespace QuantumNEC::Kernel {
             if ( group.empty( ) ) {
                 goto finish;
             }
-
             lock.acquire( );
-            group.mid( [ & ]( PHI &zone ) -> BOOL {
+            group.translate( [ & ]( PHI &zone ) -> BOOL {
                 if ( !zone.owner ) {     // zone.owner is null, that means it is the head of the zone.
+
                     for ( auto i = 0ul; i < zone.header_count; ++i ) {
                         auto header = reinterpret_cast< PH::__helper__::__header__ * >( &zone );
                         // If the header's state is ALL_FULL, that means there is no need to search the header's bitmap.
@@ -65,7 +65,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 goto finish;
             }
             lock.acquire( );
-            group.mid( [ & ]( PHI &zone ) -> BOOL {
+            group.translate( [ & ]( PHI &zone ) -> BOOL {
                 if ( !zone.owner ) {     // owner为NULL说明为此区域第一个header
                     if ( zone.header_count < header_count ) {
                         return FALSE;     // 如果这个区域内header的数量甚至少于请求的header数那就直接下一个节点
@@ -139,6 +139,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         page_headers.__allocate_headers__( __size__ );
         // 拿第一个头的base
         auto address = std::get< PHI >( page_headers.get( 0 ) ).base_address;
+        lock.release( );
         return (void *)address;
     }
     template <>
@@ -161,7 +162,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
 
             lock.acquire( );
-            group.mid( [ & ]( PHI &zone ) -> BOOL {
+            group.translate( [ & ]( PHI &zone ) -> BOOL {
                 if ( !zone.owner ) {     // zone.owner is null, that means it is the head of the zone.
                     for ( auto i = 0ul; i < zone.header_count; ++i ) {
                         auto header = reinterpret_cast< PH::__helper__::__header__ * >( &zone );
@@ -200,7 +201,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 goto finish;
             }
             lock.acquire( );
-            group.mid( [ & ]( PHI &zone ) -> BOOL {
+            group.translate( [ & ]( PHI &zone ) -> BOOL {
                 if ( !zone.owner ) {     // owner为NULL说明为此区域第一个header
                     if ( zone.header_count < header_count ) {
                         return FALSE;     // 如果这个区域内header的数量甚至少于请求的header数那就直接下一个节点
@@ -299,7 +300,7 @@ PUBLIC namespace QuantumNEC::Kernel {
             }
 
             lock.acquire( );
-            group.mid( [ & ]( PHI &zone ) -> BOOL {
+            group.translate( [ & ]( PHI &zone ) -> BOOL {
                 if ( !zone.owner ) {     // zone.owner is null, that means it is the head of the zone.
                     for ( auto i = 0ul; i < zone.header_count; ++i ) {
                         auto header = reinterpret_cast< PH::__helper__::__header__ * >( &zone );
@@ -336,7 +337,7 @@ PUBLIC namespace QuantumNEC::Kernel {
                 goto finish;
             }
             lock.acquire( );
-            group.mid( [ & ]( PHI &zone ) -> BOOL {
+            group.translate( [ & ]( PHI &zone ) -> BOOL {
                 if ( !zone.owner ) {     // owner为NULL说明为此区域第一个header
                     if ( zone.header_count < header_count ) {
                         return FALSE;     // 如果这个区域内header的数量甚至少于请求的header数那就直接下一个节点

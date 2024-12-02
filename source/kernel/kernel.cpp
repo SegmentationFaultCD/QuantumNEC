@@ -117,6 +117,12 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::Interrupt intr { };
     Kernel::Memory    mem { };
 
+    for ( auto i = 0; i < 2030; ++i ) {
+        auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 1 );
+        // println< print_level::DEBUG >( "{:x} {}", s, i );
+    }
+    std::println( "|{}|", 11 );
+    auto            s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 38 );
     Kernel::CPU     cpu { };
     Kernel::Sound   soun { };
     Kernel::Time    tim { };
@@ -184,6 +190,18 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     // }
 
     // Kernel::Interrupt::enable_interrupt( );
+
+    std::println< std::print_level::DEBUG >( "finish!" );
+    // println< print_level::DEBUG >( "Free C" );
+    // auto g = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 12 );
+    // println< print_level::DEBUG >( "{:x}", g );
+    // auto h = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 100 );
+    // println< print_level::DEBUG >( "{:x}", h );
+    // auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 1523 );
+    // println< print_level::DEBUG >( "{:x}", s );
+    // Kernel::PageCollector { }.free< Kernel::PAGE_2M >( s, 1523 );
+    // auto r = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 2048 );
+    // println< print_level::DEBUG >( "{:x}", r );
 
     // task.create< Kernel::Process >( "Process C", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcC, 0 );
     // task.create< Kernel::Process >( "Process D", 31, Kernel::TASK_FLAG_FPU_UNUSED | Kernel::TASK_FLAG_KERNEL_PROCESS, ProcD, 0 );
