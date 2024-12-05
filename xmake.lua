@@ -28,7 +28,6 @@ target("sys")
             "-Wall", 
             "-Wextra",
             "-Werror",
-            "-fno-lto", 
             "-fPIC", {force = true}
     )
     set_kind("static")
@@ -57,8 +56,7 @@ target("c")
             "-fno-stack-check", -- 不要栈检查
             "-Wall", 
             "-Wextra",
-            "-Werror",
-            "-fno-lto", 
+            "-Werror", 
             "-fPIC", {force = true}
     )
     set_kind("static")
@@ -89,7 +87,6 @@ target("cxx")
             "-Wall", 
             "-Wextra",
             "-Werror",
-            "-fno-lto", 
             "-fPIC", {force = true}
     )
     set_kind("static")
@@ -122,7 +119,6 @@ target("servicer.elf")
             "-Wall", 
             "-Wextra",
             "-Werror",
-            "-fno-lto",
             "-fPIE", {force = true}
     )
     set_kind("binary")
@@ -162,9 +158,7 @@ target("micro_kernel")
             "-Wextra",
            -- "-Werror",
             "-D APIC",
-            "-fPIE",        
-            "-fno-lto",
-    
+            "-fPIE",
             "-Wpointer-arith",
              "-Wwrite-strings",
             -- "-Wcast-align",
@@ -218,12 +212,12 @@ target("micro_kernel")
         print("复制模块文件到VM文件夹")
         os.cp(run_dir.."/servicer.elf", "vm/QuantumNEC/SYSTEM64/")
     end)
-target("qemu")
+target("run")
     set_kind("phony")
     add_deps("micro_kernel")
     set_default(true)
     on_build(function (target)
-        local qemu_flags =  "-cpu qemu64,x2apic \
+        local qemu_flags =  "-enable-kvm \
                              -drive if=pflash,format=raw,readonly=on,file=scripts/bios/x86_64efi.bios \
                              -drive file=fat:rw:vm,index=0,format=vvfat \
                              -m 16G \

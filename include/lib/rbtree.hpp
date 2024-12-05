@@ -136,6 +136,7 @@ PUBLIC namespace QuantumNEC {
             this->_size = 0;
         }
         explicit RedBlackTree( void ) noexcept {
+            this->init( );
         }
 
         auto insert( Node &_node )     // 插入节点
@@ -221,7 +222,8 @@ PUBLIC namespace QuantumNEC {
 
         // 查找方法
         auto search( Keyofvalue key ) -> Node * {
-            auto *node = this->_root->_parent;
+            auto *node = this->_root;
+
             while ( node != this->_nil ) {
                 if ( key < node->_key ) {
                     node = node->_left;
@@ -247,10 +249,6 @@ PUBLIC namespace QuantumNEC {
             return !this->_size;
         }
 
-        auto inoder( ) {
-            auto *_root = this->_root->_parent;
-            this->mid( _root );
-        }
         // // 中序遍历：
         auto translate( auto func ) -> void
             requires std::invocable< decltype( func ), T & >

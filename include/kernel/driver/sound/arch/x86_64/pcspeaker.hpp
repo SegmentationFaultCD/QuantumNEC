@@ -8,16 +8,10 @@ PUBLIC namespace QuantumNEC::Kernel::x86_64 {
         virtual ~PCSpeaker( VOID ) noexcept;
 
     private:
-        STATIC auto enable_beep( VOID ) -> VOID;
-        STATIC auto disable_beep( VOID ) -> VOID;
+        static auto enable( VOID ) -> VOID;
+        static auto disable( VOID ) -> VOID;
 
     public:
-        STATIC auto beep( VOID ) -> VOID {
-            enable_beep( );
-            disable_beep( );
-        }
-
-    private:
-        inline STATIC BOOL beeping { };
+        static auto beep( VOID ) -> VOID;
     };
 }

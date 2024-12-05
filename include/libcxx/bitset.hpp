@@ -1,4 +1,5 @@
 #pragma once
+#include <bit>
 #include <cstdint>
 #include <libcxx/expected.hpp>
 #include <utility>
@@ -9,7 +10,6 @@ PUBLIC namespace std {
     };
     template < std::size_t N >
     class bitset {
-    public:
     public:
         class reference {
             friend bitset< N >;
@@ -100,11 +100,7 @@ PUBLIC namespace std {
         auto count( ) {
             auto count { 0ul };
             for ( auto i { 0ul }; i < length; ++i ) {
-                for ( auto j { 0ul }; j < 64ul; ++j ) {
-                    if ( this->bitmap[ i ] & ( 1ul << j ) ) {
-                        count++;
-                    }
-                }
+                count += popcount( this->bitmap[ i ] );
             }
             return count;
         }
@@ -269,7 +265,7 @@ PUBLIC namespace std {
         }
 
     private:
-        inline static constexpr auto length = ( N % 64 == 0 ? N / 64 : N / 64 + 1 );
-        uint64_t                     bitmap[ length ] { };
+        constexpr static auto length = ( N % 64 == 0 ? N / 64 : N / 64 + 1 );
+        uint64_t              bitmap[ length ] { };
     };
 }

@@ -14,10 +14,7 @@
 using namespace std;
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
-#define TERMINAL_EMBEDDED_FONT
-#include <extern/os_terminal.h>
-SpinLock _lock { };
-int64_t  ProcC( VOID ) {
+int64_t ProcC( VOID ) {
     // Architecture::Message message { };
     // Architecture::Syscall::SyscallStatus a;
 
@@ -93,15 +90,9 @@ int64_t ThreadB( uint64_t ) {
     }
     return 0;
 }
-SpinLock lock { };
+
 using namespace QuantumNEC;
-auto malloc( size_t size ) -> void * {
-    return Kernel::KHeapAllocater { }.allocate( size );
-};
-auto free( void *addr ) -> void {
-    Kernel::KHeapCollector { }.free( addr );
-};
-#include <lib/rbtree.hpp>
+
 auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     Kernel::__config = config;
     // Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
@@ -112,30 +103,22 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     // Kernel::__config.paging_mode   = *paging_mode_request.response;
     // Kernel::__config.modules       = *modules_request.response;
 
-    Kernel::Output    outpt { };
-    Kernel::Acpi      acp { };
-    Kernel::Interrupt intr { };
-    Kernel::Memory    mem { };
-
-    for ( auto i = 0; i < 2030; ++i ) {
-        auto s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 1 );
-        // println< print_level::DEBUG >( "{:x} {}", s, i );
-    }
-    std::println( "|{}|", 11 );
-    auto            s = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_4K >( 38 );
-    Kernel::CPU     cpu { };
-    Kernel::Sound   soun { };
-    Kernel::Time    tim { };
-    Kernel::Syscall sysc { };
-
-    Modules::Module        mod { };
+    Kernel::Output         outpt { };
+    Kernel::Acpi           acp { };
+    Kernel::Interrupt      intr { };
+    Kernel::Memory         mem { };
+    Kernel::CPU            cpu { };
+    Kernel::Sound          soun { };
+    Kernel::Time           tim { };
+    Kernel::Syscall        sysc { };
     Kernel::Task           task { };
+    Modules::Module        mod { };
     Kernel::ProcessCreater cre;
 
-    cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
+    // cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
 
-    Kernel::Interrupt::enable_interrupt( );
-    //
+    //  Kernel::Interrupt::enable_interrupt( );
+    //  Kernel::x86_64::PCSpeaker::beep( );
     // STATIC TerminalDisplay s;
     // s.address   = (QuantumNEC::uint8_t *)Kernel::__config.graphics_data.address;
     // s.height    = Kernel::__config.graphics_data.height;
@@ -148,47 +131,59 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     //     NULL );
     // auto                   result = cre.create( "NAME!", 1, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     // std::println< std::ostream::HeadLevel::DEBUG >( "{}", result.value( )->virtual_deadline );
-    // println< ostream::HeadLevel::DEBUG >( "start allocate" );
+    println< print_level::DEBUG >( "start allocate" );
 
-    // println< ostream::HeadLevel::DEBUG >( "finish!" );
-    // println< ostream::HeadLevel::DEBUG >( "Begin test malloc and free" );
-    // char *a = (char *)Kernel::KHeapAllocater { }.allocate( 0x100 );
-    // char *b = (char *)Kernel::KHeapAllocater { }.allocate( 0x200 );
-    // char *c = (char *)Kernel::KHeapAllocater { }.allocate( 0x4000 );
-    // println< ostream::HeadLevel::DEBUG >( "A: {:x}", (void *)a );
-    // println< ostream::HeadLevel::DEBUG >( "B: {:x}", (void *)b );
-    // println< ostream::HeadLevel::DEBUG >( "C: {:x}", (void *)c );
-    // // bit pattern
-    // for ( size_t i = 0; i < 0x100; i++ ) {
-    //     a[ i ] = 0x01;
-    // }
-    // // test if the memory is valid
-    // for ( size_t i = 0; i < 0x100; i++ ) {
-    //     if ( a[ i ] != 0x01 ) {
-    //         println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)a );
-    //     }
-    // }
-    // println< ostream::HeadLevel::DEBUG >( "Free A" );
-
-    // for ( size_t i = 0; i < 0x200; i++ ) {
-    //     b[ i ] = 0x02;
-    // }
-    // for ( size_t i = 0; i < 0x200; i++ ) {
-    //     if ( b[ i ] != 0x02 ) {
-    //         println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)b );
-    //     }
-    // }
-    // println< ostream::HeadLevel::DEBUG >( "Free B" );
-
-    // for ( size_t i = 0; i < 0x4000; i++ ) {
-    //     c[ i ] = 0x03;
-    // }
-    // for ( size_t i = 0; i < 0x4000; i++ ) {
-    //     if ( c[ i ] != 0x03 ) {
-    //         println< ostream::HeadLevel::DEBUG >( "Error at {:x}", (void *)c );
-    //     }
-    // }
-
+    println< print_level::DEBUG >( "finish!" );
+    println< print_level::DEBUG >( "Begin test malloc and free" );
+    char *a = (char *)Kernel::KHeapAllocater { }.allocate( 0x100 );
+    char *b = (char *)Kernel::KHeapAllocater { }.allocate( 0x200 );
+    char *c = (char *)Kernel::KHeapAllocater { }.allocate( 0x4000 );
+    println< print_level::DEBUG >( "A: {:x}", (void *)a );
+    println< print_level::DEBUG >( "B: {:x}", (void *)b );
+    println< print_level::DEBUG >( "C: {:x}", (void *)c );
+    // bit pattern
+    for ( size_t i = 0; i < 0x100; i++ ) {
+        a[ i ] = 0x01;
+    }
+    // test if the memory is valid
+    for ( size_t i = 0; i < 0x100; i++ ) {
+        if ( a[ i ] != 0x01 ) {
+            println< print_level::DEBUG >( "Error at {:x}", (void *)a );
+        }
+    }
+    println< print_level::DEBUG >( "Free A" );
+    for ( size_t i = 0; i < 0x200; i++ ) {
+        b[ i ] = 0x02;
+    }
+    for ( size_t i = 0; i < 0x200; i++ ) {
+        if ( b[ i ] != 0x02 ) {
+            println< print_level::DEBUG >( "Error at {:x}", (void *)b );
+        }
+    }
+    println< print_level::DEBUG >( "Free B" );
+    for ( size_t i = 0; i < 0x4000; i++ ) {
+        c[ i ] = 0x03;
+    }
+    for ( size_t i = 0; i < 0x4000; i++ ) {
+        if ( c[ i ] != 0x03 ) {
+            println< print_level::DEBUG >( "Error at {:x}", (void *)c );
+        }
+    }
+    using namespace Kernel;
+    for ( auto i = 0; i < 2049; ++i ) {
+        Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    }
+    auto s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
+    println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 4096 );
+    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
+    println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 1 );
+    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
     // Kernel::Interrupt::enable_interrupt( );
 
     std::println< std::print_level::DEBUG >( "finish!" );

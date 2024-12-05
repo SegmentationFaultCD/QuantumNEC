@@ -184,6 +184,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         lock.acquire( );
 
         auto node = group.search( PH::__helper__::get_keys( __physical_address__ ) );
+
         if ( node ) {
             auto zone = node->_data;
             if ( zone->owner ) {
