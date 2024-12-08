@@ -83,10 +83,11 @@ PUBLIC namespace QuantumNEC {
                 }
                 else     // 2.若结点的右子树不存在，则找到结点不是其父亲右孩子的结点
                 {
+                    auto cur    = _pnode;
                     auto parent = _pnode->_parent;
-                    while ( parent && parent->_right == _pnode ) {
-                        _pnode = parent;
-                        parent = _pnode->_parent;
+                    while ( parent && parent->_right == cur ) {
+                        cur    = parent;
+                        parent = parent->_parent;
                     }
                     _pnode = parent;
                 }
@@ -128,6 +129,9 @@ PUBLIC namespace QuantumNEC {
         ConstIterator begin( ) const {
             return ConstIterator { this->left_most( ) };
         }
+
+    private:
+        using Callfunc = void( const T & );
 
     public:
         auto init( ) {
@@ -250,7 +254,7 @@ PUBLIC namespace QuantumNEC {
         }
 
         // // 中序遍历：
-        auto translate( auto func ) -> void
+        auto traverse( auto func ) -> void
             requires std::invocable< decltype( func ), T & >
         {
             auto _helper_ = [ &func ]( this auto &self, Node *root ) -> BOOL {

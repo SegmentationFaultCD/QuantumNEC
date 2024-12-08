@@ -21,5 +21,6 @@ PUBLIC [[noreturn]] auto x86_64::apu_entry( IN limine_smp_info *cpu ) -> VOID {
     lock.release( );
     Interrupt::enable_interrupt( );
     while ( TRUE ) {
+        CPU::hlt( );
     }
 }

@@ -103,11 +103,19 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     // Kernel::__config.paging_mode   = *paging_mode_request.response;
     // Kernel::__config.modules       = *modules_request.response;
 
-    Kernel::Output         outpt { };
-    Kernel::Acpi           acp { };
-    Kernel::Interrupt      intr { };
-    Kernel::Memory         mem { };
-    Kernel::CPU            cpu { };
+    Kernel::Output    outpt { };
+    Kernel::Acpi      acp { };
+    Kernel::Interrupt intr { };
+    Kernel::Memory    mem { };
+    using namespace Kernel;
+    for ( auto i = 0; i < 1030; ++i ) {
+        Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    }
+    Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+
+    Kernel::CPU cpu { };
+
     Kernel::Sound          soun { };
     Kernel::Time           tim { };
     Kernel::Syscall        sysc { };
@@ -131,6 +139,7 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     //     NULL );
     // auto                   result = cre.create( "NAME!", 1, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     // std::println< std::ostream::HeadLevel::DEBUG >( "{}", result.value( )->virtual_deadline );
+
     println< print_level::DEBUG >( "start allocate" );
 
     println< print_level::DEBUG >( "finish!" );
@@ -170,10 +179,10 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
         }
     }
     using namespace Kernel;
-    for ( auto i = 0; i < 2049; ++i ) {
-        Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-    }
-    auto s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
+
+    auto s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1020 );
+    println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
     println< print_level::DEBUG >( "Address {:x}", (void *)s );
     PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 4096 );
     s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
@@ -184,6 +193,7 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
     println< print_level::DEBUG >( "Address {:x}", (void *)s );
     s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    println< print_level::DEBUG >( "Address {:x}", (void *)s );
     // Kernel::Interrupt::enable_interrupt( );
 
     std::println< std::print_level::DEBUG >( "finish!" );

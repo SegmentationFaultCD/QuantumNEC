@@ -8,12 +8,10 @@ PUBLIC namespace QuantumNEC::Kernel {
         using namespace QuantumNEC::Kernel;
         using namespace std;
         for ( auto i { 1ul }; i < __config.smp.cpu_count; ++i ) {
-            lock.acquire( );
-            __config.smp.cpus[ i ]->goto_address = apu_entry;
-            auto stack_start                     = PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-
+            auto stack_start = PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+            std::println( "{}", stack_start );
             Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocater::__page_size__< MemoryPageType::PAGE_4K > );
-            lock.release( );
+            __config.smp.cpus[ i ]->goto_address = apu_entry;
         }
         println< print_level::OK >( "Initialize Symmetric Multiprocessing" );
     }

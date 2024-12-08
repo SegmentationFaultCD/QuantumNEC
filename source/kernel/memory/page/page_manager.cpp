@@ -27,7 +27,7 @@ PUBLIC namespace QuantumNEC::Kernel {
         std::memset( (VOID *)info_address, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
         PH page_header { PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / PH::__helper__::header_size, (uint64_t)info_address, 0ul };
 
-        auto *bitmap = std::get< PHI >( page_header.get( 0 ) ).bitmap;
+        auto *bitmap = &page_header[ 0 ].bitmap;
         bitmap->set( reinterpret_cast< uint64_t >( virtual_to_physical( info_address ) ) / PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
         bitmap->set( 0, 32 );
 
@@ -56,19 +56,18 @@ PUBLIC namespace QuantumNEC::Kernel {
             case LIMINE_MEMMAP_FRAMEBUFFER:            // 显存占用的
 
                 // 计算取得偏移的基地址
-                auto &&base_address = ( (uint64_t)start - page_header.get( 0 ).first.base_address );
+                auto &&base_address = ( (uint64_t)start - page_header[ 0 ].base_address );
 
                 // 计算取得所在区域的header的编号
                 auto &&base_index = ( base_address & PH::__helper__::__zone_memory_mask__( ) ) / PH::__helper__::__zone_min_memory__;
                 // 取得处于所在header的bitmap中的编号
                 auto &&index = (base_address & PageAllocater::__page_mask__< PAGE_2M >) / PageAllocater::__page_size__< PAGE_2M > % PH::__helper__::page_descriptor_count;
 
-                auto &[ header, bitmap ] = page_header.get( base_index );
-                start                    = start / PageAllocater::__page_size__< MemoryPageType::PAGE_2M >;
-                end                      = Lib::DIV_ROUND_UP( end, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+                start = start / PageAllocater::__page_size__< MemoryPageType::PAGE_2M >;
+                end   = Lib::DIV_ROUND_UP( end, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
                 // 将这部分内存添加至bitmap
-                bitmap.set( index, end - start );
-                header.flags.state = PHI::__page_flags__::__page_state__::NORMAL;
+                page_header[ base_index ].bitmap.set( index, end - start );
+                page_header[ base_index ].flags.state = PHI::__page_flags__::__page_state__::NORMAL;
 
                 break;
             }

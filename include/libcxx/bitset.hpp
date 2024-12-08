@@ -1,6 +1,8 @@
 #pragma once
+#include <algorithm>
 #include <bit>
 #include <cstdint>
+#include <libcxx/cstring.hpp>
 #include <libcxx/expected.hpp>
 #include <utility>
 PUBLIC namespace std {
@@ -57,26 +59,24 @@ PUBLIC namespace std {
         explicit bitset( VOID ) noexcept {
         }
         explicit bitset( std::uint64_t _bitmap[] ) noexcept {
-            for ( auto i { 0ul }; i < length; ++i ) {
-                this->bitmap[ i ] = _bitmap[ i ];
-            }
+            std::ranges::copy_n( this->bitmap, this->length, _bitmap );
         }
         auto all( ) {
             constexpr auto mask = ~0ull;
-            for ( auto i { 0ul }; i < length; ++i ) {
-                if ( ( this->bitmap[ i ] != mask ) ) {
+            for ( auto &i : this->bitmap ) {
+                if ( i != mask ) {
                     return false;
                 }
             }
             return true;
         }
         auto any( ) {
-            for ( auto i { 0ul }; i < length; ++i ) {
-                if ( !bitmap[ i ] ) {
+            for ( auto &i : this->bitmap ) {
+                if ( !i ) {
                     continue;
                 }
                 for ( auto j { 0ul }; j < 64; ++i ) {
-                    if ( this->bitmap[ i ] & ( 1ul << j ) ) {
+                    if ( i & ( 1ul << j ) ) {
                         return true;
                     }
                 }
@@ -84,8 +84,8 @@ PUBLIC namespace std {
             return false;
         }
         auto none( ) {
-            for ( auto i { 0ul }; i < length; ++i ) {
-                if ( this->bitmap[ i ] ) {
+            for ( auto &i : this->bitmap ) {
+                if ( i ) {
                     return false;
                 }
             }
@@ -99,8 +99,12 @@ PUBLIC namespace std {
         }
         auto count( ) {
             auto count { 0ul };
-            for ( auto i { 0ul }; i < length; ++i ) {
-                count += popcount( this->bitmap[ i ] );
+            for ( auto &i : this->bitmap ) {
+                for ( auto j = 0; j < 64; ++j ) {
+                    if ( ( 1ul << j ) & i ) {
+                        count++;
+                    }
+                }
             }
             return count;
         }
@@ -118,8 +122,8 @@ PUBLIC namespace std {
             return *this;
         }
         auto set( ) -> bitset & {
-            for ( auto i { 0ul }; i < length; ++i ) {
-                this->bitmap[ i ] = ~( 0 );
+            for ( auto &i : this->bitmap ) {
+                i = ~0ull;
             }
             return *this;
         }
@@ -159,12 +163,7 @@ PUBLIC namespace std {
                 this->bitmap[ bitmap_index + used_length ] &= ~end_mask;
             }
             for ( auto _ { bitmap_index + 1 }; _ < bitmap_index + used_length; ++_ ) {
-                if constexpr ( value ) {
-                    this->bitmap[ _ ] = ~0ul;
-                }
-                else {
-                    this->bitmap[ _ ] = 0ul;
-                }
+                this->bitmap[ _ ] = ~( (uint64_t)value );
             }
             return *this;
         }
@@ -173,8 +172,8 @@ PUBLIC namespace std {
             return *this;
         }
         auto reset( ) -> bitset & {
-            for ( auto i { 0ul }; i < length; ++i ) {
-                this->bitmap[ i ] = 0;
+            for ( auto &i : this->bitmap ) {
+                i = 0ull;
             }
             return *this;
         }
@@ -188,8 +187,8 @@ PUBLIC namespace std {
             return *this;
         }
         auto flip( ) -> bitset & {
-            for ( auto i { 0ul }; i < length; ++i ) {
-                this->bitmap[ i ] = ~this->bitmap[ i ];
+            for ( auto &i : this->bitmap ) {
+                i = ~i;
             }
             return *this;
         }
@@ -204,29 +203,16 @@ PUBLIC namespace std {
         }
         auto operator~( ) const -> bitset {
             std::uint64_t tmp_bitmap[ length ] { bitmap };
-            for ( std::uint64_t i { }; i < length; ++i ) {
-                tmp_bitmap[ i ] = ~tmp_bitmap[ i ];
+            for ( auto &temp : tmp_bitmap ) {
+                temp = ~temp;
             }
             return tmp_bitmap;
         }
 
-        auto allocate( std::size_t size ) -> std::expected< uint64_t, bitset_error_code > {
-            if ( !size || size > N ) {
-                return std::unexpected { bitset_error_code::ScopeStackoverflow };
-            }
-            if ( auto pos_in_bitmap = this->find< false >( size ); pos_in_bitmap.has_value( ) ) {
-                this->set< true >( pos_in_bitmap.value( ), size );
-                return pos_in_bitmap.value( );
-            }
-            return std::unexpected { bitset_error_code::NotFound };
-        }
-        auto free( std::size_t pos, std::size_t size = 1 ) {
-            this->set< false >( pos, size );
-        }
         template < bool value >
         auto find( std::size_t size = 1 ) -> std::expected< uint64_t, bitset_error_code > {
-            for ( uint64_t i { }; i < this->length; ++i ) {
-                for ( uint64_t j { }; j < 64; ++j ) {
+            for ( uint64_t i = 0; i < this->length; ++i ) {
+                for ( uint64_t j = 0; j < 64; ++j ) {
                     if ( !( this->bitmap[ i ] & ( 1ul << j ) ) ) {
                         if ( 64 - j >= size ) {
                             if ( !( ( this->bitmap[ i ] >> j ) & ( ( 1ul << size ) - 1 ) ) ) {
@@ -244,7 +230,7 @@ PUBLIC namespace std {
                         else {
                             used_length = tmp / 64 + 1;
                         }
-                        bool success { true };
+                        auto success { true };
                         for ( auto &&_ { i + 1 }; _ < used_length + i; ++_ ) {
                             if ( this->bitmap[ _ ] ) {
                                 success = false;
@@ -262,6 +248,102 @@ PUBLIC namespace std {
                 }
             }
             return std::unexpected { bitset_error_code::NotFound };
+        }
+        template < bool value >
+        auto find_from_high( ) -> uint64_t {
+            for ( int64_t i = this->length - 1; i >= 0; --i ) {
+                if constexpr ( value ) {
+                    if ( this->bitmap[ i ] != ~0ul ) {
+                        for ( auto j = 63ul; j >= 0ul; --j ) {
+                            if ( this->bitmap[ i ] & ( 1ul << j ) ) {
+                                return i * 64 + j;
+                            }
+                        }
+                    }
+                }
+                else {
+                    if ( this->bitmap[ i ] != 0ul ) {
+                        for ( auto j = 63ul; j >= 0ul; --j ) {
+                            if ( this->bitmap[ i ] & ( 1ul << j ) ) {
+                                return i * 64 + j;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // auto old_needed_length = needed_length;
+            // auto segment_count     = needed_length / 64;
+            // needed_length %= 64;
+            // if ( segment_count > 1 ) {
+            //     for ( auto i = this->length - 1; i > this->length - 1 - segment_count; --i ) {
+            //         if constexpr ( value ) {
+            //             if ( this->bitmap[ i ] != ~0ul ) {
+            //                 return std::unexpected { bitset_error_code::NotFound };
+            //             }
+            //         }
+            //         else {
+            //             if ( this->bitmap[ i ] != 0ul ) {
+            //                 return std::unexpected { bitset_error_code::NotFound };
+            //             }
+            //         }
+            //     }
+            // }
+            // if constexpr ( value ) {
+            //     if ( std::countl_one( this->bitmap[ this->length - 1 - segment_count ] ) >= needed_length ) {
+            //         uint64_t i = 63;
+            //         for ( ; --needed_length != 0; --i );
+            //         return ( this->length - 1 - segment_count ) * 64 + i;
+            //     }
+            // }
+            // else {
+            //     if ( std::countl_zero( this->bitmap[ this->length - 1 - segment_count ] ) >= needed_length ) {
+            //         uint64_t i = 63;
+            //         for ( ; --needed_length != 0; --i );
+            //         return ( this->length - 1 - segment_count ) * 64 + i;
+            //     }
+            // }
+            return 0ul;
+        }
+        template < bool value >
+        auto count_from_high( ) -> uint64_t {
+            auto number_of_bits = 0ul;
+            for ( int64_t i = this->length - 1; i >= 0; --i ) {
+                if constexpr ( value ) {
+                    if ( this->bitmap[ i ] != ~0ul ) {
+                        number_of_bits += std::countr_one( this->bitmap[ i ] );
+                        return number_of_bits;
+                    }
+                }
+                else {
+                    if ( this->bitmap[ i ] != 0ul ) {
+                        number_of_bits += std::countr_zero( this->bitmap[ i ] );
+                        return number_of_bits;
+                    }
+                }
+                number_of_bits += 64;
+            }
+            return number_of_bits;
+        }
+        template < bool value >
+        auto count_from_low( ) -> uint64_t {
+            auto number_of_bits = 0ul;
+            for ( auto i = 0ul; i < this->length; ++i ) {
+                if constexpr ( value ) {
+                    if ( this->bitmap[ i ] != ~0ul ) {
+                        number_of_bits += std::countr_one( this->bitmap[ i ] );
+                        return number_of_bits;
+                    }
+                }
+                else {
+                    if ( this->bitmap[ i ] != 0ul ) {
+                        number_of_bits += std::countr_zero( this->bitmap[ i ] );
+                        return number_of_bits;
+                    }
+                }
+                number_of_bits += 64;
+            }
+            return number_of_bits;
         }
 
     private:
