@@ -1,12 +1,12 @@
 #pragma once
 #include <lib/Uefi.hpp>
-PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC class KHeapAllocater {
-    public:
-        explicit KHeapAllocater( VOID ) noexcept = default;
-        virtual ~KHeapAllocater( VOID ) noexcept = default;
+namespace QuantumNEC::Kernel {
+class KHeapAllocater {
+public:
+    explicit KHeapAllocater( void ) noexcept = default;
+    virtual ~KHeapAllocater( void ) noexcept = default;
 
-    public:
-        auto allocate( IN uint64_t size ) -> VOID *;
-    };
-}
+public:
+    auto allocate( IN uint64_t size ) -> void *;
+};
+}     // namespace QuantumNEC::Kernel

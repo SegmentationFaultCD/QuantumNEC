@@ -66,9 +66,9 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 
 }     // namespace
 
-auto micro_kernel_entry( IN BootConfig &config ) -> VOID;
+auto micro_kernel_entry( IN BootConfig &config ) -> void;
 
-_C_LINK auto loader_entry( VOID ) -> VOID {
+_C_LINK auto loader_entry( void ) -> void {
     BootConfig config { };
     config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
     config.memory_map    = *memmap_request.response;
@@ -78,5 +78,5 @@ _C_LINK auto loader_entry( VOID ) -> VOID {
     config.paging_mode   = *paging_mode_request.response;
     config.modules       = *modules_request.response;
     micro_kernel_entry( config );
-    while ( TRUE );
+    while ( true );
 }

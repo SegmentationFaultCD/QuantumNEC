@@ -1,12 +1,12 @@
 #pragma once
 #include <lib/Uefi.hpp>
-PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC class KHeapCollector {
-    public:
-        explicit KHeapCollector( VOID ) noexcept = default;
-        virtual ~KHeapCollector( VOID ) noexcept = default;
+namespace QuantumNEC::Kernel {
+class KHeapCollector {
+public:
+    explicit KHeapCollector( void ) noexcept = default;
+    virtual ~KHeapCollector( void ) noexcept = default;
 
-    public:
-        auto free( IN VOID *virtual_address ) -> VOID;
-    };
-}
+public:
+    auto free( IN void *virtual_address ) -> void;
+};
+}     // namespace QuantumNEC::Kernel

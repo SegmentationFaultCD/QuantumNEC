@@ -1,14 +1,13 @@
 #pragma once
-#include <lib/Uefi.hpp>
 #include <kernel/memory/heap/slab/slab.hpp>
-PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC class SlabDestroyer
-    {
-    public:
-        explicit SlabDestroyer( VOID ) noexcept = default;
-        virtual ~SlabDestroyer( VOID ) noexcept = default;
+#include <lib/Uefi.hpp>
+namespace QuantumNEC::Kernel {
+class SlabDestroyer {
+public:
+    explicit SlabDestroyer( void ) noexcept = default;
+    virtual ~SlabDestroyer( void ) noexcept = default;
 
-    public:
-        auto destory( IN SlabCache *slab_cache ) -> VOID;
-    };
-}
+public:
+    auto destory( IN SlabCache *slab_cache ) -> void;
+};
+}     // namespace QuantumNEC::Kernel

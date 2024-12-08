@@ -1,14 +1,13 @@
 #pragma once
-#include <lib/Uefi.hpp>
 #include <kernel/memory/heap/slab/slab.hpp>
-PUBLIC namespace QuantumNEC::Kernel {
-    PUBLIC class SlabAllocater
-    {
-    public:
-        explicit SlabAllocater( VOID ) noexcept = default;
-        virtual ~SlabAllocater( VOID ) noexcept = default;
+#include <lib/Uefi.hpp>
+namespace QuantumNEC::Kernel {
+class SlabAllocater {
+public:
+    explicit SlabAllocater( void ) noexcept = default;
+    virtual ~SlabAllocater( void ) noexcept = default;
 
-    public:
-        auto allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> VOID *;
-    };
-}
+public:
+    auto allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> void *;
+};
+}     // namespace QuantumNEC::Kernel

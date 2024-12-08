@@ -1,12 +1,24 @@
 #pragma once
-#include <kernel/driver/output/arch/output_arch.hpp>
-#include <kernel/driver/output/screen/graphics.hpp>
+
+#include <kernel/driver/output/screen/screen.hpp>
+
 #include <lib/Uefi.hpp>
 
-PUBLIC namespace QuantumNEC::Kernel {
-    class Output : public Graphics, public OutputArch {
-    public:
-        explicit Output( VOID ) noexcept = default;
-        virtual ~Output( VOID ) noexcept = default;
-    };
-}
+#if defined( __x86_64__ )
+#include <kernel/driver/output/x86_64/serial_port.hpp>
+#elif defined( __aarch64__ )
+#endif
+
+namespace QuantumNEC::Kernel {
+class Output :
+    public Screen,
+#if defined( __x86_64__ )
+    public x86_64::SerialPort
+#elif defined( __aarch64__ )
+#endif
+{
+public:
+    explicit Output( void ) noexcept = default;
+    virtual ~Output( void ) noexcept = default;
+};
+}     // namespace QuantumNEC::Kernel

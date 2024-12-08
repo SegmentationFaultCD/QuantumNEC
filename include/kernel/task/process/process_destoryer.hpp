@@ -1,17 +1,17 @@
 #pragma once
 #include <kernel/task/general/pcb/pcb.hpp>
 #include <libcxx/expected.hpp>
-PUBLIC namespace QuantumNEC::Kernel {
-    class ProcessDestoryer {
-    public:
-        enum class ErrorCode {
+namespace QuantumNEC::Kernel {
+class ProcessDestoryer {
+public:
+    enum class ErrorCode {
 
-        };
-
-    public:
-        explicit ProcessDestoryer( VOID ) = default;
-
-    public:
-        auto destory( PCB *pcb ) -> VOID;
     };
-}
+
+public:
+    explicit ProcessDestoryer( void ) = default;
+
+public:
+    auto destory( PCB *pcb ) -> void;
+};
+}     // namespace QuantumNEC::Kernel

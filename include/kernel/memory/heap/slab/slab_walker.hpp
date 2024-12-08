@@ -5,6 +5,6 @@
 #include <kernel/memory/heap/slab/slab_creater.hpp>
 #include <kernel/memory/heap/slab/slab_destoryer.hpp>
 #include <lib/Uefi.hpp>
-PUBLIC namespace QuantumNEC::Kernel {
-    struct SlabWalker : SlabAllocater, SlabCollector, SlabCreater, SlabDestroyer {};
-}
+namespace QuantumNEC::Kernel {
+struct SlabWalker : SlabAllocater, SlabCollector, SlabCreater, SlabDestroyer {};
+}     // namespace QuantumNEC::Kernel

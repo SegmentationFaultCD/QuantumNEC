@@ -1,7 +1,7 @@
 #include <kernel/print.hpp>
 
 using namespace QuantumNEC::Lib;
-PUBLIC uint8_t FONT_ASCII[ 256 ][ 16 ] {
+uint8_t FONT_ASCII[ 256 ][ 16 ] {
     /*	0000	*/
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
@@ -310,33 +310,33 @@ PUBLIC uint8_t FONT_ASCII[ 256 ][ 16 ] {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
 };
-PUBLIC namespace std {
-    auto putc(
-        IN uint64_t * FB,
-        IN int64_t Xsize, IN int64_t X,
-        IN int64_t Y, IN DisplayColor FRcolor,
-        IN DisplayColor BKcolor, IN QuantumNEC::uchar_t Font )
-        -> VOID {
-        int32_t   i { }, j { };
-        uint32_t *Address { };
-        uint8_t  *FontPtr { FONT_ASCII[ Font ] };
+namespace std {
+auto putc(
+    IN uint64_t *FB,
+    IN int64_t Xsize, IN int64_t X,
+    IN int64_t Y, IN DisplayColor FRcolor,
+    IN DisplayColor BKcolor, IN QuantumNEC::uchar_t Font )
+    -> void {
+    int32_t   i { }, j { };
+    uint32_t *Address { };
+    uint8_t  *FontPtr { FONT_ASCII[ Font ] };
 
-        int32_t testval { };
+    int32_t testval { };
 
-        for ( i = 0; i < 16; i++ ) {
-            Address = (uint32_t *)( FB ) + Xsize * ( Y + i ) + X;
+    for ( i = 0; i < 16; i++ ) {
+        Address = (uint32_t *)( FB ) + Xsize * ( Y + i ) + X;
 
-            testval = 0x100;
+        testval = 0x100;
 
-            for ( j = 0; j < 8; j++ ) {
-                testval = testval >> 1;
-                if ( *FontPtr & testval )
-                    *Address = static_cast< uint32_t >( FRcolor );
-                else
-                    *Address = static_cast< uint32_t >( BKcolor );
-                Address++;
-            }
-            FontPtr++;
+        for ( j = 0; j < 8; j++ ) {
+            testval = testval >> 1;
+            if ( *FontPtr & testval )
+                *Address = static_cast< uint32_t >( FRcolor );
+            else
+                *Address = static_cast< uint32_t >( BKcolor );
+            Address++;
         }
+        FontPtr++;
     }
 }
+}     // namespace std

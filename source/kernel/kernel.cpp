@@ -14,7 +14,7 @@
 using namespace std;
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
-int64_t ProcC( VOID ) {
+int64_t ProcC( void ) {
     // Architecture::Message message { };
     // Architecture::Syscall::SyscallStatus a;
 
@@ -93,7 +93,7 @@ int64_t ThreadB( uint64_t ) {
 
 using namespace QuantumNEC;
 
-auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
+auto micro_kernel_entry( IN BootConfig &config ) -> void {
     Kernel::__config = config;
     // Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
     // Kernel::__config.memory_map    = *memmap_request.response;
@@ -103,29 +103,24 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     // Kernel::__config.paging_mode   = *paging_mode_request.response;
     // Kernel::__config.modules       = *modules_request.response;
 
-    Kernel::Output    outpt { };
-    Kernel::Acpi      acp { };
+    Kernel::Output outpt { };
+
+    Kernel::Acpi acp { };
+
     Kernel::Interrupt intr { };
     Kernel::Memory    mem { };
-    using namespace Kernel;
-    for ( auto i = 0; i < 1030; ++i ) {
-        Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-    }
-    Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-    Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    Kernel::CPU       cpu { };
+    Kernel::Sound     soun { };
+    Kernel::Time      tim { };
+    Kernel::Syscall   sysc { };
+    Kernel::Task      task { };
+    Modules::Module   mod { };
 
-    Kernel::CPU cpu { };
-
-    Kernel::Sound          soun { };
-    Kernel::Time           tim { };
-    Kernel::Syscall        sysc { };
-    Kernel::Task           task { };
-    Modules::Module        mod { };
     Kernel::ProcessCreater cre;
 
-    // cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
+    cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
 
-    //  Kernel::Interrupt::enable_interrupt( );
+    Kernel::Interrupt::enable_interrupt( );
     //  Kernel::x86_64::PCSpeaker::beep( );
     // STATIC TerminalDisplay s;
     // s.address   = (QuantumNEC::uint8_t *)Kernel::__config.graphics_data.address;
@@ -192,9 +187,11 @@ auto micro_kernel_entry( IN BootConfig &config ) -> VOID {
     PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 1 );
     s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
     println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-    println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    // Kernel::Interrupt::enable_interrupt( );
+    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_1G >( 1 );
+    // println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_1G >( 1 );
+    // println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    Kernel::Interrupt::enable_interrupt( );
 
     std::println< std::print_level::DEBUG >( "finish!" );
     // println< print_level::DEBUG >( "Free C" );
