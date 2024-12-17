@@ -2,25 +2,29 @@
 #include <kernel/interrupt/x86_64/pic/8259a.hpp>
 #include <kernel/interrupt/x86_64/pic/apic.hpp>
 #include <kernel/print.hpp>
+#include <lib/mmio.hpp>
 #include <lib/spin_lock.hpp>
 namespace QuantumNEC::Kernel::x86_64 {
 using namespace std;
 auto Apic::enable_xapic( void ) -> void {
 }
 auto Apic::enable_x2apic( void ) -> void {
-    // 开启  xapic
+    // enable x2apic
     InterruptCommandRegister icr { CPU::rdmsr( IA32_APIC_BASE_MSR ) };
     icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
     icr.dest_mode    = ICR_IOAPIC_DELV_LOGIC;
     CPU::wrmsr( IA32_APIC_BASE_MSR, icr );
-    // 开启SVR
+    // enable SVR
     ApicLocalVectorTableRegisters lvt { CPU::rdmsr( LOCAL_APIC_MSR_SVR ) };
     lvt.deliver_mode = IOAPIC_ICR_LOWEST_PRIORITY;
     if ( CPU::rdmsr( LOCAL_APIC_MSR_VERSION ) >> 24 & 1 ) {
         lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
     }
     CPU::wrmsr( LOCAL_APIC_MSR_SVR, lvt );
-    // 屏蔽7个LVT寄存器
+    // disable seven lvt registers
+
+    // I don't know what causes #GP fault when I use msr register to write CMCI register.
+    // But everything gose well when I use mmio function to write CMCI.
     lvt                = read_apic( LOCAL_BASE_APIC_LVT_CMCI, ApicType::LOCAL_APIC );
     lvt.mask           = APIC_ICR_IOAPIC_MASKED;
     lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
@@ -62,75 +66,85 @@ auto Apic::enable_x2apic( void ) -> void {
     lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
     lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
     CPU::wrmsr( LOCAL_APIC_MSR_LVT_LINT1, lvt );
-
-    // 设置IO APIC
 }
 Apic::Apic( void ) noexcept {
-    // 关闭8259A PIC
-
+    // disable 8259A PIC
     PIC8259A::disable_8259A_pic( );
-    // 开启 IMCR
+    // enable IMCR
     CPU::io_out8( 0x22, 0x70 );
     CPU::io_out8( 0x23, 0x01 );
-
+    // check it is sure whether the machine suopport the x2apic or xapic.
     this->apic_flags = this->check_apic( );
-
-    // 开启APIC
-    if ( this->apic_flags == 0 ) {     // 检查是否支持APIC或者x2APIC
-        this->enable_xapic( );
-    }
-    else if ( this->apic_flags == 1 ) {
+    // enable local apic
+    switch ( this->apic_flags ) {
+    case SupportState::SUPPORT_x2APIC:
         this->enable_x2apic( );
-    }
-    else {
+        break;
+    case SupportState::SUPPORT_xAPIC:
+        this->enable_xapic( );
+        break;
+    case SupportState::DOES_NOT_SUPPORT:
         println< print_level::SYSTEM >( "Can not enable apic." );
+        while ( true );
     }
+    // enable IO APIC
     IOApicRedirectionEntry entry { };
     for ( auto i { 0ull }; i < ( ( read_apic( IOAPIC_REG_VER, ApicType::IO_APIC ) >> 16 ) & 0xFF ); i++ ) {
         entry.vector = IDT_ENTRY_IRQ_0 + i;
         entry.mask   = APIC_ICR_IOAPIC_MASKED;
         write_apic( IOAPIC_REG_TABLE + i * 2, entry, ApicType::IO_APIC );
     }
+    // flush CR8 register
     ASM( "MOVQ %0, %%CR8" ::"r"( 0ull ) );
 }
 Apic::~Apic( void ) noexcept {
 }
 auto Apic::eoi( IN [[maybe_unused]] irq_t irq ) -> void {
-    if ( apic_flags == 0 ) {
-        write_apic( LOCAL_BASE_APIC_EOI, 0, ApicType::LOCAL_APIC );
-    }
-    else {
+    switch ( apic_flags ) {
+    case SupportState::SUPPORT_x2APIC:
         CPU::wrmsr( LOCAL_APIC_MSR_EOI, 0 );
+        break;
+    case SupportState::SUPPORT_xAPIC:
+        write_apic( LOCAL_BASE_APIC_EOI, 0, ApicType::LOCAL_APIC );
+        break;
+    case SupportState::DOES_NOT_SUPPORT:
+        println< print_level::SYSTEM >( "You shouln't call the function" );
+        while ( true );
     }
 }
-auto Apic::check_apic( void ) -> int16_t {
+auto Apic::check_apic( void ) -> SupportState {
     CPU::CpuidStatus status { 1, 0, 0, 0, 0, 0 };
     CPU::cpuid( status );
     if ( ( status.rcx & CPU::CpuidStatus::CPUID_FEAT_RCX_X2APIC ) ) {
-        return 1;     // 支持x2APIC
+        return SupportState::SUPPORT_x2APIC;     // support x2APIC
     }
     else if ( ( status.rdx & CPU::CpuidStatus::CPUID_FEAT_RDX_APIC ) ) {
-        return 0;     // 支持xAPIC
+        return SupportState::SUPPORT_xAPIC;     // support xAPIC
     }
 
-    return -1;     // 不支持apic
+    return SupportState::DOES_NOT_SUPPORT;     // doesn't support apic
 }
 auto Apic::read_apic( IN uint16_t index, IN ApicType type ) -> uint64_t {
     uint64_t return_value { };
     if ( type == ApicType::LOCAL_APIC ) {
-        return_value = reinterpret_cast< uint32_t volatile * >( apic_map.local_apic_address )[ index / 4 ];
+        Lib::MMIO< uint32_t > local_apic { apic_map.local_apic_address };
+        return_value = local_apic[ index ];
         CPU::mfence( );
         return return_value;
     }
     else {
-        *reinterpret_cast< uint8_t * >( apic_map.ioapic[ 0 ].io_apic_index_address ) = index + 1;
+        Lib::MMIO< uint8_t >  io_apic_index { apic_map.ioapic[ 0 ].io_apic_index_address };
+        Lib::MMIO< uint32_t > io_apic_data { apic_map.ioapic[ 0 ].io_apic_data_address };
+        // read high 32 bits
+        io_apic_index[ 0 ] = index + 1;
         CPU::mfence( );
-        return_value = *reinterpret_cast< uint32_t * >( apic_map.ioapic[ 0 ].io_apic_data_address );
+        return_value = io_apic_data[ 0 ];
         return_value <<= 32;
         CPU::mfence( );
-        *reinterpret_cast< uint8_t * >( apic_map.ioapic[ 0 ].io_apic_index_address ) = index;
+        // read low 32 bits
+        io_apic_index[ 0 ] = index;
         CPU::mfence( );
-        return_value |= *reinterpret_cast< uint32_t * >( apic_map.ioapic[ 0 ].io_apic_data_address );
+        return_value = io_apic_data[ 0 ];
         CPU::mfence( );
         return return_value;
     }
@@ -139,18 +153,24 @@ auto Apic::read_apic( IN uint16_t index, IN ApicType type ) -> uint64_t {
 }
 auto Apic::write_apic( IN uint16_t index, IN uint64_t value, IN ApicType type ) -> void {
     if ( type == ApicType::LOCAL_APIC ) {
-        reinterpret_cast< uint32_t volatile * >( ( apic_map.local_apic_address ) )[ index / 4 ] = static_cast< uint32_t >( value );
+        Lib::MMIO< uint32_t > local_apic { apic_map.local_apic_address };
+        local_apic[ index ] = static_cast< uint32_t >( value );
         CPU::mfence( );
     }
     else {
-        *reinterpret_cast< uint8_t * >( apic_map.ioapic[ 0 ].io_apic_index_address ) = index;
+        Lib::MMIO< uint8_t >  io_apic_index { apic_map.ioapic[ 0 ].io_apic_index_address };
+        Lib::MMIO< uint32_t > io_apic_data { apic_map.ioapic[ 0 ].io_apic_data_address };
+        // write to low 32 bits
+        io_apic_index[ 0 ] = index;
         CPU::mfence( );
-        *reinterpret_cast< uint32_t * >( apic_map.ioapic[ 0 ].io_apic_data_address ) = value & 0xffffffff;
+        io_apic_data[ 0 ] = value & 0xffffffff;
+        CPU::mfence( );
+        // value offset
         value >>= 32;
+        // write to high 32 bits
+        io_apic_index[ 0 ] = index + 1;
         CPU::mfence( );
-        *reinterpret_cast< uint8_t * >( apic_map.ioapic[ 0 ].io_apic_index_address ) = index + 1;
-        CPU::mfence( );
-        *reinterpret_cast< uint32_t * >( apic_map.ioapic[ 0 ].io_apic_data_address ) = value & 0xffffffff;
+        io_apic_data[ 0 ] = value & 0xffffffff;
         CPU::mfence( );
     }
 }
@@ -173,10 +193,25 @@ auto Apic::uninstall_ioapic( IN irq_t irq ) -> void {
 }
 auto Apic::ioapic_level_ack( IN irq_t irq ) -> void {
     eoi( irq );
-    *reinterpret_cast< uint32_t * >( apic_map.ioapic[ 0 ].io_apic_EOI_address ) = irq;
+    Lib::MMIO< uint32_t > io_apic_eoi { apic_map.ioapic[ 0 ].io_apic_EOI_address };
+    io_apic_eoi[ 0 ] = irq;
 }
 auto Apic::ioapic_edge_ack( IN irq_t irq ) -> void {
     eoi( irq );
+}
+auto Apic::irq_set_mask( irq_t irq ) -> void {
+    ApicLocalVectorTableRegisters lvt { };
+    lvt.mask = APIC_ICR_IOAPIC_MASKED;
+    write_apic( IOAPIC_REG_TABLE + 2 * irq, lvt, ApicType::IO_APIC );
+}
+auto Apic::irq_clear_mask( IN irq_t irq, IN uint8_t vector, IN uint8_t ) -> void {
+    // 标记中断边缘触发，高电平有效，
+    // 启用并路由到给定的cpunum，
+    // 恰好是该cpu的APIC ID
+    ApicLocalVectorTableRegisters lvt { };
+    lvt.vector = vector;
+    lvt.mask   = APIC_ICR_IOAPIC_UNMASKED;
+    write_apic( IOAPIC_REG_TABLE + 2 * irq, lvt, ApicType::IO_APIC );
 }
 auto Apic::apic_id( ) -> uint64_t {
     CPU::CpuidStatus status { 1, 0, 0, 0, 0, 0 };

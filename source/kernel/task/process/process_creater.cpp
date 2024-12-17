@@ -20,6 +20,8 @@ auto ProcessCreater::create( const char_t *_name_, uint64_t _priority_, void *_e
         _entry_,
         0
     };
+    SchedulerHelper::task_queue[ pcb->schedule.priority ].append( pcb->schedule.general_task_node );
+    pcb->schedule.jiffies = SchedulerHelper::rr_interval;
     if ( !pcb ) {
         return std::unexpected { ErrorCode::ALLOCATE_MEMORY_FAULT };
     }

@@ -134,14 +134,7 @@ private:
     using Callfunc = void( const T & );
 
 public:
-    auto init( ) {
-        this->_nil  = NULL;
-        this->_root = NULL;
-        this->_size = 0;
-    }
-    explicit RedBlackTree( void ) noexcept {
-        this->init( );
-    }
+    explicit RedBlackTree( void ) noexcept = default;
 
     auto insert( Node &_node )     // 插入节点
     {

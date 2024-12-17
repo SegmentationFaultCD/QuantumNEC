@@ -92,7 +92,18 @@ int64_t ThreadB( uint64_t ) {
 }
 
 using namespace QuantumNEC;
-
+// class A {
+// public:
+//     A( )                      = default;
+//     virtual auto f( ) -> void = 0;
+//     auto         b( ) {
+//         this->f( );
+//     }
+// };
+// struct B : A {
+//     virtual auto f( void ) -> void override {
+//     }
+// };
 auto micro_kernel_entry( IN BootConfig &config ) -> void {
     Kernel::__config = config;
     // Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
@@ -107,18 +118,18 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
 
     Kernel::Acpi acp { };
 
-    Kernel::Interrupt intr { };
-    Kernel::Memory    mem { };
-    Kernel::CPU       cpu { };
-    Kernel::Sound     soun { };
-    Kernel::Time      tim { };
-    Kernel::Syscall   sysc { };
-    Kernel::Task      task { };
-    Modules::Module   mod { };
-
+    Kernel::Interrupt      intr { };
+    Kernel::Memory         mem { };
+    Kernel::Task           task { };
+    Kernel::CPU            cpu { };
+    Kernel::Sound          soun { };
+    Kernel::Time           tim { };
+    Kernel::Syscall        sysc { };
     Kernel::ProcessCreater cre;
 
-    cre.create( "Proc1", Kernel::Scheduler::IDLEPRIO, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
+    // cre.create( "PRocs", 1, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
+    // cre.create( "PRocD", 0, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
+    Modules::Module mod { };
 
     Kernel::Interrupt::enable_interrupt( );
     //  Kernel::x86_64::PCSpeaker::beep( );
@@ -135,65 +146,65 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
     // auto                   result = cre.create( "NAME!", 1, (VOID *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     // std::println< std::ostream::HeadLevel::DEBUG >( "{}", result.value( )->virtual_deadline );
 
-    println< print_level::DEBUG >( "start allocate" );
+    // println< print_level::DEBUG >( "start allocate" );
 
-    println< print_level::DEBUG >( "finish!" );
-    println< print_level::DEBUG >( "Begin test malloc and free" );
-    char *a = (char *)Kernel::KHeapAllocater { }.allocate( 0x100 );
-    char *b = (char *)Kernel::KHeapAllocater { }.allocate( 0x200 );
-    char *c = (char *)Kernel::KHeapAllocater { }.allocate( 0x4000 );
-    println< print_level::DEBUG >( "A: {:x}", (void *)a );
-    println< print_level::DEBUG >( "B: {:x}", (void *)b );
-    println< print_level::DEBUG >( "C: {:x}", (void *)c );
-    // bit pattern
-    for ( size_t i = 0; i < 0x100; i++ ) {
-        a[ i ] = 0x01;
-    }
-    // test if the memory is valid
-    for ( size_t i = 0; i < 0x100; i++ ) {
-        if ( a[ i ] != 0x01 ) {
-            println< print_level::DEBUG >( "Error at {:x}", (void *)a );
-        }
-    }
-    println< print_level::DEBUG >( "Free A" );
-    for ( size_t i = 0; i < 0x200; i++ ) {
-        b[ i ] = 0x02;
-    }
-    for ( size_t i = 0; i < 0x200; i++ ) {
-        if ( b[ i ] != 0x02 ) {
-            println< print_level::DEBUG >( "Error at {:x}", (void *)b );
-        }
-    }
-    println< print_level::DEBUG >( "Free B" );
-    for ( size_t i = 0; i < 0x4000; i++ ) {
-        c[ i ] = 0x03;
-    }
-    for ( size_t i = 0; i < 0x4000; i++ ) {
-        if ( c[ i ] != 0x03 ) {
-            println< print_level::DEBUG >( "Error at {:x}", (void *)c );
-        }
-    }
-    using namespace Kernel;
+    // println< print_level::DEBUG >( "finish!" );
+    // println< print_level::DEBUG >( "Begin test malloc and free" );
+    // char *a = (char *)Kernel::KHeapAllocater { }.allocate( 0x100 );
+    // char *b = (char *)Kernel::KHeapAllocater { }.allocate( 0x200 );
+    // char *c = (char *)Kernel::KHeapAllocater { }.allocate( 0x4000 );
+    // println< print_level::DEBUG >( "A: {:x}", (void *)a );
+    // println< print_level::DEBUG >( "B: {:x}", (void *)b );
+    // println< print_level::DEBUG >( "C: {:x}", (void *)c );
+    // // bit pattern
+    // for ( size_t i = 0; i < 0x100; i++ ) {
+    //     a[ i ] = 0x01;
+    // }
+    // // test if the memory is valid
+    // for ( size_t i = 0; i < 0x100; i++ ) {
+    //     if ( a[ i ] != 0x01 ) {
+    //         println< print_level::DEBUG >( "Error at {:x}", (void *)a );
+    //     }
+    // }
+    // println< print_level::DEBUG >( "Free A" );
+    // for ( size_t i = 0; i < 0x200; i++ ) {
+    //     b[ i ] = 0x02;
+    // }
+    // for ( size_t i = 0; i < 0x200; i++ ) {
+    //     if ( b[ i ] != 0x02 ) {
+    //         println< print_level::DEBUG >( "Error at {:x}", (void *)b );
+    //     }
+    // }
+    // println< print_level::DEBUG >( "Free B" );
+    // for ( size_t i = 0; i < 0x4000; i++ ) {
+    //     c[ i ] = 0x03;
+    // }
+    // for ( size_t i = 0; i < 0x4000; i++ ) {
+    //     if ( c[ i ] != 0x03 ) {
+    //         println< print_level::DEBUG >( "Error at {:x}", (void *)c );
+    //     }
+    // }
+    // using namespace Kernel;
 
-    auto s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1020 );
-    println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
-    println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 4096 );
-    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
-    println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-    println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 1 );
-    s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
-    println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_1G >( 1 );
+    // auto s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1020 );
     // println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_1G >( 1 );
+    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
     // println< print_level::DEBUG >( "Address {:x}", (void *)s );
-    Kernel::Interrupt::enable_interrupt( );
+    // PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 4096 );
+    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 4096 );
+    // println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    // println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    // PageWalker { }.free< MemoryPageType::PAGE_4K >( s, 1 );
+    // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
+    // println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    // // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_1G >( 1 );
+    // // println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    // // s = Kernel::PageWalker { }.allocate< MemoryPageType::PAGE_1G >( 1 );
+    // // println< print_level::DEBUG >( "Address {:x}", (void *)s );
+    // Kernel::Interrupt::enable_interrupt( );
 
-    std::println< std::print_level::DEBUG >( "finish!" );
+    // std::println< std::print_level::DEBUG >( "finish!" );
     // println< print_level::DEBUG >( "Free C" );
     // auto g = Kernel::PageAllocater { }.allocate< Kernel::MemoryPageType::PAGE_2M >( 12 );
     // println< print_level::DEBUG >( "{:x}", g );
@@ -227,7 +238,8 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
     // icr.destination.x2apic_destination = 1;
     // icr.deliver_mode = Architecture::APIC_ICR_IOAPIC_FIXED;
     // architecture.wrmsr( 0x830, icr );
-    while ( true ) {
-        Kernel::CPU::hlt( );
-    }
+    // while ( true ) {
+    //     Kernel::CPU::hlt( );
+    // }
+    while ( true );
 }

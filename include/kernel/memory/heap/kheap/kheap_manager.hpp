@@ -1,7 +1,7 @@
 #pragma once
 #include <kernel/memory/heap/slab/slab.hpp>
 #include <lib/Uefi.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/shared_spinlock.hpp>
 #include <utility>
 namespace QuantumNEC::Kernel {
 class KHeapManager {
@@ -29,7 +29,7 @@ public:
     constexpr static auto cache_size_count = sizeof( cache_size ) / sizeof( uint64_t );
 
 private:
-    inline static SlabCache slab_caches[ cache_size_count ];
+    inline static Lib::shared_spinlock< SlabCache > slab_caches[ cache_size_count ] { };
 
 public:
     enum class ErrorCode {
@@ -38,33 +38,36 @@ public:
     };
 
 public:
-    static auto traversal_to_get_slab( IN uint64_t size ) -> std::expected< SlabCache *, ErrorCode > {
-        Lib::SpinLock lock;
-
+    static auto traversal_to_get_slab( IN uint64_t size ) -> std::expected< Lib::shared_spinlock< SlabCache > *, ErrorCode > {
         auto i = 0ul;
-        lock.acquire( );
         for ( ; i < cache_size_count; ++i ) {
-            if ( slab_caches[ i ].size >= size ) {
-                lock.release( );
-                return &slab_caches[ i ];
+            auto result = slab_caches[ i ].visit( [ &size ]( const Lib::shared_spinlock< SlabCache > &slab_cache ) -> Lib::shared_spinlock< SlabCache > * {
+                if ( slab_cache.value( ).size >= size ) {
+                    return const_cast< Lib::shared_spinlock< SlabCache > * >( &slab_cache );
+                }
+                return NULL;
+            } );
+            if ( result ) {
+                return result;
             }
         }
-        lock.release( );
         return std::unexpected { ErrorCode::CanNotFindSuitableSlabCache };
     }
 
-    static auto traversal_to_find_page_base( IN uint64_t page_base_address ) -> std::expected< std::pair< Slab *, SlabCache * >, ErrorCode > {
-        Lib::SpinLock lock;
-        lock.acquire( );
+    static auto traversal_to_find_page_base( IN uint64_t page_base_address ) -> std::expected< std::pair< Slab *, Lib::shared_spinlock< SlabCache > * >, ErrorCode > {
         for ( auto i = 0ul; i < cache_size_count; ++i ) {
-            for ( auto &slab : slab_caches[ i ].pool_list ) {
-                if ( (uint64_t)slab.virtual_address == page_base_address ) {
-                    lock.release( );
-                    return { { &slab, &slab_caches[ i ] } };
+            auto result = slab_caches[ i ].visit( [ &page_base_address ]( const Lib::shared_spinlock< SlabCache > &slab_cache ) -> Slab * {
+                for ( auto &slab : slab_cache.value( ).pool_list ) {
+                    if ( (uint64_t)slab.virtual_address == page_base_address ) {
+                        return &slab;
+                    }
                 }
+                return NULL;
+            } );
+            if ( result ) {
+                return { { result, &slab_caches[ i ] } };
             }
         }
-        lock.release( );
         return std::unexpected { ErrorCode::CanNotFindSuitableSlabPool };
     }
 

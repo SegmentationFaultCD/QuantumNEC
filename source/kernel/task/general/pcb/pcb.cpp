@@ -1,4 +1,5 @@
 #include <kernel/memory/heap/kheap/kheap_walker.hpp>
+#include <kernel/memory/memory.hpp>
 #include <kernel/memory/page/page_walker.hpp>
 #include <kernel/task/general/pcb/pcb.hpp>
 #include <kernel/task/task.hpp>
@@ -10,51 +11,61 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
     // 设置内核栈
     auto kernel_stack = this->kernel_stack_base + this->kernel_stack_size;
     kernel_stack -= sizeof( ProcessContext );
-    this->context.pcontext = reinterpret_cast< ProcessContext * >( kernel_stack );
+    this->context.pcontext = reinterpret_cast< ProcessContext * >( physical_to_virtual( kernel_stack ) );
 
     // 设置用户栈
     this->user_stack_base = (uint64_t)PageWalker { }.allocate< MemoryPageType::PAGE_2M >( TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M > );     // 用户栈8M大小
     this->user_stack_size = TASK_USER_STACK_SIZE;
 
-    if ( flags.task_type != Type::THREAD ) {
+    if ( _flags_.task_type != Flags::Type::THREAD ) {
         // 不是线程，那就设置进程栈
-        this->context.pcontext->make( _entry_, this->user_stack_base + this->user_stack_size - 1, _flags_.task_type );
+        this->context.pcontext->make( _entry_, (uint64_t)physical_to_virtual( this->user_stack_base ) + this->user_stack_size - 1, _flags_.task_type );
+
     }     // 是线程，那就空着作为承载
     // 线程栈
 
     kernel_stack -= sizeof( ThreadContext );
-    this->context.tcontext = reinterpret_cast< ThreadContext * >( kernel_stack );
+    this->context.tcontext = reinterpret_cast< ThreadContext * >( physical_to_virtual( kernel_stack ) );
 
-    // if ( flags.task_type == Type::THREAD ) {
-    //     // 是线程，就设置标准的线程栈
-    //     this->context.tcontext->make( _entry_, _arg_ );
-    // }
-    // else {
-    //     // 不是线程，就设置指向进程栈的线程栈
-    //     // this->context.tcontext->make( (VOID *)Architecture::ArchitectureManager< TARGET_ARCH >::to_process, (uint64_t)this->context.pcontext );
-    // }
-
-    if ( flags.task_type == Type::USER_PROCESS ) {
-        // 用户进程有自己的页表，所以复制内核页表
-        this->memory_manager.page_table.copy( this->memory_manager.page_table );
-        // 将这一段内存映射为用户页
-#if defined( __x86_64__ )
-        this->memory_manager.page_table.map( this->user_stack_base,
-                                             this->memory_manager.page_table.USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size,
-                                             TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M >,
-                                             this->memory_manager.page_table.PAGE_PRESENT | this->memory_manager.page_table.PAGE_RW_W | this->memory_manager.page_table.PAGE_US_U,
-                                             MemoryPageType::PAGE_2M );
-        // 用户栈栈底存PCB的地址
-        *(uint64_t *)( this->memory_manager.page_table.USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size ) = uint64_t( this );
-        // 将RSP指向用户栈栈顶
-        this->context.pcontext->rsp = this->memory_manager.page_table.USER_STACK_VIRTUAL_ADDRESS_TOP;
-#elif defined( __aarch64__ )
-#endif
+    if ( flags.task_type == Flags::Type::THREAD ) {
+        // 是线程，就设置标准的线程栈
+        this->context.tcontext->make( _entry_, _arg_ );
     }
     else {
-        // 用户栈栈底存PCB的地址
-        *(uint64_t *)physical_to_virtual( this->user_stack_base ) = uint64_t( this );
+        // 不是线程，就设置指向进程栈的线程栈
+        // this->context.tcontext->make( (VOID *)Architecture::ArchitectureManager< TARGET_ARCH >::to_process, (uint64_t)this->context.pcontext );
     }
+
+    this->memory_manager.install( );
+    if ( _flags_.task_type == Flags::Type::USER_PROCESS ) {
+        // 用户进程有自己的页表，所以复制内核页表
+        this->memory_manager.page_table->copy( *x86_64::Paging::kernel_page_table );
+        // map user stack and set r/w, u/s, p
+        this->memory_manager.page_table->map( this->user_stack_base,
+                                              this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size + 1,
+                                              TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M >,
+                                              this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U,
+                                              MemoryPageType::PAGE_2M );
+        // map kernel stack and set r/w, p and xd
+        this->memory_manager.page_table->map( this->kernel_stack_base,
+                                              (uint64_t)physical_to_virtual( this->kernel_stack_base ),
+                                              TASK_KERNEL_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_4K >,
+                                              this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_XD,
+                                              MemoryPageType::PAGE_4K );
+        // map rip and set r/w, p and u/s
+        this->memory_manager.page_table->map(
+            (uint64_t)Kernel::x86_64::virtual_to_physical( this->context.pcontext->rip ),
+            (uint64_t)this->context.pcontext->rip,
+            ( this->memory_manager.map.text_start - this->memory_manager.map.text_end ) / PageWalker::__page_size__< MemoryPageType::PAGE_4K >,
+            this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U,
+            Kernel::MemoryPageType::PAGE_4K );
+
+        // set rsp to point user stack top
+        this->context.pcontext->rsp = this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP;
+    }
+
+    // 栈栈底存PCB的地址
+    *(uint64_t *)physical_to_virtual( this->kernel_stack_base ) = uint64_t( this );
 
     // 浮点栈放在PCB后面
     this->fpu_frame = reinterpret_cast< decltype( this->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *this->fpu_frame ) );
@@ -62,27 +73,23 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
     this->PID = pid_pool.allocate( );
     // 设置进程名
     std::strncpy( this->name, _name_, TASK_NAME_SIZE );
-    // 暂时没啥用
-    this->signal = 0;
+
     // 时间片越多优先级越高
-    this->schedule.priority = _priority_;
+    this->schedule.priority                    = _priority_;
+    this->schedule.general_task_node.container = this;
     // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
-    this->flags.fpu_enable          = _flags_.fpu_enable;
-    this->flags.fpu_used            = _flags_.fpu_used;
-    this->flags.state               = _flags_.state;
-    this->flags.task_type           = _flags_.task_type;
+    this->flags = _flags_;
+
     this->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( this->schedule.priority );
-#ifdef APIC
     // 当前cpu的id
-    this->schedule.cpu_id = Interrupt::apic_id( );
-#endif
+    this->schedule.cpu_id = Interrupt::cpu_id( );
     // 魔术字节
     this->stack_magic = PCB_STACK_MAGIC;
 }
-auto PCB::ProcessContext::make( IN void *_entry, IN uint64_t kernel_stack_top, IN Type type ) -> bool {
+auto PCB::ProcessContext::make( IN void *_entry, IN uint64_t stack_top, IN Flags::Type type ) -> bool {
     this->rip = _entry;
-    this->rsp = kernel_stack_top;
-    if ( type == Type::KERNEL_PROCESS ) {
+    this->rsp = stack_top;
+    if ( type == Flags::Type::KERNEL_PROCESS ) {
 #if defined( __x86_64__ )
         this->cs          = x86_64::SELECTOR_CODE64_KERNEL;
         this->ss          = x86_64::SELECTOR_DATA64_KERNEL;
@@ -95,6 +102,7 @@ auto PCB::ProcessContext::make( IN void *_entry, IN uint64_t kernel_stack_top, I
         this->rflags.IF   = 1;
 #elif defined( __aarch64__ )
 #endif
+        return true;
     }
     else {
 #if defined( __x86_64__ )
@@ -109,7 +117,9 @@ auto PCB::ProcessContext::make( IN void *_entry, IN uint64_t kernel_stack_top, I
         this->rflags.IF   = 1;
 #elif defined( __aarch64__ )
 #endif
+        return true;
     }
+    return false;
 }
 auto PCB::ProcessContext::operator=( const Interrupt::InterruptFrame &frame ) -> ProcessContext & {
 #if defined( __x86_64__ )

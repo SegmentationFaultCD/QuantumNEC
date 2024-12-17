@@ -1,7 +1,6 @@
 #pragma once
 #include <kernel/memory/page/page_manager.hpp>
 #include <lib/Uefi.hpp>
-#include <lib/spin_lock.hpp>
 namespace QuantumNEC::Kernel {
 class PageAllocater {
     friend PageManager;
@@ -44,7 +43,6 @@ public:
     auto allocate( IN uint64_t __size__ ) -> void *;
     // 这个操作不会初始化分配的空间，需要手动清零
 private:
-    Lib::SpinLock lock { };
     // Global memory address is used by 1G allocater
     inline static uint64_t global_memory_address { };
 };

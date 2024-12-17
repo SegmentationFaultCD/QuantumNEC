@@ -11,35 +11,35 @@ set_optimize("none")
 
 set_languages("c23", "c++26") 
 
-target("sys")
-    add_cxxflags(
-            "-fno-builtin", -- 不要内建函数
-            "-mcmodel=large", -- 大内存模式
-            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
-            "-fno-stack-protector", -- 不要栈保护
-            "-nostdlib", -- 不要标准库
-            "-nostartfiles", -- 不要默认启动文件
-            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
-            "-fno-common", -- 共享全局变量
-            "-fno-rtti", -- 不要运行时类型信息鉴别
-            "-fno-exceptions", -- 不需要异常
-            "-mno-red-zone", -- 禁用红色区域
-            "-fno-stack-check", -- 不要栈检查
-            "-Wall", 
-            "-Wextra",
-            "-Werror",
-            "-fPIC", {force = true}
-    )
-    set_kind("static")
-    add_files("source/lib/*.cpp")
-    before_build(function (target) 
-        print("开始编译静态库<libsys>")
-        end)
-    after_build(function (target) 
-        run_dir = target:rundir()
-        os.cp(""..run_dir.."/libsys.a", "./library/")
-        print("静态库<libsys>编译完成，在"..run_dir)
-    end)
+-- target("sys")
+--     add_cxxflags(
+--             "-fno-builtin", -- 不要内建函数
+--             "-mcmodel=large", -- 大内存模式
+--             "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+--             "-fno-stack-protector", -- 不要栈保护
+--             "-nostdlib", -- 不要标准库
+--             "-nostartfiles", -- 不要默认启动文件
+--             "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+--             "-fno-common", -- 共享全局变量
+--             "-fno-rtti", -- 不要运行时类型信息鉴别
+--             "-fno-exceptions", -- 不需要异常
+--             "-mno-red-zone", -- 禁用红色区域
+--             "-fno-stack-check", -- 不要栈检查
+--             "-Wall", 
+--             "-Wextra",
+--             "-Werror",
+--             "-fPIC", {force = true}
+--     )
+--     set_kind("static")
+--     add_files("source/lib/*.cpp")
+--     before_build(function (target) 
+--         print("开始编译静态库<libsys>")
+--         end)
+--     after_build(function (target) 
+--         run_dir = target:rundir()
+--         os.cp(""..run_dir.."/libsys.a", "./library/")
+--         print("静态库<libsys>编译完成，在"..run_dir)
+--     end)
 target("c")
     add_cxxflags(
             "-fno-builtin", -- 不要内建函数
@@ -102,42 +102,75 @@ target("cxx")
         print("静态库<libcxx>编译完成，在"..run_dir)
     end)
 target("servicer.elf")
-    add_deps("c", "cxx")
-    add_cxxflags(
-            "-fno-builtin", -- 不要内建函数
-            "-mcmodel=large", -- 大内存模式
-            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
-            "-fno-stack-protector", -- 不要栈保护
-            "-nostdlib", -- 不要标准库
-            "-nostartfiles", -- 不要默认启动文件
-            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
-            "-fno-common", -- 共享全局变量
-            "-fno-rtti", -- 不要运行时类型信息鉴别
-            "-fno-exceptions", -- 不需要异常
-            "-mno-red-zone", -- 禁用红色区域
-            "-fno-stack-check", -- 不要栈检查
-            "-Wall", 
-            "-Wextra",
-            "-Werror",
-            "-fPIE", {force = true}
-    )
-    set_kind("binary")
-    
-    add_files("source/modules/service/*.cpp")
-    add_linkdirs("library")
-    add_links("c", "cxx")
-    add_ldflags("-ffreestanding")
- 
-    before_build(function (target) 
-        print("开始编译模块文件servicer.elf")
-        end)
+   add_files("source/modules/test01/*.S") 
+   set_kind("binary")
+   add_asflags("-ffreestanding")
+   add_ldflags("-ffreestanding -e _start")
+    on_link(function (target)
+        local object_dir = target:objectdir()
+        local run_dir = target:rundir()
+        local ldfiles = ""
+        for key,val in pairs(target:objectfiles()) do 
+            ldfiles = ldfiles..val.." "
+        end
+        local ldflags = "-e main"
+        os.exec("ld -o "..run_dir.."/servicer.elf "..ldfiles)
+        os.cp(run_dir.."/servicer.elf", "vm/QuantumNEC/SYSTEM64/")
+    end)
     after_build(function (target) 
         run_dir = target:rundir()
         print("模块文件servicer.elf编译完成，在"..run_dir)
-    end)
+        end)
+-- target("servicer.elf")
+--     add_deps("c", "cxx")
+--     add_cxxflags(
+--             "-fno-builtin", -- 不要内建函数
+--             "-mcmodel=large", -- 大内存模式
+--             "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+--             "-fno-stack-protector", -- 不要栈保护
+--             "-nostdlib", -- 不要标准库
+--             "-nostartfiles", -- 不要默认启动文件
+--             "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+--             "-fno-common", -- 共享全局变量
+--             "-fno-rtti", -- 不要运行时类型信息鉴别
+--             "-fno-exceptions", -- 不需要异常
+--             "-mno-red-zone", -- 禁用红色区域
+--             "-fno-stack-check", -- 不要栈检查
+--             "-Wall", 
+--             "-Wextra",
+--             "-Werror",
+--             "-static",
+--             "-fPIE", {force = true}
+--     )
+--     set_kind("binary")
+    
+--     add_files("source/modules/service/*.cpp")
+--     add_linkdirs("library")
+--     add_links("c", "cxx")
+--     add_ldflags("-ffreestanding")
+ 
+--     before_build(function (target) 
+--         print("开始编译模块文件servicer.elf")
+--         end)
+--     on_link(function (target)
+--         local object_dir = target:objectdir()
+--         local run_dir = target:rundir()
+--         local ldfiles = ""
+--         for key,val in pairs(target:objectfiles()) do 
+--             ldfiles = ldfiles..val.." "
+--         end
+--         local ldflags = "-L./library -e main"
+--         local libs = "-lcxx"
+--         os.exec("ld "..ldflags.." -o "..run_dir.."/servicer.elf "..ldfiles.." "..libs)
+--         os.cp(run_dir.."/servicer.elf", "vm/QuantumNEC/SYSTEM64/")
+--     end)
+--     after_build(function (target) 
+--         run_dir = target:rundir()
+--         print("模块文件servicer.elf编译完成，在"..run_dir)
+--     end)
   
 target("micro_kernel")
-    add_deps("sys", "c", "cxx")
+    add_deps("c", "cxx")
     add_deps("servicer.elf")
 
     set_kind("binary")

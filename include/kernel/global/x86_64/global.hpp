@@ -217,23 +217,24 @@ constexpr auto BEEP_HZ { 440 };     // 声音为440HZ
 
 constexpr auto CMOS_ADDRESS { 0x70 };     // CMOS 地址寄存器
 constexpr auto CMOS_DATA { 0x71 };        // CMOS 数据寄存器
-                                          /* ------------------------------------------------------------------------------------ *
-                                           * GDT内部：
-                                           * n << 3 意味着 n * 2 ^ 3 = n * 8
-                                           * 0x00 (0 << 3)    空描述符，保留
-                                           * 0x08 (1 << 3)    64位内核代码段
-                                           * 0x10 (2 << 3)    64位内核数据段
-                                           * 0x18 (3 << 3)    32位用户代码段
-                                           * 0x20 (4 << 3)    32位用户数据段
-                                           * 0x28 (5 << 3)    64位用户代码段
-                                           * 0x30 (6 << 3)    64位用户数据段
-                                           * 0x38 (7 << 3)    32位内核代码段
-                                           * 0x40 (8 << 3)    32位内核数据段
-                                           * 0x48 (9 << 3)    空描述符，保留
-                                           * 0x50 (10 << 3)   64位任务状态段低地址
-                                           * 0x58 (11 << 3)   64位任务状态段高地址
-                                           * 0x60 ~ 0x2000    保留，扩展用的
-                                           * ------------------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------------------ *
+ * GDT内部：
+ * n << 3 意味着 n * 2 ^ 3 = n * 8
+ * 0x00 (0 << 3)    空描述符，保留
+ * 0x08 (1 << 3)    64位内核代码段
+ * 0x10 (2 << 3)    64位内核数据段
+ * 0x18 (3 << 3)    32位用户代码段
+ * 0x20 (4 << 3)    32位用户数据段
+ * 0x28 (5 << 3)    64位用户代码段
+ * 0x30 (6 << 3)    64位用户数据段
+ * 0x38 (7 << 3)    32位内核代码段
+ * 0x40 (8 << 3)    32位内核数据段
+ * 0x48 (9 << 3)    空描述符，保留
+ * 0x50 (10 << 3)   64位任务状态段低地址
+ * 0x58 (11 << 3)   64位任务状态段高地址
+ * 0x60 ~ 0x2000    保留，扩展用的
+ * ------------------------------------------------------------------------------------ */
 
 constexpr auto AR_G_4K { 0x8000 };
 constexpr auto AR_D_32 { 0x4000 };
@@ -268,7 +269,7 @@ constexpr auto RPL1 { 0x1 };
 constexpr auto RPL2 { 0x2 };
 constexpr auto RPL3 { 0x3 };
 constexpr auto TI_GDT { 0x0 };
-constexpr auto TILDT { 0x4 };
+constexpr auto TI_LDT { 0x4 };
 constexpr auto SELECTOR_CODE64_KERNEL { ( 1ull << 3 ) | TI_GDT | RPL0 }; /* 64位内核代码段 */
 constexpr auto SELECTOR_DATA64_KERNEL { ( 2ull << 3 ) | TI_GDT | RPL0 }; /* 64位内核数据段 */
 constexpr auto SELECTOR_CODE64_USER { ( 5ull << 3 ) | TI_GDT | RPL3 };   /* 64位用户代码段 */
@@ -366,6 +367,8 @@ constexpr auto IRQ_CLOCK { IDT_ENTRY_IRQ_0 };
 constexpr auto IRQ_KEYBOARD { IDT_ENTRY_IRQ_0 + 0x01 };
 constexpr auto IRQ_CASCADE_TIMER { IDT_ENTRY_IRQ_0 + 0x02 };
 constexpr auto IRQ_CMOS_RTC { IDT_ENTRY_IRQ_0 + 0x08 };
+constexpr auto IRQ_APIC_LVT_LINT1 { IDT_ENTRY_IRQ_0 + 123 };
+constexpr auto IRQ_APIC_LVT_LINT0 { IDT_ENTRY_IRQ_0 + 122 };
 constexpr auto IRQ_APIC_LVT_ERROR { IDT_ENTRY_IRQ_0 + 124 };
 constexpr auto IRQ_APIC_LVT_CMCI { IDT_ENTRY_IRQ_0 + 118 };
 constexpr auto IRQ_APIC_LVT_TIMER { IDT_ENTRY_IRQ_0 + 119 };
@@ -485,6 +488,7 @@ constexpr auto LOCAL_APIC_MSR_TPR { 0x808 };
 constexpr auto LOCAL_APIC_MSR_TICR { 0x838 };
 constexpr auto LOCAL_APIC_MSR_TCCR { 0x839 };
 constexpr auto LOCAL_APIC_MSR_TDCR { 0x83e };
+
 constexpr auto APIC_INIT { 0x00000500 };
 constexpr auto APIC_STARTUP { 0x00000600 };
 constexpr auto APIC_DELIVS { 0x00001000 };

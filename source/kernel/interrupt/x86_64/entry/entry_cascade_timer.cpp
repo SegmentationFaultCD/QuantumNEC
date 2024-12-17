@@ -1,8 +1,10 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/global/x86_64/global.hpp>
+#include <kernel/interrupt/interrupt.hpp>
 #include <kernel/interrupt/x86_64/entry/entry_cascade_timer.hpp>
 #include <kernel/interrupt/x86_64/entry/idt.hpp>
 #include <kernel/interrupt/x86_64/pic/pic.hpp>
+#include <kernel/interrupt/x86_64/pit/apic_timer.hpp>
 #include <kernel/print.hpp>
 #include <kernel/task/task.hpp>
 using namespace QuantumNEC;
@@ -15,17 +17,22 @@ auto CascadeTimerEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexc
 }
 auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
+
     Interrupt::global_jiffies++;
 
     CPU::switch_cpu( );
 
-    if ( auto current = ProcessManager::get_running_task( ); current != ProcessManager::main_pcb ) {
-        *ProcessManager::get_running_task( )->context.pcontext = *frame;
-    }
+    // ApicTimer::disable( );
+    // ApicTimer::ticks_result            = 0xFFFFFFFF - ApicTimer::get_current_count( );
+    // ApicTimer::measure_apic_timer_flag = true;
 
+    // Save stack frame, cpu state...
+    // Attention, <SYSTEM> process isn't included.
+    // if ( auto current = ProcessManager::get_running_task( ) ) {
+    // }
+    std::print( "{:x}\n", (uint64_t)frame );
     auto result = Scheduler { }.schedule( );
     if ( result.has_value( ) ) {
-        std::println( "YEP!! " );
         if ( result.value( ) == ProcessManager::main_pcb ) {
             return frame;
         }
@@ -34,7 +41,6 @@ auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
         }
     }
     else {
-        std::println( "Error! {}", uint64_t( result.error( ) ) );
         while ( true );
     }
     // 在这里进行任务调度

@@ -4,11 +4,13 @@
 #include <kernel/memory/x86_64/paging/paging.hpp>
 #include <kernel/memory/x86_64/paging/ptv.hpp>
 #include <kernel/print.hpp>
+#include <lib/shared_spinlock.hpp>
 namespace QuantumNEC::Kernel::x86_64 {
 pml5t pml5_t_buffer;
-pml5t pml4_t_buffer;
+pml4t pml4_t_buffer;
 Paging::Paging( void ) noexcept {
     this->pml5_t = new ( &pml5_t_buffer ) pml5t { };
+
     this->pml4_t = new ( &pml4_t_buffer ) pml4t { };
 
     if ( __config.paging_mode.mode == LIMINE_PAGING_MODE_X86_64_5LVL ) {
@@ -23,7 +25,6 @@ Paging::Paging( void ) noexcept {
     }
     this->kernel_page_table->page_protect( false );
 }
-inline static Lib::SpinLock lock { };
 inline static PageAllocater allocater { };
 inline static uint64_t      address { };
 using namespace std;
@@ -41,7 +42,8 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                           &pml5t
     };
     // 从最高级别页表开始遍历
-    auto _level    = Paging::support_5level_paging ? 5 : 4;
+    auto _level = Paging::support_5level_paging ? 5 : 4;
+
     auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
         return *page_table[ level - 1 ];
     };
@@ -97,6 +99,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         // 情况为后者时，一般分页模式会和页表级别不符合，那么就要新建一个页表，然后继续迭代，迭代到2级页表时，我们就可以使用他了
         // 当然还有第三种情况，页p位为1且指向二级页表，
         // 这种情况下，那么就是继续迭代既可
+
         else if ( !pmlx_t.flags_p( index ) ) {
             // 这个页要是是一个不存在的那么就弄出一个4k大小表给他
             auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
@@ -107,14 +110,12 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // 得到下一级页表的地址
         self( level - 1, get_table( level - 1 ) );
     };
-    lock.acquire( );
+
     while ( size-- ) {     // 重复循环映射
         map_helper( _level, *this );
     }
-    lock.release( );
 }
 auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageType mode ) -> void {
-    lock.acquire( );
     pml1t  pml1t { };
     pml2t  pml2t { };
     pml3t  pml3t { };
@@ -156,12 +157,9 @@ auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageTyp
     while ( size-- ) {
         unmap_helper( _level, *this );
     }
-
-    lock.release( );
 }
 
 auto pmlxt::VTP_from( IN void *virtual_address, IN MemoryPageType mode ) -> void * {
-    lock.acquire( );
     pml1t  pml1t { };
     pml2t  pml2t { };
     pml3t  pml3t { };
@@ -199,11 +197,9 @@ auto pmlxt::VTP_from( IN void *virtual_address, IN MemoryPageType mode ) -> void
         get_table( level - 1 ) = entry;
         return self( virtual_address, level - 1, get_table( level - 1 ) );
     };
-    lock.release( );
     return find_helper( virtual_address, level, *this );
 }
 auto pmlxt::page_protect( IN bool flags ) -> void {
-    lock.acquire( );
     auto cr0 = CPU::read_cr0( );
     if ( !flags ) {
         cr0.WP = 1;
@@ -213,10 +209,8 @@ auto pmlxt::page_protect( IN bool flags ) -> void {
         cr0.WP = 0;
         CPU::write_cr0( cr0 );
     }
-    lock.release( );
 };
 auto pmlxt::make( IN uint64_t flags, IN Level level, IN MemoryPageType mode ) -> pmlxt & {
-    lock.acquire( );
     pml1t  pml1t { };
     pml2t  pml2t { };
     pml3t  pml3t { };
@@ -276,19 +270,17 @@ auto pmlxt::make( IN uint64_t flags, IN Level level, IN MemoryPageType mode ) ->
         return;
     };
     make_helper( *this );
-    lock.release( );
     return *this;
 }
 auto pmlxt::activate( void ) -> void {
-    lock.acquire( );
     if ( this->get_table( ) ) {
         CPU::set_page_table( (uint64_t *)virtual_to_physical( this->get_table( ) ) );
     }
-    lock.release( );
 }
-auto pmlxt::copy( IN pmlxt & ) -> void {
-    // auto page_table = (uint64_t *)physical_to_virtual( Memory::page->allocate( 1, MemoryPageType::PAGE_4K ) );
-    // memcpy( page_table + 256, from.get_table( ) + 256, PT_SIZE / 2 );
-    // to = (uint64_t)page_table;
+auto pmlxt::copy( IN pmlxt &from ) -> void {
+    auto page_table = (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) );
+    // copy high 2048 size.
+    std::memcpy( page_table + 256, from.get_table( ) + 256, PT_SIZE / 2 );
+    *this = (uint64_t)page_table;
 }
 }     // namespace QuantumNEC::Kernel::x86_64

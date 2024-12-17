@@ -13,8 +13,6 @@ public:
         requires( __type__ != MemoryPageType::NONE )
     auto free( IN void *__physical_address__, IN uint64_t __size__ ) -> void;
     // 这个操作会清空内存地址指向的空间中所有数据
-private:
-    Lib::SpinLock lock;
 };
 template <>
 auto PageCollector::free< MemoryPageType::PAGE_2M >( IN void *__physical_address__, IN uint64_t __size__ ) -> void;

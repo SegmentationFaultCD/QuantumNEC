@@ -1,6 +1,7 @@
 #pragma once
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_manager.hpp>
+#include <kernel/print.hpp>
 #include <lib/Uefi.hpp>
 #include <tuple>
 namespace QuantumNEC::Kernel::x86_64 {
@@ -164,8 +165,10 @@ public:
     constexpr static auto USER_STACK_VIRTUAL_ADDRESS_TOP { 0x00007fffffffffffUL };
 
 public:
-    explicit pmlxt( void ) noexcept = default;
-    virtual ~pmlxt( void ) noexcept = default;
+    explicit pmlxt( void ) noexcept {
+    }
+    virtual ~pmlxt( void ) noexcept {
+    }
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t                                            = 0;
@@ -316,17 +319,19 @@ public:
     using huge_page_table_entry = void;
 
 public:
-    explicit pml1t( IN pml1t_entry *pml1t_address ) noexcept {
+    explicit pml1t( IN pml1t_entry *pml1t_address ) noexcept :
+        pmlxt { } {
         this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml1t_address );
     }
 
-    explicit pml1t( IN pml1t &pml1t ) noexcept {
+    explicit pml1t( IN pml1t &pml1t ) noexcept :
+        pmlxt { } {
         this->pmlx_entry = pml1t.pmlx_entry;
     }
-    explicit pml1t( void ) noexcept {
+    explicit pml1t( void ) noexcept :
+        pmlxt { } {
     }
-    virtual ~pml1t( void ) noexcept {
-    }
+    virtual ~pml1t( void ) noexcept = default;
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -428,12 +433,13 @@ public:
     // 一种是当分页模式为2M时继续找二级页表
     // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
 public:
-    explicit pml2t( IN page_table_entry *pml2t_address ) noexcept {
+    explicit pml2t( IN page_table_entry *pml2t_address ) noexcept :
+        pmlxt { } {
         this->pmlx_entry[ Level::PD ] = (uint64_t *)pml2t_address;
     }
-    explicit pml2t( void ) noexcept = default;
-    virtual ~pml2t( void ) noexcept {
-    }
+    explicit pml2t( void ) noexcept :
+        pmlxt { } {};
+    virtual ~pml2t( void ) noexcept = default;
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -549,12 +555,13 @@ public:
     // 一种是当分页模式为2M时继续找二级页表
     // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
 public:
-    explicit pml3t( IN page_table_entry *pml3t_address ) noexcept {
+    explicit pml3t( IN page_table_entry *pml3t_address ) noexcept :
+        pmlxt { } {
         this->pmlx_entry[ Level::PDPT ] = (uint64_t *)pml3t_address;
     }
-    explicit pml3t( void ) noexcept = default;
-    virtual ~pml3t( void ) noexcept {
-    }
+    explicit pml3t( void ) noexcept :
+        pmlxt { } {};
+    virtual ~pml3t( void ) noexcept = default;
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -667,17 +674,20 @@ public:
     using huge_page_table_entry = void;
     // 五级页表是最大的了
 public:
-    explicit pml4t( IN page_table_entry *pml4t_address ) noexcept {
+    explicit pml4t( IN page_table_entry *pml4t_address ) noexcept :
+        pmlxt { } {
         this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml4t_address );
     }
 
-    explicit pml4t( IN pml4t &pml4t ) noexcept {
+    explicit pml4t( IN pml4t &pml4t ) noexcept :
+        pmlxt { } {
         this->pmlx_entry = pml4t.pmlx_entry;
     }
-    explicit pml4t( void ) noexcept {
-    }
-    virtual ~pml4t( void ) noexcept {
-    }
+    explicit pml4t( void ) noexcept :
+        pmlxt { } {
+
+        };
+    virtual ~pml4t( void ) noexcept = default;
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -778,17 +788,19 @@ public:
     using huge_page_table_entry = void;
     // 五级页表是最大的了
 public:
-    explicit pml5t( IN page_table_entry *pml5t_address ) noexcept {
+    explicit pml5t( IN page_table_entry *pml5t_address ) noexcept :
+        pmlxt { } {
         this->pmlx_entry[ Level::PML5 ] = (uint64_t *)( pml5t_address );
     }
 
-    explicit pml5t( IN pml5t &pml5t ) noexcept {
+    explicit pml5t( IN pml5t &pml5t ) noexcept :
+        pmlxt { } {
         this->pmlx_entry = pml5t.pmlx_entry;
     }
-    explicit pml5t( void ) noexcept {
+    explicit pml5t( void ) noexcept :
+        pmlxt { } {
     }
-    virtual ~pml5t( void ) noexcept {
-    }
+    virtual ~pml5t( void ) noexcept = default;
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {

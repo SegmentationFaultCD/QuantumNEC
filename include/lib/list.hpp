@@ -71,7 +71,7 @@ public:
             return *_pnode->container;
         }
         Ptr operator->( ) {
-            return ( &operator*( ) );
+            return _pnode->container;
         }
         // 迭代器加加:前置加加
         self operator++( ) {

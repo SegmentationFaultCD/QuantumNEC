@@ -245,4 +245,5 @@ auto CPUUtils::cpuid( IN CpuidStatus &&status ) -> CpuidStatus {
     }
     return status;
 }
+
 }     // namespace QuantumNEC::Kernel::x86_64

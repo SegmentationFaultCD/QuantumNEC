@@ -15,30 +15,32 @@ auto KHeapCollector::free( IN void *address ) -> void {
         if ( !slab ) {
             return;
         }
-        auto index = ( (uint64_t)address - (uint64_t)slab->virtual_address ) / slab_cache->size;
-        *( slab->color_map + ( index >> 6 ) ) ^= 1ul << index % 64;     // 取消填充
-        slab->free_count++;
-        slab->using_count--;
-        slab_cache->total_free++;
-        slab_cache->total_using--;
-        if ( !slab->using_count && ( slab_cache->total_free >= slab->color_count * 3 / 2 ) && ( slab_cache->cache_pool != slab ) ) {
-            slab_cache->pool_list.remove( slab->list );
-            slab_cache->total_free -= slab->color_count;
-            switch ( slab_cache->size ) {
-            case 32:
-            case 64:
-            case 128:
-            case 256:
-            case 512:
-                page_walker.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
-                break;
-            default:
-                kheap_walker.free( slab->color_map );
-                page_walker.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
-                kheap_walker.free( slab );
-                break;
+        slab_cache->visit( [ & ]( const Lib::shared_spinlock< SlabCache > &slab_cache ) {
+            auto index = ( (uint64_t)address - (uint64_t)slab->virtual_address ) / slab_cache.value( ).size;
+            *( slab->color_map + ( index >> 6 ) ) ^= 1ul << index % 64;     // 取消填充
+            slab->free_count++;
+            slab->using_count--;
+            slab_cache.value( ).total_free++;
+            slab_cache.value( ).total_using--;
+            if ( !slab->using_count && ( slab_cache.value( ).total_free >= slab->color_count * 3 / 2 ) && ( slab_cache.value( ).cache_pool != slab ) ) {
+                slab_cache.value( ).pool_list.remove( slab->list );
+                slab_cache.value( ).total_free -= slab->color_count;
+                switch ( slab_cache.value( ).size ) {
+                case 32:
+                case 64:
+                case 128:
+                case 256:
+                case 512:
+                    page_walker.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
+                    break;
+                default:
+                    kheap_walker.free( slab->color_map );
+                    page_walker.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
+                    kheap_walker.free( slab );
+                    break;
+                }
             }
-        }
+        } );
     }
 }
 }     // namespace QuantumNEC::Kernel

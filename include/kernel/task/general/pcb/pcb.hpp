@@ -17,32 +17,35 @@ constexpr auto PCB_STACK_MAGIC { 0x1145141919810ULL };
 constexpr auto TASK_NAME_SIZE { 32ull };
 
 struct PCB {
-public:
-    enum class State : uint64_t {
-        RUNNING   = 0,
-        READY     = 1,
-        BLOCKED   = 2,
-        SENDING   = 3,
-        RECEIVING = 4,
-        WAITING   = 5,
-        HANGING   = 6,
-        DIED      = 7,
-    };
-    enum class FpuEnable : uint64_t {
-        ENABLE  = 1,
-        DISABLE = 0
-    };
-    enum class FpuUsed : uint64_t {
-        USED   = 1,
-        UNUSED = 0,
-    };
-    enum class Type : uint64_t {
-        THREAD         = 0,
-        KERNEL_PROCESS = 1,
-        USER_PROCESS   = 2
-    };
+    struct Flags {
+        enum class State : uint64_t {
+            RUNNING   = 0,
+            READY     = 1,
+            BLOCKED   = 2,
+            SENDING   = 3,
+            RECEIVING = 4,
+            WAITING   = 5,
+            HANGING   = 6,
+            DIED      = 7,
+        } state : 7;     // 任务状态
+        enum class Fpu : uint64_t {
+            ENABLE  = 1,
+            DISABLE = 0,
+            USED    = 1,
+            UNUSED  = 0,
+        };
+        Fpu fpu_enable : 1;     // FPU状态 : 1开  0未开
+        Fpu fpu_used : 1;       // FPU状态 : 1使用  0未使用
 
-public:
+        enum class Type : uint64_t {
+            THREAD         = 0,
+            KERNEL_PROCESS = 1,
+            USER_PROCESS   = 2
+        } task_type : 2;     // 任务类型 0线程 1内核进程 2 用户进程
+
+        uint64_t : 53;
+    } flags;
+
     struct _packed ThreadContext     // 栈底
     {
 #if defined( __x86_64__ )
@@ -66,17 +69,31 @@ public:
         // 栈顶
     };
     struct ProcessContext : Interrupt::InterruptFrame {
-        auto make( IN void *_entry, IN uint64_t kernel_stack_top, IN Type type ) -> bool;
+        ProcessContext( void ) = default;
+        auto make( IN void *_entry, IN uint64_t kernel_stack_top, IN Flags::Type type ) -> bool;
         auto operator=( const Interrupt::InterruptFrame & ) -> ProcessContext &;
     };
 
 public:
-    struct MM {
+    struct MemoryManager {
+        // 任务所持有的页表地址
 #if defined( __x86_64__ )
-        x86_64::pml4t page_table;     // 任务所持有的页表地址
+    private:
+        x86_64::pml4t _page_table;
+
+    public:
+        x86_64::pmlxt *page_table;
 #elif defined( __aarch64__ )
 #endif
-        explicit MM( void ) = default;
+        struct MemoryMap {
+            uint64_t text_start;
+            uint64_t text_end;
+            uint64_t data_start;
+            uint64_t data_end;
+        } map;
+        auto install( ) {
+            this->page_table = new ( &this->_page_table ) decltype( this->_page_table ) { };
+        }
     } memory_manager;     // 记录内存分布
 
     uint64_t kernel_stack_base;     // 内核栈栈底
@@ -86,7 +103,6 @@ public:
     struct Context {
         ProcessContext *pcontext;
         ThreadContext  *tcontext;
-        explicit Context( void ) = default;
     } context;     // 上下文 记录寄存器状态
 
     Message message;     // 进程消息体
@@ -94,15 +110,6 @@ public:
     uint64_t PID;                        // 任务ID
     uint64_t PPID;                       // 父进程ID
     char_t   name[ TASK_NAME_SIZE ];     // 任务名
-    uint64_t signal;                     // 任务持有的信号
-
-    struct Flags {
-        State     state : 7;          // 任务状态
-        Type      task_type : 2;      // FPU状态 : 任务类型 0线程 1内核进程 2 用户进程
-        FpuUsed   fpu_used : 1;       // FPU状态 : 1使用  0未使用
-        FpuEnable fpu_enable : 1;     // FPU状态 : 1开  0未开
-        uint64_t  red : 53;
-    } flags;
 
     struct Schedule {
         uint64_t                        jiffies;               // 可运行的时间片
@@ -110,13 +117,14 @@ public:
         uint64_t                        virtual_deadline;      // 虚拟截止时间
         uint64_t                        cpu_id;                // CPU ID
         Lib::ListTable< PCB >::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
+        uint64_t                        signal;                // 任务持有的信号
+        FuncPtr< void >                 activater;
     } schedule;
 
     FloatPointUnit::FpuFrame *fpu_frame;
 
     uint64_t stack_magic;     // 用于检测栈的溢出
 
-public:
     explicit PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept;
 
     /**
@@ -127,14 +135,23 @@ public:
     auto activate( void ) {
 #if defined( __x86_64__ )
         // 设置TSS，将TSS设置指向内核栈栈顶
-        x86_64::GlobalSegmentDescriptorTable::gdt->tss[ 0 ].set_rsp0( this->kernel_stack_base + this->kernel_stack_size );
+        x86_64::GlobalSegmentDescriptorTable::gdt->tss[ this->schedule.cpu_id ].set_rsp0( (uint64_t)physical_to_virtual( this->kernel_stack_base ) + this->kernel_stack_size );
 #elif defined( __aarch64__ )
 #else
 #error Not any registers
 #endif
-        // 激活页表
-        this->memory_manager.page_table.activate( );
+        // activate the fpu
         this->fpu_frame->load( );
+        // activate the page table
+        this->memory_manager.page_table->activate( );
+        // set running state
+        this->flags.state = Flags::State::RUNNING;
+    }
+    /**
+     * @brief remove task from running state
+     */
+    auto close( ) {
+        this->fpu_frame->save( );
     }
 };
 }     // namespace QuantumNEC::Kernel

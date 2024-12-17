@@ -26,5 +26,8 @@ public:
     auto schedule( this auto &&self ) -> std::expected< PCB *, ErrorCode > {
         return self.__schedule__( );
     }
+    auto remove( this auto &&self ) -> std::expected< PCB *, ErrorCode > {
+        return self.__remove__( );
+    }
 };
 }     // namespace QuantumNEC::Kernel

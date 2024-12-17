@@ -5,7 +5,6 @@
 #include <lib/spin_lock.hpp>
 namespace QuantumNEC::Kernel::x86_64 {
 SymmetricMultiprocessing::SymmetricMultiprocessing( void ) noexcept {
-    Lib::SpinLock lock { };
     using namespace QuantumNEC::Kernel;
     using namespace std;
     for ( auto i { 1ul }; i < __config.smp.cpu_count; ++i ) {

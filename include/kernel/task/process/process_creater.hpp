@@ -14,6 +14,6 @@ public:
     ~ProcessCreater( void ) noexcept = default;
 
 public:
-    auto create( const char_t *_name_, uint64_t _priority_, void *_entry_, PCB::Type type ) -> std::expected< PCB *, ErrorCode >;
+    auto create( const char_t *_name_, uint64_t _priority_, void *_entry_, PCB::Flags::Type type ) -> std::expected< PCB *, ErrorCode >;
 };
 }     // namespace QuantumNEC::Kernel

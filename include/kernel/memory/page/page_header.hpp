@@ -6,7 +6,7 @@
 #include <kernel/memory/page/page_walker.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/rbtree.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/shared_spinlock.hpp>
 #include <utility>
 namespace QuantumNEC::Kernel {
 template < MemoryPageType __allocater_to_bind__, MemoryPageType __mmap_allocater__ >
@@ -70,7 +70,7 @@ public:
         };
 
     public:
-        static auto get_group( void ) -> __group_type__ & {
+        static auto get_group( void ) -> Lib::shared_spinlock< __group_type__ > & {
             return page_header_group[ __allocater_to_bind__ ];
         }
         static auto get_keys( IN auto base_address ) {
@@ -78,7 +78,7 @@ public:
         }
 
     private:
-        inline static __group_type__ page_header_group[ 4 ];
+        inline static Lib::shared_spinlock< __group_type__ > page_header_group[ 4 ];
         // 辅助
     };
 
@@ -141,21 +141,21 @@ public:
         this->zone                    = header_start_address.template get_address< __address__::HEADER_START_ADDRESS >( this->all_memory_header_count );
         auto base_address_            = base_address.template get_address< __address__::BASE_ADDRESS >( this->all_memory_header_count );
 
-        this->lock.acquire( );
-        for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
-            this->zone[ i ].owner                  = &this->zone[ 0 ];
-            this->zone[ i ].flags.state            = __page_state__::ALL_FREE;
-            this->zone[ i ].flags.type             = __allocater_to_bind__;
-            this->zone[ i ].free_memory_page_count = __helper__::page_descriptor_count;
-            this->zone[ i ].base_address           = base_address_ + __helper__::page_descriptor_count * PageAllocater::__page_size__< __allocater_to_bind__ > * i;
-            this->zone[ i ].header_count           = 0;
-            // 插入红黑树中
-            this->zone[ i ].group_node._key  = __helper__::get_keys( this->zone[ i ].base_address );
-            this->zone[ i ].group_node._data = &this->zone[ i ];
-            group.insert( this->zone[ i ].group_node );
-        }
-        this->lock.release( );
-
+        group.visit(
+            [ &, this ]( const Lib::shared_spinlock< typename __helper__::__group_type__ > &group ) {
+                for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
+                    this->zone[ i ].owner                  = &this->zone[ 0 ];
+                    this->zone[ i ].flags.state            = __page_state__::ALL_FREE;
+                    this->zone[ i ].flags.type             = __allocater_to_bind__;
+                    this->zone[ i ].free_memory_page_count = __helper__::page_descriptor_count;
+                    this->zone[ i ].base_address           = base_address_ + __helper__::page_descriptor_count * PageAllocater::__page_size__< __allocater_to_bind__ > * i;
+                    this->zone[ i ].header_count           = 0;
+                    // 插入红黑树中
+                    this->zone[ i ].group_node._key  = __helper__::get_keys( this->zone[ i ].base_address );
+                    this->zone[ i ].group_node._data = &this->zone[ i ];
+                    group.value( ).insert( this->zone[ i ].group_node );
+                }
+            } );
         this->zone[ 0 ].header_count = this->all_memory_header_count;
         this->zone[ 0 ].owner        = NULL;
     }
@@ -166,7 +166,6 @@ public:
     auto __allocate_headers__( IN uint64_t __size__ ) && -> __page_header__ & {
         auto &&remainder = __size__ % __helper__::page_descriptor_count;
         auto &&end       = Lib::DIV_ROUND_UP( __size__, __helper__::page_descriptor_count );
-        this->lock.acquire( );
 
         for ( auto i = 0ul; i < end - 1; ++i ) {
             // 把开头到结尾前一个都算进去
@@ -177,7 +176,6 @@ public:
         this->zone[ end - 1 ].flags.state = __page_state__::NORMAL;
         this->zone[ end - 1 ].free_memory_page_count -= remainder;
         this->zone[ end - 1 ].bitmap.set( 0, remainder );
-        this->lock.release( );
 
         return *this;
     }
@@ -187,6 +185,5 @@ public:
 
 private:
     __helper__::__page_information__ *zone;
-    Lib::SpinLock                     lock;
 };
 }     // namespace QuantumNEC::Kernel

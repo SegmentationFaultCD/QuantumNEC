@@ -50,16 +50,16 @@ auto InterruptEntry::error_code( uint64_t error_code ) noexcept -> void {
     const char *tbl;
     switch ( code.tbl ) {
     case 0b00:
-        std::println< print_level::ERROR >( " The selector index references a descriptor in the GDT. " );
+        std::println< print_level::ERROR >( "The selector index references a descriptor in the GDT. " );
         tbl = R"(GDT)";
         break;
     case 0b01:
     case 0b11:
-        std::println< print_level::ERROR >( " The selector index references a descriptor in the IDT. " );
+        std::println< print_level::ERROR >( "The selector index references a descriptor in the IDT. " );
         tbl = R"(IDT)";
         break;
     case 0b10:
-        std::println< print_level::ERROR >( " The selector index references a descriptor in the LDT. " );
+        std::println< print_level::ERROR >( "The selector index references a descriptor in the LDT. " );
         tbl = R"(LDT)";
         break;
     default:

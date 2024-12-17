@@ -20,7 +20,11 @@ public:
         uint64_t          ioapic_count;
         IOApicInformation ioapic[ 8 ];     // ioapic最多可以有8个
     };
-
+    enum class SupportState {
+        SUPPORT_x2APIC,
+        SUPPORT_xAPIC,
+        DOES_NOT_SUPPORT
+    };
     enum class ApicType {
         IO_APIC    = 0,
         LOCAL_APIC = 1
@@ -101,14 +105,14 @@ public:
         uint32_t irr : 1;
         uint32_t trigger : 1;
         uint32_t mask : 1;
-        uint32_t reserved : 15;
+        uint32_t : 15;
 
         union {
             struct
             {
                 uint32_t : 24;
                 uint32_t phy_dest : 4;
-                uint32_t reserved2 : 4;
+                uint32_t : 4;
             } physical;
 
             struct
@@ -140,21 +144,9 @@ public:
      * @brief 检测CPU是否支持APIC
      * @return 如果CPU支持且未在MSR中禁用，则返回 TRUE 值
      */
-    static auto check_apic( void ) -> int16_t;
-    static auto irq_set_mask( IN irq_t irq ) -> void {
-        ApicLocalVectorTableRegisters lvt { };
-        lvt.mask = APIC_ICR_IOAPIC_MASKED;
-        write_apic( IOAPIC_REG_TABLE + 2 * irq, lvt, ApicType::IO_APIC );
-    }
-    static auto irq_clear_mask( IN irq_t irq, IN uint8_t vector, IN uint8_t ) -> void {
-        // 标记中断边缘触发，高电平有效，
-        // 启用并路由到给定的cpunum，
-        // 恰好是该cpu的APIC ID
-        ApicLocalVectorTableRegisters lvt { };
-        lvt.vector = vector;
-        lvt.mask   = APIC_ICR_IOAPIC_UNMASKED;
-        write_apic( IOAPIC_REG_TABLE + 2 * irq, lvt, ApicType::IO_APIC );
-    }
+    static auto check_apic( void ) -> SupportState;
+    static auto irq_set_mask( IN irq_t irq ) -> void;
+    static auto irq_clear_mask( IN irq_t irq, IN uint8_t vector, IN uint8_t ) -> void;
     static auto enable_ioapic( IN IN irq_t irq ) -> void;
     static auto disable_ioapic( IN irq_t irq ) -> void;
     static auto install_ioapic( IN Apic::irq_t irq, IN void *entry ) -> uint64_t;
@@ -167,10 +159,42 @@ public:
         return apic_id( );
     }
 
+    /**
+     * @brief make IOApicRedirectionEntry struct
+     * @param entry 结构体
+     * @param vector 中断向量
+     * @param deliver_mode 投递模式
+     * @param dest_mode 目标模式
+     * @param deliver_status 投递状态
+     * @param polarity 电平触发极性
+     * @param irr 远程IRR标志位（只读）
+     * @param trigger 触发模式
+     * @param mask 屏蔽标志位，（0为未屏蔽， 1为已屏蔽）
+     * @param dest_apicID 目标apicID
+     */
+    static auto make_ioapic_rte_entry( uint8_t vector, uint8_t deliver_mode, uint8_t dest_mode, uint8_t deliver_status, uint8_t polarity, uint8_t irr, uint8_t trigger, uint8_t mask, uint8_t dest_apicID ) {
+        IOApicRedirectionEntry entry;
+        entry.vector         = vector;
+        entry.deliver_mode   = deliver_mode;
+        entry.dest_mode      = dest_mode;
+        entry.deliver_status = deliver_status;
+        entry.polarity       = polarity;
+        entry.irr            = irr;
+        entry.trigger        = trigger;
+        entry.mask           = mask;
+        if ( dest_mode == x86_64::ICR_IOAPIC_DELV_PHYSICAL ) {
+            entry.destination.physical.phy_dest = dest_apicID;
+        }
+        else {
+            entry.destination.logical.logical_dest = dest_apicID;
+        }
+        return entry;
+    }
+
 public:
     inline static ApicInformation apic_map;
 
-private:
-    inline static int16_t apic_flags { };
+public:
+    inline static SupportState apic_flags { };
 };
 }     // namespace QuantumNEC::Kernel::x86_64

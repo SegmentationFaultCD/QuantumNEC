@@ -1,4 +1,10 @@
+#include <kernel/interrupt/x86_64/entry/entry_apic_cmci.hpp>
 #include <kernel/interrupt/x86_64/entry/entry_apic_error.hpp>
+#include <kernel/interrupt/x86_64/entry/entry_apic_lint0.hpp>
+#include <kernel/interrupt/x86_64/entry/entry_apic_lint1.hpp>
+#include <kernel/interrupt/x86_64/entry/entry_apic_performance_counter.hpp>
+#include <kernel/interrupt/x86_64/entry/entry_apic_thermal_monitor.hpp>
+#include <kernel/interrupt/x86_64/entry/entry_apic_timer.hpp>
 #include <kernel/interrupt/x86_64/entry/entry_cascade_timer.hpp>
 #include <kernel/interrupt/x86_64/entry/entry_clock.hpp>
 #include <kernel/interrupt/x86_64/entry/entry_rtc.hpp>
@@ -10,7 +16,14 @@
 namespace QuantumNEC::Kernel::x86_64 {
 /*  ------------------- Interrupts ------------------- */
 
-ApicErrorEntry                         apic_error_entry;
+ApicErrorEntry              apic_error_entry;
+ApicLINT1Entry              apic_lint1_entry;
+ApicLINT0Entry              apic_lint0_entry;
+ApicCMCIEntry               apic_cmci_entry;
+ApicTimerEntry              apic_timer_entry;
+ApicPerformanceCounterEntry apic_performance_counter_entry;
+ApicThermalMonitorEntry     apic_thermal_monitor_entry;
+
 CascadeTimerEntry                      cascade_timer_entry;
 ClockEntry                             clock_entry;
 RTCEntry                               rtc_entry;
@@ -70,17 +83,23 @@ InterruptEntryRegister::InterruptEntryRegister( void ) noexcept {
     for ( auto i = 22; i < 28; ++i ) {
         this->entry[ i ] = NULL;
     }
-    this->entry[ 28 ] = &HV;
-    this->entry[ 29 ] = &VC;
-    this->entry[ 30 ] = &SX;
-    this->entry[ 31 ] = NULL;
+    this->entry[ 28 ]                               = &HV;
+    this->entry[ 29 ]                               = &VC;
+    this->entry[ 30 ]                               = &SX;
+    this->entry[ 31 ]                               = NULL;
+    this->entry[ IRQ_CLOCK ]                        = &clock_entry;
+    this->entry[ IRQ_CASCADE_TIMER ]                = &cascade_timer_entry;
+    this->entry[ IRQ_CMOS_RTC ]                     = &rtc_entry;
+    this->entry[ IRQ_SYSTEM_CALL ]                  = &syscall_entry;
+    this->entry[ IRQ_APIC_LVT_CMCI ]                = &apic_cmci_entry;
+    this->entry[ IRQ_APIC_LVT_TIMER ]               = &apic_timer_entry;
+    this->entry[ IRQ_APIC_LVT_THERMAL_MONITOR ]     = &apic_thermal_monitor_entry;
+    this->entry[ IRQ_APIC_LVT_PERFORMANCE_COUNTER ] = &apic_performance_counter_entry;
+    this->entry[ IRQ_APIC_LVT_LINT0 ]               = &apic_lint1_entry;
+    this->entry[ IRQ_APIC_LVT_LINT1 ]               = &apic_lint0_entry;
+    this->entry[ IRQ_APIC_LVT_ERROR ]               = &apic_error_entry;
+    this->entry[ IRQ_SMP_SWITCH_CPU ]               = &smp_switch_cpu_entry;
 
-    this->entry[ IRQ_CLOCK ]          = &clock_entry;
-    this->entry[ IRQ_CASCADE_TIMER ]  = &cascade_timer_entry;
-    this->entry[ IRQ_CMOS_RTC ]       = &rtc_entry;
-    this->entry[ IRQ_SYSTEM_CALL ]    = &syscall_entry;
-    this->entry[ IRQ_APIC_LVT_ERROR ] = &apic_error_entry;
-    this->entry[ IRQ_SMP_SWITCH_CPU ] = &smp_switch_cpu_entry;
     for ( auto interrupt : this->entry ) {
         if ( interrupt ) {
             interrupt->do_register( );

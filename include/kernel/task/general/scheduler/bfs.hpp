@@ -35,11 +35,16 @@ private:
     auto __sleep__( IN uint64_t ticks ) -> std::expected< PCB *, ErrorCode >;
     // 任务调度
     auto __schedule__( void ) -> std::expected< PCB *, ErrorCode >;
+    // Task remove
+    auto __remove__( void ) -> std::expected< PCB *, ErrorCode >;
 };
+
 class ProcessManager;
+class ProcessCreater;
 class SchedulerHelper {
     friend BrainFuckScheduler;
     friend ProcessManager;
+    friend ProcessCreater;
 
 private:
     /**
@@ -177,7 +182,7 @@ private:
                                                                               // 每个队列对应的位图
     inline static bool bitmap[ total_priority ] { };
     // 全局锁
-    inline static Lib::SpinLock global_lock { };
+    inline static Lib::spinlock global_lock { };
     // 仅仅存放运行任务，数量为CPU个数
     inline static Lib::ListTable< PCB > running_queue { };
 

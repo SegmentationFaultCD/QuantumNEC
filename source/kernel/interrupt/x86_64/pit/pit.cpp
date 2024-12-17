@@ -6,7 +6,7 @@ PIT::PIT( void ) noexcept :
     P8254 {
 }
 #else
-    Hpet { }
+    Hpet { }, ApicTimer { }
 #endif
 {
 }

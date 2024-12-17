@@ -8,10 +8,6 @@ using namespace std;
 PageManager::PageManager( void ) noexcept {
     auto memory_descriptor { &__config.memory_map };
 
-    __page_header__< PAGE_1G, NONE >::__helper__::get_group( ).init( );
-    __page_header__< PAGE_2M, PAGE_1G >::__helper__::get_group( ).init( );
-    __page_header__< PAGE_4K, PAGE_2M >::__helper__::get_group( ).init( );
-
     using PH  = __page_header__< PAGE_2M, PAGE_1G >;
     using PHI = PH::__helper__::__page_information__;
 

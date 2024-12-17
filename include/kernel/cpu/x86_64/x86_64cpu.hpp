@@ -116,12 +116,14 @@ public:
     static auto wrmsr( IN uint64_t address, IN uint64_t value ) -> void;
     static auto get_rsp( void ) -> uint64_t;
     static auto get_rflags( void ) -> uint64_t;
+
     static auto io_in8( IN uint16_t port ) -> uint8_t;
     static auto io_in16( IN uint16_t port ) -> uint16_t;
     static auto io_in32( IN uint16_t port ) -> uint32_t;
     static auto io_out8( IN uint16_t port, IN uint8_t value ) -> void;
     static auto io_out16( IN uint16_t port, IN uint16_t value ) -> void;
     static auto io_out32( IN uint16_t port, IN uint32_t value ) -> void;
+
     static auto read_cr8( void ) -> ControlRegisters::CR8;
     static auto write_cr8( IN ControlRegisters::CR8 cr8 ) -> void;
     static auto read_cr4( void ) -> ControlRegisters::CR4;

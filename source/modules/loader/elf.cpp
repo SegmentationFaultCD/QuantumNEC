@@ -54,9 +54,9 @@ auto Elf::check_elf_magic( IN void *Ehdr ) -> bool {
     auto header = (ElfHeader *)Ehdr;
     if ( header->e_Magic != ELF_MAGIC )
         return false;
-    if ( header->e_Type != ELF_ET_DYN ) {
-        return false;
-    }
+    // if ( header->e_Type != ELF_ET_DYN ) {
+    //     return false;
+    // }
     return true;
 }
 }     // namespace QuantumNEC::Modules

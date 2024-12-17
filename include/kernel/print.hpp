@@ -84,7 +84,7 @@ auto putc(
     IN int64_t Y, IN DisplayColor FRcolor,
     IN DisplayColor BKcolor, IN QuantumNEC::uchar_t Font )
     -> void;
-inline QuantumNEC::Lib::SpinLock pri_lock { };
+inline QuantumNEC::Lib::spinlock pri_lock { };
 
 template < typename... Args >
 auto print( IN std::format_string< std::type_identity_t< Args >... > fmt, IN Args &&...args ) -> void;

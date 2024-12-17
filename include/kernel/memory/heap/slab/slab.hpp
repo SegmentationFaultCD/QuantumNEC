@@ -12,7 +12,7 @@ struct Slab {
     uint64_t                         color_length;
     uint64_t                         color_count;
     uint64_t                        *color_map;
-    explicit Slab( void ) noexcept {
+    Slab( void ) noexcept {
     }
     ~Slab( void ) noexcept {
     }
@@ -26,7 +26,7 @@ struct SlabCache {
     Slab                               *cache_dma_pool;
     FuncPtr< void *, void *, uint64_t > constructor;
     FuncPtr< void *, void *, uint64_t > destructor;
-    explicit SlabCache( void ) noexcept {
+    SlabCache( void ) noexcept {
     }
     ~SlabCache( void ) noexcept {
     }
