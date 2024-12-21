@@ -12,7 +12,6 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
     auto kernel_stack = this->kernel_stack_base + this->kernel_stack_size;
     kernel_stack -= sizeof( ProcessContext );
     this->context.pcontext = reinterpret_cast< ProcessContext * >( physical_to_virtual( kernel_stack ) );
-
     // 设置用户栈
     this->user_stack_base = (uint64_t)PageWalker { }.allocate< MemoryPageType::PAGE_2M >( TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M > );     // 用户栈8M大小
     this->user_stack_size = TASK_USER_STACK_SIZE;
@@ -32,7 +31,7 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
         this->context.tcontext->make( _entry_, _arg_ );
     }
     else {
-        // 不是线程，就设置指向进程栈的线程栈
+        // 不是线程，就设SchedulerHelper::task_queue[ pcb->schedule.priority ].append( pcb->schedule.general_task_node );置指向进程栈的线程栈
         // this->context.tcontext->make( (VOID *)Architecture::ArchitectureManager< TARGET_ARCH >::to_process, (uint64_t)this->context.pcontext );
     }
 
@@ -44,7 +43,7 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
         this->memory_manager.page_table->map( this->user_stack_base,
                                               this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size + 1,
                                               TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M >,
-                                              this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U,
+                                              this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U | this->memory_manager.page_table->PAGE_PS,
                                               MemoryPageType::PAGE_2M );
         // map kernel stack and set r/w, p and xd
         this->memory_manager.page_table->map( this->kernel_stack_base,
@@ -52,14 +51,6 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
                                               TASK_KERNEL_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_4K >,
                                               this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_XD,
                                               MemoryPageType::PAGE_4K );
-        // map rip and set r/w, p and u/s
-        this->memory_manager.page_table->map(
-            (uint64_t)Kernel::x86_64::virtual_to_physical( this->context.pcontext->rip ),
-            (uint64_t)this->context.pcontext->rip,
-            ( this->memory_manager.map.text_start - this->memory_manager.map.text_end ) / PageWalker::__page_size__< MemoryPageType::PAGE_4K >,
-            this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U,
-            Kernel::MemoryPageType::PAGE_4K );
-
         // set rsp to point user stack top
         this->context.pcontext->rsp = this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP;
     }
@@ -78,9 +69,9 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
     this->schedule.priority                    = _priority_;
     this->schedule.general_task_node.container = this;
     // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
-    this->flags = _flags_;
-
+    this->flags                     = _flags_;
     this->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( this->schedule.priority );
+    this->schedule.jiffies          = SchedulerHelper::rr_interval;
     // 当前cpu的id
     this->schedule.cpu_id = Interrupt::cpu_id( );
     // 魔术字节
@@ -97,7 +88,7 @@ auto PCB::ProcessContext::make( IN void *_entry, IN uint64_t stack_top, IN Flags
         this->regs.es     = x86_64::SELECTOR_DATA64_KERNEL;
         this->regs.gs     = x86_64::SELECTOR_DATA64_KERNEL;
         this->regs.fs     = x86_64::SELECTOR_DATA64_KERNEL;
-        this->rflags.IOPL = 0;
+        this->rflags.IOPL = 3;
         this->rflags.MBS  = 1;
         this->rflags.IF   = 1;
 #elif defined( __aarch64__ )
@@ -112,31 +103,17 @@ auto PCB::ProcessContext::make( IN void *_entry, IN uint64_t stack_top, IN Flags
         this->regs.es     = x86_64::SELECTOR_DATA64_USER;
         this->regs.gs     = x86_64::SELECTOR_DATA64_USER;
         this->regs.fs     = x86_64::SELECTOR_DATA64_USER;
-        this->rflags.IOPL = 3;
+        this->rflags.IOPL = 0;
         this->rflags.MBS  = 1;
         this->rflags.IF   = 1;
 #elif defined( __aarch64__ )
 #endif
         return true;
     }
+
     return false;
 }
-auto PCB::ProcessContext::operator=( const Interrupt::InterruptFrame &frame ) -> ProcessContext & {
-#if defined( __x86_64__ )
-    this->cs         = frame.cs;
-    this->ss         = frame.ss;
-    this->rip        = frame.rip;
-    this->rsp        = frame.rsp;
-    this->rflags     = frame.rflags;
-    this->regs       = frame.regs;
-    this->error_code = frame.error_code;
-    this->old_rax    = frame.old_rax;
-    this->vector     = frame.vector;
-    this->handler    = frame.handler;
-    return *this;
-#elif defined( __aarch64__ )
-#endif
-}
+
 auto PCB::ThreadContext::make( void *entry, IN uint64_t _arg ) -> bool {
     return true;
 }

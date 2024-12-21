@@ -25,8 +25,9 @@ Paging::Paging( void ) noexcept {
     }
     this->kernel_page_table->page_protect( false );
 }
-inline static PageAllocater allocater { };
-inline static uint64_t      address { };
+PageAllocater allocater { };
+uint64_t      address { };
+
 using namespace std;
 auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode ) -> void {
     pml1t  pml1t { };
@@ -48,9 +49,9 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         return *page_table[ level - 1 ];
     };
 
-    auto page_size = pml4t.check_page_size( mode );     // 确认每页大小
+    auto page_size = get_table( _level ).check_page_size( mode );     // 确认每页大小
 
-    flags |= pml4t.is_huge( mode );     // 如果为huge页那么设置ps位为1
+    flags |= get_table( _level ).is_huge( mode );     // 如果为huge页那么设置ps位为1
 
     auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
         auto index = pmlx_t.get_address_index_in( reinterpret_cast< void * >( virtual_address ) );     // 拿到虚拟地址所在页表入口的index
@@ -101,7 +102,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         // 这种情况下，那么就是继续迭代既可
 
         else if ( !pmlx_t.flags_p( index ) ) {
-            // 这个页要是是一个不存在的那么就弄出一个4k大小表给他
+            // 这个页要是是一个不存在的那么就弄出一个表给他
             auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
             pmlx_t    = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FF ), flags, mode };
             std::memset( physical_to_virtual( new_ ), 0, page_size );
@@ -191,7 +192,7 @@ auto pmlxt::VTP_from( IN void *virtual_address, IN MemoryPageType mode ) -> void
         }
         auto entry = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, mode ) );
         if ( !( ( level - offset ) - 1 ) ) {
-            return (uint64_t *)entry;
+            return (uint64_t *)virtual_to_physical( entry );
         }
 
         get_table( level - 1 ) = entry;
@@ -281,6 +282,7 @@ auto pmlxt::copy( IN pmlxt &from ) -> void {
     auto page_table = (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) );
     // copy high 2048 size.
     std::memcpy( page_table + 256, from.get_table( ) + 256, PT_SIZE / 2 );
+    std::memset( page_table, 0, PT_SIZE / 2 );
     *this = (uint64_t)page_table;
 }
 }     // namespace QuantumNEC::Kernel::x86_64

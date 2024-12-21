@@ -1,9 +1,9 @@
 #include <kernel/interrupt/interrupt.hpp>
+#include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/x86_64/segment/gdt.hpp>
 #include <kernel/print.hpp>
 #include <lib/spin_lock.hpp>
 #include <libcxx/cstring.hpp>
-
 using namespace std;
 namespace QuantumNEC::Kernel::x86_64 {
 inline static GlobalSegmentDescriptorTable::_GDT _gdt { };
@@ -65,7 +65,6 @@ auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) const 
         : [SELECTOR_CODE64] "i"( SELECTOR_CODE64_KERNEL ),
           [SELECTOR_DATA64] "a"( SELECTOR_DATA64_KERNEL )
         : );
-
     return;
 }
 auto GlobalSegmentDescriptorTable::_GDT::read( IN uint64_t processor_id ) const -> GlobalSegmentDescriptor * {

@@ -311,13 +311,13 @@ public:
         for ( int64_t i = this->length - 1; i >= 0; --i ) {
             if constexpr ( value ) {
                 if ( this->bitmap[ i ] != ~0ul ) {
-                    number_of_bits += std::countr_one( this->bitmap[ i ] );
+                    number_of_bits += std::countl_one( this->bitmap[ i ] );
                     return number_of_bits;
                 }
             }
             else {
                 if ( this->bitmap[ i ] != 0ul ) {
-                    number_of_bits += std::countr_zero( this->bitmap[ i ] );
+                    number_of_bits += std::countl_zero( this->bitmap[ i ] );
                     return number_of_bits;
                 }
             }

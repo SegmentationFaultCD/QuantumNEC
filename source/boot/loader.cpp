@@ -2,6 +2,7 @@
 
 #include <lib/Uefi.hpp>
 
+#include <kernel/task/general/pcb/pcb.hpp>
 using namespace QuantumNEC;
 
 namespace {
@@ -52,6 +53,12 @@ __attribute__( ( used, section( ".requests" ) ) ) volatile limine_module_request
     .id       = LIMINE_MODULE_REQUEST,
     .revision = 0,
     .response = nullptr
+};
+
+__attribute__( ( used, section( ".limine_requests" ) ) ) static volatile struct limine_stack_size_request stack_size_request = {
+    .id         = LIMINE_STACK_SIZE_REQUEST,
+    .revision   = 3,
+    .stack_size = Kernel::TASK_KERNEL_STACK_SIZE,
 };
 }     // namespace
 

@@ -71,7 +71,6 @@ struct PCB {
     struct ProcessContext : Interrupt::InterruptFrame {
         ProcessContext( void ) = default;
         auto make( IN void *_entry, IN uint64_t kernel_stack_top, IN Flags::Type type ) -> bool;
-        auto operator=( const Interrupt::InterruptFrame & ) -> ProcessContext &;
     };
 
 public:
@@ -119,6 +118,7 @@ public:
         Lib::ListTable< PCB >::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
         uint64_t                        signal;                // 任务持有的信号
         FuncPtr< void >                 activater;
+        Lib::ListTable< ThreadContext > thread_queue;
     } schedule;
 
     FloatPointUnit::FpuFrame *fpu_frame;

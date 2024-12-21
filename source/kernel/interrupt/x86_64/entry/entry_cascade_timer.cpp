@@ -22,15 +22,9 @@ auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
 
     CPU::switch_cpu( );
 
-    // ApicTimer::disable( );
-    // ApicTimer::ticks_result            = 0xFFFFFFFF - ApicTimer::get_current_count( );
-    // ApicTimer::measure_apic_timer_flag = true;
+    // *ProcessManager::get_running_task( )->context.pcontext = *( (PCB::ProcessContext *)frame );
+    std::print( "{:x}\n", (void *)frame );
 
-    // Save stack frame, cpu state...
-    // Attention, <SYSTEM> process isn't included.
-    // if ( auto current = ProcessManager::get_running_task( ) ) {
-    // }
-    std::print( "{:x}\n", (uint64_t)frame );
     auto result = Scheduler { }.schedule( );
     if ( result.has_value( ) ) {
         if ( result.value( ) == ProcessManager::main_pcb ) {

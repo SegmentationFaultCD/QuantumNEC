@@ -1,3 +1,4 @@
+#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/print.hpp>
 #include <kernel/task/process/process_creater.hpp>
 #include <kernel/task/task.hpp>
@@ -26,14 +27,20 @@ Modules::Module::Module( void ) noexcept {
             }
             name[ k + 1 ] = '\0';
             println< print_level::SYSTEM >( "Service {} ready!", name );
+            // map rip and set r/w, p and u/s
 
             auto service = creater.create( name, 1, (void *)file_entry.value( ), Kernel::PCB::Flags::Type::USER_PROCESS );
-            service.value( )->memory_manager.page_table->map(
-                (uint64_t)Kernel::x86_64::virtual_to_physical( service.value( )->context.pcontext->rip ),
-                (uint64_t)service.value( )->context.pcontext->rip,
-                10,
-                service.value( )->memory_manager.page_table->PAGE_PRESENT | service.value( )->memory_manager.page_table->PAGE_RW_W | service.value( )->memory_manager.page_table->PAGE_US_U,
-                Kernel::MemoryPageType::PAGE_2M );
+
+            // service.value( )->memory_manager.map.text_start = file_entry.value( );
+            // service.value( )->memory_manager.map.text_end   = file_entry.value( ) + Kernel::__config.modules.modules[ i ]->size;
+            // if ( service.has_value( ) ) {
+            //     service.value( )->memory_manager.page_table->map(
+            //         (uint64_t)Kernel::x86_64::virtual_to_physical( service.value( )->context.pcontext->rip ),
+            //         (uint64_t)service.value( )->context.pcontext->rip,
+            //         Lib::DIV_ROUND_UP( service.value( )->memory_manager.map.text_start - service.value( )->memory_manager.map.text_end, Kernel::PageWalker::__page_size__< Kernel::MemoryPageType::PAGE_4K > ),
+            //         service.value( )->memory_manager.page_table->PAGE_PRESENT | service.value( )->memory_manager.page_table->PAGE_RW_W | service.value( )->memory_manager.page_table->PAGE_US_U,
+            //         Kernel::MemoryPageType::PAGE_4K );
+            // }
         }
         else {
             // TODO fault handler

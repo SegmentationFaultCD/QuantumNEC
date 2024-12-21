@@ -14,6 +14,9 @@ public:
     ~__Scheduler__( void )         = default;
 
 public:
+    auto insert( this auto &&self, PCB *pcb ) -> PCB * {
+        return self.__insert__( pcb );
+    }
     auto sleep( this auto &&self, uint64_t ticks ) -> std::expected< PCB *, ErrorCode > {
         return self.__sleep__( ticks );
     }

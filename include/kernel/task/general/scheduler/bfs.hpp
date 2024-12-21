@@ -28,6 +28,8 @@ public:
     friend __Scheduler__;
 
 private:
+    auto __insert__( PCB *pcb ) -> PCB *;
+
     auto __pick_next__( void ) -> std::expected< PCB *, ErrorCode >;
     // 任务唤醒
     auto __wake_up__( PCB *pcb ) -> PCB *;
@@ -39,14 +41,10 @@ private:
     auto __remove__( void ) -> std::expected< PCB *, ErrorCode >;
 };
 
-class ProcessManager;
-class ProcessCreater;
 class SchedulerHelper {
     friend BrainFuckScheduler;
-    friend ProcessManager;
-    friend ProcessCreater;
 
-private:
+public:
     /**
      * 这个是CPU分配给每个任务的时间片，一个常数
      * 该值以毫秒为单位，默认值为 6ms。有效值为 1 至 1000。减小该值将减少延迟，但代价是降低吞吐量；增大
@@ -57,6 +55,8 @@ private:
      * 吞吐量，但超过这个间隔后，来自其他地方的调度噪声会阻碍吞吐量的进一步提高。
      */
     constexpr static auto rr_interval = 6;
+
+private:
     // 总优先级数量
     constexpr static auto total_priority = 103;
     // 每个优先级对应的prio_ratios
@@ -183,13 +183,15 @@ private:
     inline static bool bitmap[ total_priority ] { };
     // 全局锁
     inline static Lib::spinlock global_lock { };
+
+public:
     // 仅仅存放运行任务，数量为CPU个数
     inline static Lib::ListTable< PCB > running_queue { };
 
 public:
     static auto make_virtual_deadline( uint64_t priority ) {
         /**
-         * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * rr_interval
+         * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * [rr_interval * count](jiffies)
          */
         return Interrupt::global_jiffies + prio_ratios[ priority ] * rr_interval;
     }

@@ -24,6 +24,8 @@ int64_t ProcC( void ) {
     //     send_receive( a, Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND, 3, message );
     // }
     println< print_level::DEBUG >( "Process Csfdsfsfsfsf" );
+    Kernel::ProcessCreater cre;
+
     while ( true );
 
     return 0;
@@ -127,7 +129,6 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
     Kernel::Syscall        sysc { };
     Kernel::ProcessCreater cre;
 
-    // cre.create( "PRocs", 1, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     // cre.create( "PRocD", 0, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     Modules::Module mod { };
 

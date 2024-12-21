@@ -16,7 +16,7 @@ ProcessManager::ProcessManager( void ) noexcept {
     pcb->context.pcontext = (PCB::ProcessContext *)( pcb->kernel_stack_base + pcb->kernel_stack_size - sizeof( PCB::ProcessContext ) );
     pcb->context.tcontext = reinterpret_cast< PCB::ThreadContext * >( pcb->context.pcontext ) - 1;
 
-    *(uint64_t *)pcb->kernel_stack_base = (uint64_t)this;
+    *( (uint64_t *)pcb->kernel_stack_base ) = (uint64_t)this;
 
     pcb->fpu_frame = reinterpret_cast< decltype( pcb->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *main_pcb->fpu_frame ) );
     // 分配PID
@@ -41,6 +41,7 @@ ProcessManager::ProcessManager( void ) noexcept {
 
     pcb->schedule.general_task_node.container = pcb;
     pcb->schedule.jiffies                     = SchedulerHelper::rr_interval;
+    pcb->schedule.cpu_id                      = Interrupt::cpu_id( );
     // 暂时没啥用
     pcb->schedule.signal = 0;
     pcb->PPID            = 0;

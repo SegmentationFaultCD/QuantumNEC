@@ -2,29 +2,29 @@
 #include <kernel/task/process/process_creater.hpp>
 #include <kernel/task/task.hpp>
 namespace QuantumNEC::Kernel {
-auto ProcessCreater::create( const char_t *_name_, uint64_t _priority_, void *_entry_, PCB::Type type ) -> std::expected< PCB *, ErrorCode > {
-    if ( type == PCB::Type::THREAD ) {
+auto ProcessCreater::create( const char_t *name, uint64_t priority, void *entry, PCB::Flags::Type type ) -> std::expected< PCB *, ErrorCode > {
+    if ( type == PCB::Flags::Type::THREAD ) {
         return std::unexpected { ErrorCode::ERROR_TASK_TYPE };
     }
     PCB::Flags flags {
-        .state      = PCB::State::READY,
+        .state      = PCB::Flags::State::READY,
+        .fpu_enable = PCB::Flags::Fpu::ENABLE,
+        .fpu_used   = PCB::Flags::Fpu::USED,
         .task_type  = type,
-        .fpu_used   = PCB::FpuUsed::USED,
-        .fpu_enable = PCB::FpuEnable::ENABLE,
-        .red        = 0
     };
     auto pcb = new ( KHeapWalker { }.allocate( sizeof( PCB ) ) ) PCB {
-        _name_,
-        _priority_,
+        name,
+        priority,
         flags,
-        _entry_,
+        entry,
         0
     };
-    SchedulerHelper::task_queue[ pcb->schedule.priority ].append( pcb->schedule.general_task_node );
-    pcb->schedule.jiffies = SchedulerHelper::rr_interval;
+
     if ( !pcb ) {
         return std::unexpected { ErrorCode::ALLOCATE_MEMORY_FAULT };
     }
-    return Scheduler { }.wake_up( pcb );
+    Scheduler scheduler;
+    scheduler.insert( pcb );
+    return pcb;
 }
 }     // namespace QuantumNEC::Kernel

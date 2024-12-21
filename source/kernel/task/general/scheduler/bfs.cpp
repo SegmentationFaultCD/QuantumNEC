@@ -33,6 +33,7 @@ auto BrainFuckScheduler::__pick_next__( void ) -> std::expected< PCB *, ErrorCod
             while ( num-- ) {
                 if ( q->container->schedule.virtual_deadline < Interrupt::global_jiffies ) {
                     // deadline小于当前进程则直接弹出这个
+
                     return q->container;
                 }
                 if ( q->container->schedule.virtual_deadline > p->container->schedule.virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
@@ -52,14 +53,24 @@ auto BrainFuckScheduler::__pick_next__( void ) -> std::expected< PCB *, ErrorCod
         return head->container;
     }
     // 查找失败
+
     return std::unexpected { ErrorCode::ALL_QUEUE_ARE_EMPTY };
 }
-
+auto BrainFuckScheduler::__insert__( PCB *pcb ) -> PCB * {
+    Interrupt::disable_interrupt( );
+    SchedulerHelper::global_lock.acquire( );
+    // 根据优先级插入任务等待队列队尾
+    SchedulerHelper::task_queue[ pcb->schedule.priority ].append( pcb->schedule.general_task_node );
+    SchedulerHelper::bitmap[ pcb->schedule.priority ] = true;
+    pcb->flags.state                                  = PCB::Flags::State::READY;
+    SchedulerHelper::global_lock.release( );
+    Interrupt::enable_interrupt( );
+    return pcb;
+}
 auto BrainFuckScheduler::__wake_up__( PCB *pcb ) -> PCB * {
     Interrupt::disable_interrupt( );
     SchedulerHelper::global_lock.acquire( );
     // 遍历运行队列查找是否可以抢占VD大于插入任务的CPU
-
     for ( auto &running_pcb : SchedulerHelper::running_queue ) {
         if ( running_pcb.schedule.virtual_deadline > pcb->schedule.virtual_deadline ) {
             // 不为空，说明有任务的VD比这个任务VS大
@@ -70,31 +81,32 @@ auto BrainFuckScheduler::__wake_up__( PCB *pcb ) -> PCB * {
             SchedulerHelper::task_queue[ running_pcb.schedule.priority ].append( running_pcb.schedule.general_task_node );
             running_pcb.flags.state                                  = PCB::Flags::State::READY;
             SchedulerHelper::bitmap[ running_pcb.schedule.priority ] = true;
+
             // 处理抢占者，从任务队列中剔除，加入运行队列
-            SchedulerHelper::task_queue[ running_pcb.schedule.priority ].remove( pcb->schedule.general_task_node );
+            SchedulerHelper::task_queue[ pcb->schedule.priority ].remove( pcb->schedule.general_task_node );
+            if ( SchedulerHelper::task_queue[ pcb->schedule.priority ].is_empty( ) ) {
+                SchedulerHelper::bitmap[ pcb->schedule.priority ] = false;
+            }
             SchedulerHelper::running_queue.append( pcb->schedule.general_task_node );
+
             pcb->schedule.cpu_id = running_pcb.schedule.cpu_id;
             pcb->flags.state     = PCB::Flags::State::RUNNING;
+
             SchedulerHelper::global_lock.release( );
             Interrupt::enable_interrupt( );
-
             CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
             return pcb;
-            std::unreachable( );
         }
     }
-    // 为空，说明这个要插入的任务VD太大了
-    // 那就根据优先级插入任务等待队列
-    // 插入队尾
 
-    SchedulerHelper::bitmap[ pcb->schedule.priority ] = true;
-    pcb->flags.state                                  = PCB::Flags::State::READY;
+    // the virtual deadline is too big, none of running tasks can be respaced.
     SchedulerHelper::global_lock.release( );
     Interrupt::enable_interrupt( );
     return pcb;
 }
 // 任务睡眠
 auto BrainFuckScheduler::__sleep__( IN uint64_t ticks ) -> std::expected< PCB *, ErrorCode > {
+    std::unreachable( );
 }
 
 auto BrainFuckScheduler::__schedule__( ) -> std::expected< PCB *, ErrorCode > {
@@ -113,10 +125,12 @@ auto BrainFuckScheduler::__schedule__( ) -> std::expected< PCB *, ErrorCode > {
                 if ( result.has_value( ) ) {
                     auto new_pcb = result.value( );
                     SchedulerHelper::task_queue[ new_pcb->schedule.priority ].remove( new_pcb->schedule.general_task_node );
+
                     SchedulerHelper::running_queue.remove( pcb.schedule.general_task_node );
                     SchedulerHelper::task_queue[ pcb.schedule.priority ].append( pcb.schedule.general_task_node );
                     SchedulerHelper::bitmap[ pcb.schedule.priority ] = true;
                     pcb.flags.state                                  = PCB::Flags::State::READY;
+
                     pcb.close( );
                     // 重新计算VD，填充时间片
                     pcb.schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( pcb.schedule.priority );
@@ -129,6 +143,9 @@ auto BrainFuckScheduler::__schedule__( ) -> std::expected< PCB *, ErrorCode > {
                     SchedulerHelper::running_queue.append( new_pcb->schedule.general_task_node );
                     new_pcb->activate( );
                     return new_pcb;
+                }
+                else {
+                    // TODO fault handler
                 }
             }
         }
