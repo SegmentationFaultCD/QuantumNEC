@@ -8,7 +8,7 @@
 using namespace QuantumNEC;
 namespace QuantumNEC::Kernel::x86_64 {
 
-_C_LINK auto system_call( void * ) -> void;
+_C_LINK auto system_call( void ) -> void;
 
 auto SystemcallEntry::name( void ) noexcept -> void {
 }
@@ -18,11 +18,11 @@ auto SystemcallEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
     auto entry = Syscall::get_syscall_table( )[ frame->regs.rax ];
     if ( !entry ) {
-        const_cast< InterruptDescriptorTable::InterruptFrame * >( frame )->regs.rax = static_cast< uint64_t >( Syscall::Status::NO_SYSCALL );
+        frame->regs.rax = static_cast< uint64_t >( Syscall::Status::NO_SYSCALL );
         return frame;
     }
 
-    return entry( const_cast< InterruptDescriptorTable::InterruptFrame * >( frame ) );
+    return entry( frame );
 }
 auto SystemcallEntry::do_register( void ) -> void {
     Apic::IOApicRedirectionEntry entry { };

@@ -762,7 +762,7 @@ system_call:
     MOV  RDI, RSP
     LEA  RAX, [do_IRQ + RIP]
     CALL RAX
-    
+    MOV RAX, [RAX + _rax]
     // switch into user stack
     MOV RSP, RBP
     POP R8
@@ -771,7 +771,7 @@ system_call:
     POP RDX
     POP RSI
     POP RDI
-    POP RAX
+    ADD RSP, 8 // return value is saved in rax
     POP R11 // rflags
     POP RCX // rip
     ADD RSP, 0x18
