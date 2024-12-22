@@ -17,7 +17,6 @@ _start:
     pushq %rax
     call _rrr
     popq %rax
-    ud2
     jmp _start
 _rrr:
     retq

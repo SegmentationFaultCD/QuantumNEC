@@ -43,19 +43,13 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                           &pml5t
     };
     // 从最高级别页表开始遍历
-    auto _level = Paging::support_5level_paging ? 5 : 4;
-
+    auto _level    = Paging::support_5level_paging ? 5 : 4;
     auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
         return *page_table[ level - 1 ];
     };
-
-    auto page_size = get_table( _level ).check_page_size( mode );     // 确认每页大小
-
-    flags |= get_table( _level ).is_huge( mode );     // 如果为huge页那么设置ps位为1
-
+    auto page_size  = get_table( _level ).check_page_size( mode );                                     // 确认每页大小
     auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
         auto index = pmlx_t.get_address_index_in( reinterpret_cast< void * >( virtual_address ) );     // 拿到虚拟地址所在页表入口的index
-
         if ( level == static_cast< uint64_t >( mode ) ) {
             // 当前等级符合分页模式
             // 如，2m分页，那么每个2级页表就是最底层
@@ -67,9 +61,9 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                     goto normal;
                 }
                 else {
-                    get_table( PAGE_2M )   = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
-                    pmlxt &next_page_table = get_table( PAGE_2M );
+                    get_table( PAGE_2M ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
 
+                    pmlxt &next_page_table = get_table( PAGE_2M );
                     for ( auto i = 0; i < 512; ++i ) {
                         if ( !next_page_table.flags_ps_pat( i ) ) {
                             PageWalker { }.free< MemoryPageType::PAGE_4K >( (void *)next_page_table.flags_base( i, PAGE_4K ), 1 );
@@ -83,13 +77,14 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                     goto normal;
                 }
                 else {
-                    PageWalker { }.free< MemoryPageType::PAGE_4K >( (void *)pmlx_t.flags_base( index, PAGE_4K ), 1 );
+                    // PageWalker { }.free< MemoryPageType::PAGE_4K >( (void *)pmlx_t.flags_base( index, PAGE_4K ), 1 );
                 }
             }
 
         normal:
-            pmlx_t = { index, physics_address & ~0x7FF, flags & 0x7FF, mode };
-            CPU::invlpg( reinterpret_cast< void * >( virtual_address ) );     // 刷新快表
+            flags |= get_table( _level ).is_huge( mode );     // 如果为huge页那么设置ps位为1
+            pmlx_t = { index, physics_address & ~0x7FFul, flags & 0x7FFul, mode };
+            // CPU::invlpg( reinterpret_cast< void * >( virtual_address ) );     // 刷新快表
             physics_address += page_size;
             virtual_address += page_size;
             return;
@@ -101,13 +96,12 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         // 当然还有第三种情况，页p位为1且指向二级页表，
         // 这种情况下，那么就是继续迭代既可
 
-        else if ( !pmlx_t.flags_p( index ) ) {
+        else if ( !pmlx_t.flags_p( index ) || pmlx_t.flags_ps_pat( index ) ) {
             // 这个页要是是一个不存在的那么就弄出一个表给他
             auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
-            pmlx_t    = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FF ), flags, mode };
-            std::memset( physical_to_virtual( new_ ), 0, page_size );
+            pmlx_t    = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FFul ), flags, PAGE_4K };
+            std::memset( physical_to_virtual( new_ ), 0, pmlx_t.PT_SIZE );
         }
-
         get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // 得到下一级页表的地址
         self( level - 1, get_table( level - 1 ) );
     };
@@ -281,8 +275,8 @@ auto pmlxt::activate( void ) -> void {
 auto pmlxt::copy( IN pmlxt &from ) -> void {
     auto page_table = (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) );
     // copy high 2048 size.
+    std::memset( page_table, 0, PT_SIZE );
     std::memcpy( page_table + 256, from.get_table( ) + 256, PT_SIZE / 2 );
-    std::memset( page_table, 0, PT_SIZE / 2 );
     *this = (uint64_t)page_table;
 }
 }     // namespace QuantumNEC::Kernel::x86_64

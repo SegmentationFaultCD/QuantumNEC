@@ -56,4 +56,8 @@ auto ProcessManager::get_running_task( void ) -> PCB * {
     auto kstack = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
     return (PCB *)( *( (uint64_t *)kstack ) );
 }
+_C_LINK auto get_current_kernel_stack_top_in_user_mode( void ) -> uint64_t {
+    auto user_stack = CPU::get_rsp( ) & ~( TASK_USER_STACK_SIZE - 1 );
+    return ( (PCB *)*( (uint64_t *)user_stack ) )->kernel_stack_base + ( (PCB *)*( (uint64_t *)user_stack ) )->kernel_stack_size;
+}
 }     // namespace QuantumNEC::Kernel

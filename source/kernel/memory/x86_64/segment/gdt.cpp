@@ -24,10 +24,10 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( void ) noexcept {
         descriptor_groub[ 3 ].make( 0, 0xfffff, AR_CODE32_DPL3 );
         /*4 USER	Data 32-bit	Segment 0x20*/
         descriptor_groub[ 4 ].make( 0, 0xfffff, AR_DATA32_DPL3 );
-        /*5 USER	Code 64-bit	Segment 0x28*/
-        descriptor_groub[ 5 ].make( 0, 0, AR_CODE64_DPL3 );
-        /*6 USER	Data 64-bit	Segment 0x30*/
-        descriptor_groub[ 6 ].make( 0, 0, AR_DATA64_DPL3 );
+        /*6 USER	Data 64-bit	Segment 0x28*/
+        descriptor_groub[ 5 ].make( 0, 0, AR_DATA64_DPL3 );
+        /*5 USER	Code 64-bit	Segment 0x30*/
+        descriptor_groub[ 6 ].make( 0, 0, AR_CODE64_DPL3 );
         /*7 KERNEL	Code 32-bit	Segment	0x38*/
         descriptor_groub[ 7 ].make( 0, 0xfffff, AR_CODE32 );
         /*8 KERNEL	Data 32-bit	Segment	0x40*/

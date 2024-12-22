@@ -7,26 +7,34 @@ inline char    fmt_buffer[ 1024 * 64 ] { };
 inline char    _buffer[ 1024 ] { };
 struct format_context {
 };
-template < typename... Args >
-class format_string {
+template < typename CharT, typename... Args >
+class basic_format_string {
 private:
     const char *str;
 
 public:
     template < typename T >
         requires std::convertible_to< const T &, const char * >
-    constexpr format_string( const T &s ) :
+    constexpr basic_format_string( const T &s ) :
         str { s } {
         std::size_t actual_number { };
         auto        length = std::strlen( str );
-        for ( auto i { 0ul }; i + 1 < length; ++i ) {
-            if (
-                ( str[ i ] == '{' && str[ i + 1 ] == ':' && str[ i + 3 ] == '}' ) || ( str[ i ] == '{' && str[ i + 1 ] == '}' ) ) {
-                actual_number++;
+        for ( auto i = 0ul; i + 1 < length; ++i ) {
+            if ( str[ i ] == '{' ) {
+                for ( auto j = i + 1; j < length; ++j ) {
+                    if ( str[ j ] == '}' ) {
+                        actual_number++;
+                        goto success;
+                    }
+                }
+                // TODO Error handler
+                while ( true );
             }
+        success:
         }
         constexpr auto expectd_number { sizeof...( Args ) };
         if ( actual_number != expectd_number ) {
+            // TODO Error handler
             while ( true );
         }
     }
@@ -34,6 +42,39 @@ public:
         return str;
     }
 };
+template < class Context >
+class basic_format_arg;
+template < class... Args >
+using format_string = basic_format_string< char, std::type_identity_t< Args >... >;
+
+template < class OutputIt, class CharT >
+class basic_format_context {
+    std::basic_format_arg< basic_format_context > arg( std::size_t id ) const {
+    }
+};
+
+template < class CharT >
+class basic_format_parse_context;
+template < class Context >
+class format_arg {
+    class handle {
+    public:
+        void format( std::basic_format_parse_context< typename Context::char_type > &parse_ctx,
+                     Context                                                        &format_ctx ) const;
+
+    private:
+        void ( *func )( std::basic_format_parse_context< typename Context::char_type > &, Context &, const void * );
+        const void *object;
+    };
+
+public:
+    format_arg( ) noexcept {
+    }
+
+private:
+    Context data;
+};
+
 template < class T, class CharT = char >
 struct formatter {
     auto format( T ) -> char *;

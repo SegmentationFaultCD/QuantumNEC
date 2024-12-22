@@ -142,6 +142,7 @@ auto BrainFuckScheduler::__schedule__( ) -> std::expected< PCB *, ErrorCode > {
                     }
                     SchedulerHelper::running_queue.append( new_pcb->schedule.general_task_node );
                     new_pcb->activate( );
+
                     return new_pcb;
                 }
                 else {

@@ -1,3 +1,4 @@
+#include <kernel/cpu/cpu.hpp>
 #include <kernel/global/x86_64/global.hpp>
 #include <kernel/interrupt/x86_64/entry/entry_syscall.hpp>
 #include <kernel/interrupt/x86_64/entry/idt.hpp>
@@ -6,7 +7,8 @@
 #include <kernel/syscall/syscall.hpp>
 using namespace QuantumNEC;
 namespace QuantumNEC::Kernel::x86_64 {
-_C_LINK auto save_current_frame( IN const InterruptDescriptorTable::InterruptFrame *frame ) -> void;
+
+_C_LINK auto system_call( void * ) -> void;
 
 auto SystemcallEntry::name( void ) noexcept -> void {
 }
@@ -34,5 +36,13 @@ auto SystemcallEntry::do_register( void ) -> void {
     entry.mask           = APIC_ICR_IOAPIC_MASKED;
     Apic::install_ioapic( IRQ_SYSTEM_CALL, &entry );
     Apic::enable_ioapic( IRQ_SYSTEM_CALL );
+
+    auto val = CPU::rdmsr( x86_64::IA32_EFER );
+    val |= x86_64::IA32_EFER_SCE;
+    CPU::wrmsr( x86_64::IA32_EFER, val );
+    CPU::wrmsr( x86_64::IA32_LSTAR, (uint64_t)system_call );
+    // In Long Mode, userland CS will be loaded from STAR 63:48 + 16 and userland SS from STAR 63:48 + 8 on SYSRET
+    CPU::wrmsr( x86_64::IA32_STAR, (uint64_t)x86_64::SELECTOR_CODE64_KERNEL << 32 | (uint64_t)( x86_64::SELECTOR_CODE64_USER - 16 ) << 48 );
+    CPU::wrmsr( x86_64::IA32_FMASK, x86_64::RFLAGS_IF_1 );
 }
 }     // namespace QuantumNEC::Kernel::x86_64

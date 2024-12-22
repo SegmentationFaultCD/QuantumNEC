@@ -693,5 +693,91 @@ INTERRUPT_ENTRY 0xfe
 INTERRUPT_ENTRY 0xff 
 
 .GLOBAL system_call
+
+
+.EXTERN get_current_kernel_stack_top_in_user_mode
+// We will use rax, rdi，rsi，rdx，r10，r8，and r9, so these register will be saved
+// Five state will be saved, too
+.GLOBAL system_call
 system_call:
+    // save into user stack
+
+    PUSH RBP  //                0x60
+
+    PUSH RSP  // user RSP       0x58
+    PUSH 0x2b // user SS        0x50
+    PUSH 0x33 // user CS        0x48
+    PUSH RCX  // rip            0x40
+    PUSH R11  // rflags         0x38
     
+    PUSH RAX  //                0x30
+    PUSH RDI  //                0x28
+    PUSH RSI  //                0x20
+    PUSH RDX  //                0x18
+    PUSH R10  //                0x10
+    PUSH R9   //                0x08
+    PUSH R8   //                0x00
+    
+    MOV RBP, RSP
+    // switch into kernel stack
+    LEA RAX, [get_current_kernel_stack_top_in_user_mode + RIP]
+    CALL RAX
+    MOV RSP, RAX
+     
+    
+    PUSH [RBP + 0x50]
+    PUSH [RBP + 0x58]
+    PUSH [RBP + 0x38]
+    PUSH [RBP + 0x48]
+    PUSH [RBP + 0x40]
+    PUSH 0
+    PUSH 0x80
+    PUSH 0
+    PUSH 0
+    PUSH 0
+    PUSH 0
+    PUSH 0
+    PUSH 0
+    PUSH 0
+    PUSH [RBP + 0x10]
+    PUSH [RBP + 0x8]
+    PUSH [RBP]
+    PUSH [RBP + 0x28]
+    PUSH [RBP + 0x20]
+    PUSH [RBP + 0x60]
+    PUSH [RBP + 0x18]
+    PUSH 0
+    PUSH 0
+    PUSH [RBP + 0x30] 
+    MOV  RAX, GS
+    PUSH RAX
+    MOV  RAX, FS
+    PUSH RAX
+    MOV  RAX, ES
+    PUSH RAX
+    MOV  RAX, DS
+    PUSH RAX
+	MOV	 DS, RDI
+	MOV	 ES, RDI
+    MOV  RDI, RSP
+    LEA  RAX, [do_IRQ + RIP]
+    CALL RAX
+    
+    // switch into user stack
+    MOV RSP, RBP
+    POP R8
+    POP R9
+    POP R10
+    POP RDX
+    POP RSI
+    POP RDI
+    POP RAX
+    POP R11 // rflags
+    POP RCX // rip
+    ADD RSP, 0x18
+    // OSDEV says : Note that the Kernel does not automatically have a kernel stack loaded. This is the handler's responsibility.
+    // So, we should switch to kernel stack by ourselves
+    POP RBP
+    SYSRETQ
+.section .data
+
