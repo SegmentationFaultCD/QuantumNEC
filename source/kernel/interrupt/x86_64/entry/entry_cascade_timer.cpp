@@ -6,6 +6,7 @@
 #include <kernel/interrupt/x86_64/pic/pic.hpp>
 #include <kernel/interrupt/x86_64/pit/apic_timer.hpp>
 #include <kernel/print.hpp>
+#include <kernel/task/general/pcb/pcb.hpp>
 #include <kernel/task/task.hpp>
 using namespace QuantumNEC;
 namespace QuantumNEC::Kernel::x86_64 {
@@ -23,15 +24,15 @@ auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
     CPU::switch_cpu( );
 
     // *ProcessManager::get_running_task( )->context.pcontext = *( (PCB::ProcessContext *)frame );
-    std::print( "{:x}\n", (void *)frame );
 
     auto result = Scheduler { }.schedule( );
     if ( result.has_value( ) ) {
-        if ( result.value( ) == ProcessManager::main_pcb ) {
+        if ( result.value( )->general_task_node.container == ProcessManager::main_pcb ) {
             return frame;
         }
+
         else {
-            return result.value( )->context.pcontext;
+            return result.value( )->general_task_node.container->context.pcontext;
         }
     }
     else {

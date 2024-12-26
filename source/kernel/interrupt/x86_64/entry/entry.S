@@ -1,5 +1,5 @@
 .intel_syntax noprefix // 使用intel格式汇编语言
-
+#include <kernel/global/x86_64/selector.h>
 .section .text
 _ds =0
 _es =8
@@ -109,7 +109,7 @@ save_all_registers:
     PUSH RAX
     MOV  RAX, DS
     PUSH RAX
-    MOV	 RDI, 0x10
+    MOV	 RDI, SELECTOR_DATA64_KERNEL
 	MOV	 DS, RDI
 	MOV	 ES, RDI
     MOV  RDI, RSP
@@ -182,7 +182,7 @@ error_code:
     MOV  RAX, DS
     PUSH RAX
 
-    MOV	 RDI, 0x10
+    MOV	 RDI, SELECTOR_DATA64_KERNEL
 	MOV	 DS, RDI
 	MOV	 ES, RDI
     MOV RAX, [RSP + _old_rax] // 将rax还原，因为前面暂时用rax当作临时变量
@@ -230,7 +230,7 @@ InterruptHandler0x02:
     PUSH RAX
     MOV  RAX, DS
     PUSH RAX
-    MOV	 RDX, 0x10
+    MOV	 RDX, SELECTOR_DATA64_KERNEL
 	MOV	 DS, RDX
 	MOV	 ES, RDX
     MOV RDI, RSP
@@ -701,12 +701,11 @@ INTERRUPT_ENTRY 0xff
 .GLOBAL system_call
 system_call:
     // save into user stack
-
     PUSH RBP  //                0x60
 
     PUSH RSP  // user RSP       0x58
-    PUSH 0x2b // user SS        0x50
-    PUSH 0x33 // user CS        0x48
+    PUSH SELECTOR_DATA64_USER // user SS        0x50
+    PUSH SELECTOR_CODE64_USER // user CS        0x48
     PUSH RCX  // rip            0x40
     PUSH R11  // rflags         0x38
     
@@ -717,13 +716,13 @@ system_call:
     PUSH R10  //                0x10
     PUSH R9   //                0x08
     PUSH R8   //                0x00
-    
+        
     MOV RBP, RSP
     // switch into kernel stack
     LEA RAX, [get_current_kernel_stack_top_in_user_mode + RIP]
     CALL RAX
     MOV RSP, RAX
-     
+
     
     PUSH [RBP + 0x50]
     PUSH [RBP + 0x58]
@@ -757,6 +756,7 @@ system_call:
     PUSH RAX
     MOV  RAX, DS
     PUSH RAX
+    MOV	 RDI, SELECTOR_DATA64_KERNEL
 	MOV	 DS, RDI
 	MOV	 ES, RDI
     MOV  RDI, RSP

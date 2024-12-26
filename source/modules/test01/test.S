@@ -1,7 +1,7 @@
 
 
 .section .data
-re = 0x7FFFFFFFF123
+
 
 
 .section .code64
@@ -11,12 +11,9 @@ re = 0x7FFFFFFFF123
 _start:
     nop
     nop
+    nop 
     nop
-    nop
-    movq $0x7FFFFFFFF123, %rax
-    pushq %rax
-    call _rrr
-    popq %rax
+    syscall
     jmp _start
 _rrr:
     retq

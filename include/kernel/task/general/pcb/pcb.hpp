@@ -5,12 +5,14 @@
 #include <kernel/print.hpp>
 #include <kernel/syscall/message.hpp>
 #include <kernel/task/general/pcb/pid.hpp>
+
+#include <kernel/task/general/scheduler/scheduler.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
 #include <lib/spin_lock.hpp>
 #include <libcxx/cstring.hpp>
-
 namespace QuantumNEC::Kernel {
+
 constexpr auto TASK_KERNEL_STACK_SIZE { 4_KB };     // 4KB
 constexpr auto TASK_USER_STACK_SIZE { 8_MB };       // 8MB
 constexpr auto PCB_STACK_MAGIC { 0x1145141919810ULL };
@@ -18,16 +20,6 @@ constexpr auto TASK_NAME_SIZE { 32ull };
 
 struct PCB {
     struct Flags {
-        enum class State : uint64_t {
-            RUNNING   = 0,
-            READY     = 1,
-            BLOCKED   = 2,
-            SENDING   = 3,
-            RECEIVING = 4,
-            WAITING   = 5,
-            HANGING   = 6,
-            DIED      = 7,
-        } state : 7;     // 任务状态
         enum class Fpu : uint64_t {
             ENABLE  = 1,
             DISABLE = 0,
@@ -68,7 +60,7 @@ struct PCB {
         auto make( IN void *_entry, IN uint64_t _arg ) -> bool;
         // 栈顶
     };
-    struct ProcessContext : Interrupt::InterruptFrame {
+    struct _packed ProcessContext : Interrupt::InterruptFrame {
         ProcessContext( void ) = default;
         auto make( IN void *_entry, IN uint64_t kernel_stack_top, IN Flags::Type type ) -> bool;
     };
@@ -99,6 +91,7 @@ public:
     uint64_t kernel_stack_size;     // 内核栈大小
     uint64_t user_stack_base;       // 用户栈栈底
     uint64_t user_stack_size;       // 用户栈大小
+
     struct Context {
         ProcessContext *pcontext;
         ThreadContext  *tcontext;
@@ -110,16 +103,7 @@ public:
     uint64_t PPID;                       // 父进程ID
     char_t   name[ TASK_NAME_SIZE ];     // 任务名
 
-    struct Schedule {
-        uint64_t                        jiffies;               // 可运行的时间片
-        uint64_t                        priority;              // 任务优先级
-        uint64_t                        virtual_deadline;      // 虚拟截止时间
-        uint64_t                        cpu_id;                // CPU ID
-        Lib::ListTable< PCB >::ListNode general_task_node;     // 通用任务队列 连接除running状态的每个任务
-        uint64_t                        signal;                // 任务持有的信号
-        FuncPtr< void >                 activater;
-        Lib::ListTable< ThreadContext > thread_queue;
-    } schedule;
+    Scheduler::Schedule schedule;
 
     FloatPointUnit::FpuFrame *fpu_frame;
 
@@ -136,6 +120,7 @@ public:
 #if defined( __x86_64__ )
         // 设置TSS，将TSS设置指向内核栈栈顶
         x86_64::GlobalSegmentDescriptorTable::gdt->tss[ this->schedule.cpu_id ].set_rsp0( (uint64_t)physical_to_virtual( this->kernel_stack_base ) + this->kernel_stack_size );
+
 #elif defined( __aarch64__ )
 #else
 #error Not any registers
@@ -145,13 +130,17 @@ public:
         // activate the page table
         this->memory_manager.page_table->activate( );
         // set running state
-        this->flags.state = Flags::State::RUNNING;
     }
     /**
      * @brief remove task from running state
      */
     auto close( ) {
         this->fpu_frame->save( );
+    }
+    static auto get_running_task( void ) {
+        // 得到正在运行的任务
+        auto kstack = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
+        return (PCB *)( *( (uint64_t *)kstack ) );
     }
 };
 }     // namespace QuantumNEC::Kernel

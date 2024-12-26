@@ -47,6 +47,8 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
     auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
         return *page_table[ level - 1 ];
     };
+    auto is_huge = get_table( _level ).is_huge( mode );
+
     auto page_size  = get_table( _level ).check_page_size( mode );                                     // 确认每页大小
     auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
         auto index = pmlx_t.get_address_index_in( reinterpret_cast< void * >( virtual_address ) );     // 拿到虚拟地址所在页表入口的index
@@ -77,13 +79,12 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                     goto normal;
                 }
                 else {
-                    // PageWalker { }.free< MemoryPageType::PAGE_4K >( (void *)pmlx_t.flags_base( index, PAGE_4K ), 1 );
+                    PageWalker { }.free< MemoryPageType::PAGE_4K >( (void *)pmlx_t.flags_base( index, PAGE_4K ), 1 );
                 }
             }
 
-        normal:
-            flags |= get_table( _level ).is_huge( mode );     // 如果为huge页那么设置ps位为1
-            pmlx_t = { index, physics_address & ~0x7FFul, flags & 0x7FFul, mode };
+        normal:;     // 如果为huge页那么设置ps位为1
+            pmlx_t = { index, physics_address & ~0x7FFul, ( flags | is_huge ) & 0x7FFul, mode };
             // CPU::invlpg( reinterpret_cast< void * >( virtual_address ) );     // 刷新快表
             physics_address += page_size;
             virtual_address += page_size;

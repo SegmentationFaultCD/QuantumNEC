@@ -1,7 +1,7 @@
 #pragma once
-#include <kernel/task/general/pcb/pcb.hpp>
 #include <lib/Uefi.hpp>
 namespace QuantumNEC::Kernel {
+class PCB;
 class ProcessManager {
 public:
     explicit ProcessManager( void ) noexcept;

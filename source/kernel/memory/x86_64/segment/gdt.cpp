@@ -1,3 +1,4 @@
+#include <kernel/cpu/cpu.hpp>
 #include <kernel/interrupt/interrupt.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/x86_64/segment/gdt.hpp>
@@ -24,9 +25,9 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( void ) noexcept {
         descriptor_groub[ 3 ].make( 0, 0xfffff, AR_CODE32_DPL3 );
         /*4 USER	Data 32-bit	Segment 0x20*/
         descriptor_groub[ 4 ].make( 0, 0xfffff, AR_DATA32_DPL3 );
-        /*6 USER	Data 64-bit	Segment 0x28*/
+        /*5 USER	Data 64-bit	Segment 0x28*/
         descriptor_groub[ 5 ].make( 0, 0, AR_DATA64_DPL3 );
-        /*5 USER	Code 64-bit	Segment 0x30*/
+        /*6 USER	Code 64-bit	Segment 0x30*/
         descriptor_groub[ 6 ].make( 0, 0, AR_CODE64_DPL3 );
         /*7 KERNEL	Code 32-bit	Segment	0x38*/
         descriptor_groub[ 7 ].make( 0, 0xfffff, AR_CODE32 );
@@ -46,6 +47,7 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( void ) noexcept {
     this->gdt->load( 0 );
     // 加载全局段中的TSS
     this->gdt->tss[ 0 ].load_tr( SELECTOR_TSS );
+
     println< print_level::OK >( "Initialize segment." );
 }
 auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) const -> void {

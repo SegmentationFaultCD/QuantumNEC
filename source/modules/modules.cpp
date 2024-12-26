@@ -1,6 +1,6 @@
 #include <kernel/memory/page/page_walker.hpp>
 #include <kernel/print.hpp>
-#include <kernel/task/process/process_creater.hpp>
+#include <kernel/task/process/process.hpp>
 #include <kernel/task/task.hpp>
 #include <modules/modules.hpp>
 using namespace QuantumNEC;
@@ -11,8 +11,7 @@ Modules::Module::Module( void ) noexcept {
     char_t name[ Kernel::TASK_NAME_SIZE ] { };
     // 首先将所有limine读入的文件进行解析
     // 使用limine读入的模块文件一律视为servicer
-    ModuleLoader           loader { };
-    Kernel::ProcessCreater creater { };
+    ModuleLoader loader { };
 
     for ( auto i { 0ul }; i < Kernel::__config.modules.module_count; ++i ) {
         auto file_entry = loader.load( Kernel::__config.modules.modules[ i ], ModuleLoader::ModuleFileType::ELF );
@@ -26,11 +25,13 @@ Modules::Module::Module( void ) noexcept {
                 name[ k ] = Kernel::__config.modules.modules[ i ]->path[ j ];
             }
             name[ k + 1 ] = '\0';
-            println< print_level::SYSTEM >( "Service {} ready!", name );
+
             // map rip and set r/w, p and u/s
 
-            auto service = creater.create( name, 1, (void *)file_entry.value( ), Kernel::PCB::Flags::Type::USER_PROCESS );
+            Kernel::Process servicer { name, 1, (void *)file_entry.value( ), Kernel::PCB::Flags::Type::USER_PROCESS };
 
+            servicer.join( );
+            println< print_level::SYSTEM >( "Service {} ready!", name );
             // service.value( )->memory_manager.map.text_start = file_entry.value( );
             // service.value( )->memory_manager.map.text_end   = file_entry.value( ) + Kernel::__config.modules.modules[ i ]->size;
             // if ( service.has_value( ) ) {

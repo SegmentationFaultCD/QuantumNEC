@@ -7,7 +7,6 @@
 #include <kernel/memory/page/page_walker.hpp>
 #include <kernel/print.hpp>
 #include <kernel/syscall/syscall.hpp>
-#include <kernel/task/process/process_walker.hpp>
 #include <kernel/task/task.hpp>
 #include <modules/modules.hpp>
 
@@ -24,7 +23,6 @@ int64_t ProcC( void ) {
     //     send_receive( a, Architecture::ArchitectureManager< TARGET_ARCH >::SyscallFunction::MESSAGE_SEND, 3, message );
     // }
     println< print_level::DEBUG >( "Process Csfdsfsfsfsf" );
-    Kernel::ProcessCreater cre;
 
     while ( true );
 
@@ -120,14 +118,13 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
 
     Kernel::Acpi acp { };
 
-    Kernel::Interrupt      intr { };
-    Kernel::Memory         mem { };
-    Kernel::Task           task { };
-    Kernel::CPU            cpu { };
-    Kernel::Sound          soun { };
-    Kernel::Time           tim { };
-    Kernel::Syscall        sysc { };
-    Kernel::ProcessCreater cre;
+    Kernel::Interrupt intr { };
+    Kernel::Memory    mem { };
+    Kernel::Task      task { };
+    Kernel::CPU       cpu { };
+    Kernel::Sound     soun { };
+    Kernel::Time      tim { };
+    Kernel::Syscall   sysc { };
 
     // cre.create( "PRocD", 0, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     Modules::Module mod { };

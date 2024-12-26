@@ -201,6 +201,9 @@ constexpr auto IA32_LSTAR { 0xc0000082 };
 constexpr auto IA32_FMASK { 0xc0000084 };
 constexpr auto IA32_EFER_SCE { 1 };
 
+constexpr auto IA32_KERNEL_GS_BASE { 0xf0000102 };
+constexpr auto IA32_USER_GS_BASE { 0xc0000101 };
+constexpr auto IA32_USER_FS_BASE { 0xc0000100 };
 // TIME
 
 constexpr auto HZ { 100 };
@@ -270,11 +273,8 @@ constexpr auto RPL2 { 0x2 };
 constexpr auto RPL3 { 0x3 };
 constexpr auto TI_GDT { 0x0 };
 constexpr auto TI_LDT { 0x4 };
-constexpr auto SELECTOR_CODE64_KERNEL { ( 1ull << 3 ) | TI_GDT | RPL0 }; /* 64位内核代码段 */
-constexpr auto SELECTOR_DATA64_KERNEL { ( 2ull << 3 ) | TI_GDT | RPL0 }; /* 64位内核数据段 */
-constexpr auto SELECTOR_CODE64_USER { ( 6ull << 3 ) | TI_GDT | RPL3 };   /* 64位用户代码段 */
-constexpr auto SELECTOR_DATA64_USER { ( 5ull << 3 ) | TI_GDT | RPL3 };   /* 64位用户数据段 */
-constexpr auto SELECTOR_TSS { ( 10ull << 3 ) | TI_GDT | RPL0 };          /* TSS段 */
+
+#include "./selector.h"
 
 /* RFLAGS */
 constexpr auto RFLAGS_CF { ( 1 << 0 ) };

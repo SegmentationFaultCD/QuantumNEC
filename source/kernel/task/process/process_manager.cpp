@@ -1,7 +1,6 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/memory/heap/kheap/kheap_walker.hpp>
 #include <kernel/memory/page/page_walker.hpp>
-#include <kernel/task/process/process_creater.hpp>
 #include <kernel/task/process/process_manager.hpp>
 #include <kernel/task/task.hpp>
 namespace QuantumNEC::Kernel {
@@ -28,7 +27,7 @@ ProcessManager::ProcessManager( void ) noexcept {
     // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
     pcb->flags.fpu_enable = PCB::Flags::Fpu::ENABLE;
     pcb->flags.fpu_used   = PCB::Flags::Fpu::USED;
-    pcb->flags.state      = PCB::Flags::State::RUNNING;
+    pcb->schedule.state   = Scheduler::Schedule::State::RUNNING;
     pcb->flags.task_type  = PCB::Flags::Type::KERNEL_PROCESS;
 #ifdef APIC
     // 当前cpu的id
@@ -57,7 +56,6 @@ auto ProcessManager::get_running_task( void ) -> PCB * {
     return (PCB *)( *( (uint64_t *)kstack ) );
 }
 _C_LINK auto get_current_kernel_stack_top_in_user_mode( void ) -> uint64_t {
-    auto user_stack = CPU::get_rsp( ) & ~( TASK_USER_STACK_SIZE - 1 );
-    return ( (PCB *)*( (uint64_t *)user_stack ) )->kernel_stack_base + ( (PCB *)*( (uint64_t *)user_stack ) )->kernel_stack_size;
+    return x86_64::GlobalSegmentDescriptorTable::gdt->tss[ Interrupt::cpu_id( ) ].get_rsp0( );
 }
 }     // namespace QuantumNEC::Kernel
