@@ -13,7 +13,7 @@ _start:
     nop
     nop 
     nop
-    syscall
+    UD2
     jmp _start
 _rrr:
     retq

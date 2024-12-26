@@ -36,6 +36,9 @@ public:
     virtual ~Syscall( void ) noexcept = default;
 
 public:
+    static auto initializate( void ) noexcept -> void;
+
+public:
     static auto set_syscall_table( IN uint64_t index, IN SyscallEntry entry ) -> void;
     static auto get_syscall_table( void ) -> SyscallEntry *;
 };
