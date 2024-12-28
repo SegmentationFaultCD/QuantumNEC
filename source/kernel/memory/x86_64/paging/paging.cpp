@@ -1,5 +1,6 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/global/x86_64/global.hpp>
+#include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_walker.hpp>
 #include <kernel/memory/x86_64/paging/paging.hpp>
 #include <kernel/memory/x86_64/paging/ptv.hpp>

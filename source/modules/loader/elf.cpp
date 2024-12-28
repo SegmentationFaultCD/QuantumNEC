@@ -1,5 +1,6 @@
 #include <kernel/kernel.hpp>
 #include <kernel/memory/memory.hpp>
+#include <kernel/memory/page/page_allocater.hpp>
 #include <modules/loader/elf.hpp>
 using namespace QuantumNEC::Kernel;
 namespace QuantumNEC::Modules {

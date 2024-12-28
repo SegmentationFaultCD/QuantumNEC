@@ -1,5 +1,5 @@
 #pragma once
-#include <kernel/memory/page/page_allocater.hpp>
+
 #include <kernel/memory/page/page_manager.hpp>
 #include <kernel/print.hpp>
 #include <lib/Uefi.hpp>
@@ -210,11 +210,11 @@ public:
         using enum MemoryPageType;
         switch ( mode ) {
         case PAGE_2M:
-            return PageAllocater::__page_size__< PAGE_2M >;
+            return 2_MB;
         case PAGE_4K:
-            return PageAllocater::__page_size__< PAGE_4K >;
+            return 4_KB;
         case PAGE_1G:
-            return PageAllocater::__page_size__< PAGE_1G >;
+            return 1_GB;
         default:
             return 0ul;
         }

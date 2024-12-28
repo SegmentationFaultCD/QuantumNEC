@@ -24,8 +24,9 @@ auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
     CPU::switch_cpu( );
 
     // *ProcessManager::get_running_task( )->context.pcontext = *( (PCB::ProcessContext *)frame );
-
+    std::println( "S{}", Apic::cpu_id( ) );
     auto result = Scheduler { }.schedule( );
+
     if ( result.has_value( ) ) {
         if ( result.value( )->general_task_node.container == ProcessManager::main_pcb ) {
             return frame;
@@ -36,7 +37,7 @@ auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
         }
     }
     else {
-        while ( true );
+        while ( true ) __asm__( "hlt" );
     }
     // 在这里进行任务调度
 

@@ -254,7 +254,7 @@ target("run")
                              -drive if=pflash,format=raw,readonly=on,file=scripts/bios/x86_64efi.bios \
                              -drive file=fat:rw:vm,index=0,format=vvfat \
                              -m 16G \
-                             -smp 4,cores=4,threads=1,sockets=1 \
+                             -smp 2,cores=2,threads=1,sockets=1 \
                              -device nec-usb-xhci,id=xhci \
                              -no-shutdown \
                              -device qxl-vga,vgamem_mb=128 \

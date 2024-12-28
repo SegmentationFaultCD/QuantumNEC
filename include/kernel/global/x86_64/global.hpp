@@ -482,8 +482,7 @@ constexpr auto LOCAL_APIC_MSR_LVT_LINT1 { 0x836 };
 constexpr auto LOCAL_APIC_MSR_LVT_ERROR { 0x837 };
 constexpr auto LOCAL_APIC_MSR_ESR { 0x828 };
 constexpr auto LOCAL_APIC_MSR_EOI { 0x80b };
-constexpr auto LOCAL_APIC_MSR_ICRLO { 0x830 };
-constexpr auto LOCAL_APIC_MSR_ICRLI { 0x831 };
+
 constexpr auto LOCAL_APIC_MSR_TPR { 0x808 };
 constexpr auto LOCAL_APIC_MSR_TICR { 0x838 };
 constexpr auto LOCAL_APIC_MSR_TCCR { 0x839 };

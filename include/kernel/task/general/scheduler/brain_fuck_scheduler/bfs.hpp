@@ -142,7 +142,8 @@ private:
                 // 处理抢占的任务，将它归入所对应优先级的队列之中，并从运行队列中删除
                 __helper__::running_queue.remove( running_pcb.schedule.general_task_node );
                 __helper__::task_queue[ running_pcb.schedule.priority ].append( running_pcb.schedule.general_task_node );
-                running_pcb.schedule.state                          = Schedule::State::READY;
+                running_pcb.schedule.state = Schedule::State::READY;
+
                 __helper__::bitmap[ running_pcb.schedule.priority ] = true;
 
                 // 处理抢占者，从任务队列中剔除，加入运行队列
@@ -157,6 +158,7 @@ private:
 
                 // __helper__::global_lock.release( );
                 // Interrupt::enable_interrupt( );
+
                 CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
                 return &schedule;
             }

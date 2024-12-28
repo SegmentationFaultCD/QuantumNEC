@@ -1,6 +1,6 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/memory/memory.hpp>
-#include <kernel/memory/page/page_header.hpp>
+#include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_manager.hpp>
 #include <kernel/print.hpp>
 namespace QuantumNEC::Kernel {
@@ -8,7 +8,7 @@ using namespace std;
 PageManager::PageManager( void ) noexcept {
     auto memory_descriptor { &__config.memory_map };
 
-    using PH  = __page_header__< PAGE_2M, PAGE_1G >;
+    using PH  = PageAllocater::__page_header__< PAGE_2M, PAGE_1G >;
     using PHI = PH::__helper__::__page_information__;
 
     uint64_t *info_address { };     // 找到一块空闲内存

@@ -16,17 +16,17 @@ ApicTimer::ApicTimer( void ) noexcept {
     // CPU::wrmsr( LOCAL_APIC_MSR_TICR, 10 );
 }
 auto ApicTimer::enable( void ) -> void {     // 启动apic定时器
-    Apic::ApicLocalVectorTableRegisters value;
+    Apic::LocalVectorTableRegisters lvt;
     switch ( Apic::apic_flags ) {
     case Apic::SupportState::SUPPORT_x2APIC:
-        value      = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TIMER );
-        value.mask = APIC_ICR_IOAPIC_UNMASKED;
-        CPU::wrmsr( LOCAL_APIC_MSR_LVT_TIMER, value );
+        lvt        = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TIMER );
+        lvt.mask   = APIC_ICR_IOAPIC_UNMASKED;
+        CPU::wrmsr( LOCAL_APIC_MSR_LVT_TIMER, lvt );
         break;
     case Apic::SupportState::SUPPORT_xAPIC:
-        value      = Apic::read_apic( LOCAL_BASE_APIC_LVT_TIMER, Apic::ApicType::LOCAL_APIC );
-        value.mask = APIC_ICR_IOAPIC_UNMASKED;
-        Apic::write_apic( LOCAL_BASE_APIC_LVT_TIMER, value, Apic::ApicType::LOCAL_APIC );
+        lvt        = Apic::read_apic( LOCAL_BASE_APIC_LVT_TIMER, Apic::ApicType::LOCAL_APIC );
+        lvt.mask   = APIC_ICR_IOAPIC_UNMASKED;
+        Apic::write_apic( LOCAL_BASE_APIC_LVT_TIMER, lvt, Apic::ApicType::LOCAL_APIC );
         break;
     case Apic::SupportState::DOES_NOT_SUPPORT:
         std::println< std::print_level::SYSTEM >( "You shouln't call the function" );
@@ -34,17 +34,17 @@ auto ApicTimer::enable( void ) -> void {     // 启动apic定时器
     }
 }
 auto ApicTimer::disable( void ) -> void {
-    Apic::ApicLocalVectorTableRegisters value;
+    Apic::LocalVectorTableRegisters lvt;
     switch ( Apic::apic_flags ) {
     case Apic::SupportState::SUPPORT_x2APIC:
-        value      = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TIMER );
-        value.mask = APIC_ICR_IOAPIC_MASKED;
-        CPU::wrmsr( LOCAL_APIC_MSR_LVT_TIMER, value );
+        lvt        = CPU::rdmsr( LOCAL_APIC_MSR_LVT_TIMER );
+        lvt.mask   = APIC_ICR_IOAPIC_MASKED;
+        CPU::wrmsr( LOCAL_APIC_MSR_LVT_TIMER, lvt );
         break;
     case Apic::SupportState::SUPPORT_xAPIC:
-        value      = Apic::read_apic( LOCAL_BASE_APIC_LVT_TIMER, Apic::ApicType::LOCAL_APIC );
-        value.mask = APIC_ICR_IOAPIC_MASKED;
-        Apic::write_apic( LOCAL_BASE_APIC_LVT_TIMER, value, Apic::ApicType::LOCAL_APIC );
+        lvt        = Apic::read_apic( LOCAL_BASE_APIC_LVT_TIMER, Apic::ApicType::LOCAL_APIC );
+        lvt.mask   = APIC_ICR_IOAPIC_MASKED;
+        Apic::write_apic( LOCAL_BASE_APIC_LVT_TIMER, lvt, Apic::ApicType::LOCAL_APIC );
         break;
     case Apic::SupportState::DOES_NOT_SUPPORT:
         std::println< std::print_level::SYSTEM >( "You shouln't call the function" );
@@ -57,7 +57,7 @@ auto ApicTimer::install( uint64_t tick ) -> void {
     case Apic::SupportState::SUPPORT_x2APIC: {
         CPU::wrmsr( LOCAL_APIC_MSR_TDCR, DIVISOR );
         CPU::wrmsr( LOCAL_APIC_MSR_TICR, tick );
-        Apic::ApicLocalVectorTableRegisters lvt;
+        Apic::LocalVectorTableRegisters lvt;
         lvt.timer_mode = APIC_LVT_TIMER_PERIODIC;
         lvt.mask       = APIC_ICR_IOAPIC_MASKED;
         lvt.vector     = IRQ_APIC_LVT_TIMER;
@@ -66,7 +66,7 @@ auto ApicTimer::install( uint64_t tick ) -> void {
     case Apic::SupportState::SUPPORT_xAPIC: {
         Apic::write_apic( LOCAL_BASE_APIC_TDCR, DIVISOR, Apic::ApicType::LOCAL_APIC );
         Apic::write_apic( LOCAL_BASE_APIC_TICR, tick, Apic::ApicType::LOCAL_APIC );
-        Apic::ApicLocalVectorTableRegisters lvt;
+        Apic::LocalVectorTableRegisters lvt;
         lvt.timer_mode = APIC_LVT_TIMER_PERIODIC;
         lvt.mask       = APIC_ICR_IOAPIC_MASKED;
         lvt.vector     = IRQ_APIC_LVT_TIMER;

@@ -15,11 +15,10 @@ SymmetricMultiprocessing::SymmetricMultiprocessing( void ) noexcept {
     println< print_level::OK >( "Initialize Symmetric Multiprocessing" );
 }
 auto SymmetricMultiprocessing::send_IPI( IN Apic::InterruptCommandRegister icr ) -> void {
-    Apic::write_apic( LOCAL_BASE_APIC_ICRL1, icr >> 32, Apic::ApicType::LOCAL_APIC );
-    Apic::write_apic( LOCAL_BASE_APIC_ICRL0, icr & 0xffffffff, Apic::ApicType::LOCAL_APIC );
+    CPU::wrmsr( LOCAL_APIC_MSR_ICRL0, icr );
 }
 auto SymmetricMultiprocessing::switch_cpu( void ) -> void {
-    Apic::InterruptCommandRegister icr;
+    Apic::InterruptCommandRegister icr { };
     icr.vector                         = IRQ_SMP_SWITCH_CPU;
     icr.deliver_mode                   = APIC_ICR_IOAPIC_FIXED;
     icr.dest_mode                      = ICR_IOAPIC_DELV_PHYSICAL;

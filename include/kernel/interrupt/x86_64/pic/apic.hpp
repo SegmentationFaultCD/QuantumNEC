@@ -29,7 +29,29 @@ public:
         IO_APIC    = 0,
         LOCAL_APIC = 1
     };
-    struct _packed ApicLocalVectorTableRegisters {
+    struct _packed SpuriousInterruptVectorRegister {
+        uint32_t : 8;
+        uint32_t enable_apic : 1;
+        uint32_t : 4;
+        uint32_t mask_eoi : 1;
+        uint32_t : 18;
+        explicit SpuriousInterruptVectorRegister( void ) = default;
+        explicit SpuriousInterruptVectorRegister( IN uint32_t value ) {
+            *this = *reinterpret_cast< SpuriousInterruptVectorRegister * >( &value );
+        }
+        explicit SpuriousInterruptVectorRegister( IN uint64_t value ) {
+            *this = *reinterpret_cast< SpuriousInterruptVectorRegister * >( &value );
+        }
+        operator uint32_t( ) {
+            return *( (uint32_t *)this );
+        }
+    };
+    constexpr static auto SVR_ENABLE_APIC  = 1;
+    constexpr static auto SVR_DISABLE_APIC = 0;
+    constexpr static auto SVR_EOI_MASK     = 1;
+    constexpr static auto SVR_EOI_UNMASK   = 0;
+
+    struct _packed LocalVectorTableRegisters {
         uint32_t vector : 8;             // 0~7	ALL
         uint32_t deliver_mode : 3;       // 8~10	      CMCI LINT0 LINT1 PerformCounter ThermalSensor
         uint32_t : 1;                    // 11
@@ -44,19 +66,19 @@ public:
             return *reinterpret_cast< uint32_t * >( this );
         }
 
-        explicit ApicLocalVectorTableRegisters( void ) = default;
-        explicit ApicLocalVectorTableRegisters( IN uint32_t value ) {
-            *this = *reinterpret_cast< ApicLocalVectorTableRegisters * >( &value );
+        explicit LocalVectorTableRegisters( void ) = default;
+        explicit LocalVectorTableRegisters( IN uint32_t value ) {
+            *this = *reinterpret_cast< LocalVectorTableRegisters * >( &value );
         }
-        explicit ApicLocalVectorTableRegisters( IN uint64_t value ) {
-            *this = *reinterpret_cast< ApicLocalVectorTableRegisters * >( &value );
+        explicit LocalVectorTableRegisters( IN uint64_t value ) {
+            *this = *reinterpret_cast< LocalVectorTableRegisters * >( &value );
         }
 
-        auto operator=( IN uint32_t value ) -> const ApicLocalVectorTableRegisters & {
+        auto operator=( IN uint32_t value ) -> const LocalVectorTableRegisters & {
             *reinterpret_cast< uint32_t * >( this ) = value;
             return *this;
         }
-        auto operator|=( IN uint32_t value ) -> const ApicLocalVectorTableRegisters & {
+        auto operator|=( IN uint32_t value ) -> const LocalVectorTableRegisters & {
             *this = value | uint32_t( *this );
             return *this;
         }
@@ -189,6 +211,23 @@ public:
             entry.destination.logical.logical_dest = dest_apicID;
         }
         return entry;
+    }
+    static auto make_icr_entry( uint8_t vector, uint8_t deliver_mode, uint8_t dest_mode, uint8_t deliver_status, uint8_t level, uint8_t dest_shorthand, uint8_t trigger, uint64_t destination ) {
+        InterruptCommandRegister icr;
+        icr.vector         = vector;
+        icr.deliver_mode   = deliver_mode;
+        icr.dest_mode      = dest_mode;
+        icr.deliver_status = deliver_status;
+        icr.level          = level;
+        icr.dest_shorthand = dest_shorthand;
+        icr.trigger        = trigger;
+        if ( apic_flags == SupportState::SUPPORT_x2APIC ) {
+            icr.destination.x2apic_destination = destination;
+        }
+        else {
+            icr.destination.apic_destination.dest_field = destination;
+        }
+        return icr;
     }
 
 public:

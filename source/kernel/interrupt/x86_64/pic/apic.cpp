@@ -10,22 +10,25 @@ auto Apic::enable_xapic( void ) -> void {
 }
 auto Apic::enable_x2apic( void ) -> void {
     // enable x2apic
-    InterruptCommandRegister icr { CPU::rdmsr( IA32_APIC_BASE_MSR ) };
-    icr.deliver_mode = APIC_ICR_IOAPIC_NMI;
-    icr.dest_mode    = ICR_IOAPIC_DELV_LOGIC;
-    CPU::wrmsr( IA32_APIC_BASE_MSR, icr );
+    auto base = CPU::rdmsr( IA32_APIC_BASE_MSR );
+    base |= 4 << 8;
+    base |= 1 << 11;
+    CPU::wrmsr( IA32_APIC_BASE_MSR, base );
     // enable SVR
-    ApicLocalVectorTableRegisters lvt { CPU::rdmsr( LOCAL_APIC_MSR_SVR ) };
-    lvt.deliver_mode = IOAPIC_ICR_LOWEST_PRIORITY;
+    SpuriousInterruptVectorRegister svr { CPU::rdmsr( LOCAL_APIC_MSR_SVR ) };
+    svr.enable_apic = SVR_ENABLE_APIC;
     if ( CPU::rdmsr( LOCAL_APIC_MSR_VERSION ) >> 24 & 1 ) {
-        lvt.deliver_status = APIC_ICR_IOAPIC_SEND_PENDING;
+        svr.mask_eoi = SVR_EOI_MASK;
     }
-    CPU::wrmsr( LOCAL_APIC_MSR_SVR, lvt );
+    else {
+        svr.mask_eoi = SVR_EOI_UNMASK;
+    }
+    CPU::wrmsr( LOCAL_APIC_MSR_SVR, svr );
     // disable seven lvt registers
 
     // I don't know what causes #GP fault when I use msr register to write CMCI register.
     // But everything gose well when I use mmio function to write CMCI.
-    lvt                = read_apic( LOCAL_BASE_APIC_LVT_CMCI, ApicType::LOCAL_APIC );
+    LocalVectorTableRegisters lvt { read_apic( LOCAL_BASE_APIC_LVT_CMCI, ApicType::LOCAL_APIC ) };
     lvt.mask           = APIC_ICR_IOAPIC_MASKED;
     lvt.deliver_mode   = APIC_ICR_IOAPIC_FIXED;
     lvt.deliver_status = APIC_ICR_IOAPIC_IDLE;
@@ -200,7 +203,7 @@ auto Apic::ioapic_edge_ack( IN irq_t irq ) -> void {
     eoi( irq );
 }
 auto Apic::irq_set_mask( irq_t irq ) -> void {
-    ApicLocalVectorTableRegisters lvt { };
+    LocalVectorTableRegisters lvt { };
     lvt.mask = APIC_ICR_IOAPIC_MASKED;
     write_apic( IOAPIC_REG_TABLE + 2 * irq, lvt, ApicType::IO_APIC );
 }
@@ -208,7 +211,7 @@ auto Apic::irq_clear_mask( IN irq_t irq, IN uint8_t vector, IN uint8_t ) -> void
     // 标记中断边缘触发，高电平有效，
     // 启用并路由到给定的cpunum，
     // 恰好是该cpu的APIC ID
-    ApicLocalVectorTableRegisters lvt { };
+    LocalVectorTableRegisters lvt { };
     lvt.vector = vector;
     lvt.mask   = APIC_ICR_IOAPIC_UNMASKED;
     write_apic( IOAPIC_REG_TABLE + 2 * irq, lvt, ApicType::IO_APIC );
@@ -216,7 +219,6 @@ auto Apic::irq_clear_mask( IN irq_t irq, IN uint8_t vector, IN uint8_t ) -> void
 auto Apic::apic_id( ) -> uint64_t {
     CPU::CpuidStatus status { 1, 0, 0, 0, 0, 0 };
     CPU::cpuid( status );
-
     return ( status.rbx >> 24 ) & 0xff;
 }
 }     // namespace QuantumNEC::Kernel::x86_64

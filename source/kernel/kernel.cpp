@@ -127,9 +127,10 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
     Kernel::Syscall   sysc { };
 
     // cre.create( "PRocD", 0, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
-    Modules::Module mod { };
+    // Modules::Module mod { };
 
     Kernel::Interrupt::enable_interrupt( );
+
     //  Kernel::x86_64::PCSpeaker::beep( );
     // STATIC TerminalDisplay s;
     // s.address   = (QuantumNEC::uint8_t *)Kernel::__config.graphics_data.address;

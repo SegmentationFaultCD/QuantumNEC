@@ -250,11 +250,11 @@ public:
         return std::unexpected { bitset_error_code::NotFound };
     }
     template < bool value >
-    auto find_from_high( ) -> uint64_t {
+    auto find_from_high( void ) -> uint64_t {
         for ( int64_t i = this->length - 1; i >= 0; --i ) {
             if constexpr ( value ) {
                 if ( this->bitmap[ i ] != ~0ul ) {
-                    for ( auto j = 63ul; j >= 0ul; --j ) {
+                    for ( int64_t j = 63; j >= 0; --j ) {
                         if ( this->bitmap[ i ] & ( 1ul << j ) ) {
                             return i * 64 + j;
                         }
@@ -263,9 +263,9 @@ public:
             }
             else {
                 if ( this->bitmap[ i ] != 0ul ) {
-                    for ( auto j = 63ul; j >= 0ul; --j ) {
+                    for ( int64_t j = 63; j >= 0; --j ) {
                         if ( this->bitmap[ i ] & ( 1ul << j ) ) {
-                            return i * 64 + j;
+                            return i * 64ul + j;
                         }
                     }
                 }

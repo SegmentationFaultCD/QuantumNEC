@@ -21,11 +21,10 @@ using namespace std;
     Interrupt::enable_x2apic( );
     Sse::activate( );     // 激活SSE
     Syscall::initializate( );
-    // ProcessManager::main_process_install( cpu->processor_id );
+    ProcessManager::main_process_install( cpu->processor_id );
     lock.release( );
     Interrupt::enable_interrupt( );
-
+    CPU::hlt( );
     while ( true ) {
-        CPU::hlt( );
     }
 }
