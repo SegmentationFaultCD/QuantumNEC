@@ -15,18 +15,18 @@ auto SymmetricMultiprocessingSwitchCPUEntry::error_code( [[maybe_unused]] uint64
 auto SymmetricMultiprocessingSwitchCPUEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
 
-    auto result = Scheduler { }.schedule( );
-    if ( result.has_value( ) ) {
-        if ( result.value( )->general_task_node.container == ProcessManager::main_pcb ) {
-            return frame;
-        }
-        else {
-            return result.value( )->general_task_node.container->context.pcontext;
-        }
-    }
-    else {
-        while ( true );
-    }
+    // auto result = Scheduler { }.schedule( );
+    // if ( result.has_value( ) ) {
+    //     if ( result.value( )->general_task_node.container == ProcessManager::main_pcb ) {
+    //         return frame;
+    //     }
+    //     else {
+    //         return result.value( )->general_task_node.container->context.pcontext;
+    //     }
+    // }
+    // else {
+    //     while ( true );
+    // }
     return frame;
 }
 auto SymmetricMultiprocessingSwitchCPUEntry::do_register( void ) -> void {

@@ -4,6 +4,7 @@
 namespace QuantumNEC::Modules {
 class Module {
 public:
+public:
     explicit Module( void ) noexcept;
 
 private:

@@ -8,7 +8,6 @@ using namespace QuantumNEC::Lib;
 using namespace std;
 namespace QuantumNEC::Modules {
 Modules::Module::Module( void ) noexcept {
-    char_t name[ Kernel::TASK_NAME_SIZE ] { };
     // 首先将所有limine读入的文件进行解析
     // 使用limine读入的模块文件一律视为servicer
     ModuleLoader loader { };
@@ -17,21 +16,14 @@ Modules::Module::Module( void ) noexcept {
         auto file_entry = loader.load( Kernel::__config.modules.modules[ i ], ModuleLoader::ModuleFileType::ELF );
         if ( file_entry.has_value( ) ) {
             auto j = strlen( Kernel::__config.modules.modules[ i ]->path ), k = 0ul;
-            memset( name, 0, Kernel::TASK_NAME_SIZE );
+
             // 解析类型名
-            for ( ; Kernel::__config.modules.modules[ i ]->path[ j ] != '/'; --j );
-            j++;
-            for ( ; Kernel::__config.modules.modules[ i ]->path[ j ] != '\0'; k++, j++ ) {
-                name[ k ] = Kernel::__config.modules.modules[ i ]->path[ j ];
-            }
-            name[ k + 1 ] = '\0';
 
             // map rip and set r/w, p and u/s
 
-            Kernel::Process servicer { name, 1, (void *)file_entry.value( ), Kernel::PCB::Flags::Type::USER_PROCESS };
-
+            println< print_level::SYSTEM >( "Service {} ready!", Kernel::__config.modules.modules[ i ]->path );
+            Kernel::Process servicer { file_entry.value( ), 1, Kernel::PCB::Flags::Type::USER_PROCESS };
             servicer.join( );
-            println< print_level::SYSTEM >( "Service {} ready!", name );
             // service.value( )->memory_manager.map.text_start = file_entry.value( );
             // service.value( )->memory_manager.map.text_end   = file_entry.value( ) + Kernel::__config.modules.modules[ i ]->size;
             // if ( service.has_value( ) ) {

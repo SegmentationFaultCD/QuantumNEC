@@ -4,7 +4,8 @@
 namespace QuantumNEC::Modules {
 class Elf {
 public:
-    constexpr static uint32_t ELF_MAGIC         = 0x464C457F;     // 0x7f454c46; // ELF Magic as one unit
+    constexpr static uint32_t ELF_MAGIC = 0x464C457F;     // 0x7f454c46; // ELF Magic as one unit
+
     constexpr static uint16_t ELF_ET_NONE       = 0x0000;
     constexpr static uint16_t ELF_ET_REL        = 0x0001;
     constexpr static uint16_t ELF_ET_EXEC       = 0x0002;
@@ -25,29 +26,50 @@ public:
     constexpr static uint8_t  ELF_EI_ABIVERSION = 8;
     constexpr static uint8_t  ELF_EI_PAD        = 9;
     constexpr static uint8_t  ELF_EI_NIDENT     = 0x10;
-    constexpr static uint32_t ELF_PT_NULL       = 0;
-    constexpr static uint32_t ELF_PT_LOAD       = 1;
-    constexpr static uint32_t ELF_PT_DYNAMIC    = 2;
-    constexpr static uint32_t ELF_PT_INTERP     = 3;
-    constexpr static uint32_t ELF_PT_NOTE       = 4;
-    constexpr static uint32_t ELF_PT_SHLIB      = 5;
-    constexpr static uint32_t ELF_PT_PHDR       = 6;
-    constexpr static uint32_t ELF_PT_LOOS       = 0x60000000;
-    constexpr static uint32_t ELF_PT_HIOS       = 0x6fffffff;
-    constexpr static uint32_t ELF_PT_LOPROC     = 0x70000000;
-    constexpr static uint32_t ELF_PT_HIPROC     = 0x7fffffff;
-    constexpr static uint32_t ELF_PF_X          = 0x1;
-    constexpr static uint32_t ELF_PF_W          = 0x2;
-    constexpr static uint32_t ELF_PF_R          = 0x4;
-    constexpr static uint32_t ELF_PF_MASKOS     = 0x00ff0000;
-    constexpr static uint32_t ELF_PF_MASKPROC   = 0xff000000;
-    constexpr static uint8_t  ELF_ELFCLASS32    = 1;
-    constexpr static uint8_t  ELF_ELFCLASS64    = 2;
-    constexpr static uint64_t ELF_DT_NULL       = 0x00000000;
-    constexpr static uint64_t ELF_DT_NEEDED     = 0x00000001;
-    constexpr static uint64_t ELF_DT_RELA       = 0x00000007;
-    constexpr static uint64_t ELF_DT_RELASZ     = 0x00000008;
-    constexpr static uint64_t ELF_DT_RELAENT    = 0x00000009;
+
+    constexpr static uint32_t ELF_PT_NULL    = 0;
+    constexpr static uint32_t ELF_PT_LOAD    = 1;
+    constexpr static uint32_t ELF_PT_DYNAMIC = 2;
+    constexpr static uint32_t ELF_PT_INTERP  = 3;
+    constexpr static uint32_t ELF_PT_NOTE    = 4;
+    constexpr static uint32_t ELF_PT_SHLIB   = 5;
+    constexpr static uint32_t ELF_PT_PHDR    = 6;
+    constexpr static uint32_t ELF_PT_LOOS    = 0x60000000;
+    constexpr static uint32_t ELF_PT_HIOS    = 0x6fffffff;
+    constexpr static uint32_t ELF_PT_LOPROC  = 0x70000000;
+    constexpr static uint32_t ELF_PT_HIPROC  = 0x7fffffff;
+
+    constexpr static uint32_t ELF_SHT_NULL     = 0;
+    constexpr static uint32_t ELF_SHT_PROGBITS = 1;
+    constexpr static uint32_t ELF_SHT_SYMTAB   = 2;
+    constexpr static uint32_t ELF_SHT_STRTAB   = 3;
+    constexpr static uint32_t ELF_SHT_RELA     = 4;
+    constexpr static uint32_t ELF_SHT_HASH     = 5;
+    constexpr static uint32_t ELF_SHT_DYNAMIC  = 6;
+    constexpr static uint32_t ELF_SHT_NOTE     = 7;
+    constexpr static uint32_t ELF_SHT_NOTBITS  = 8;
+    constexpr static uint32_t ELF_SHT_REL      = 9;
+    constexpr static uint32_t ELF_SHT_SHLIB    = 10;
+    constexpr static uint32_t ELF_SHT_DYNSYM   = 11;
+    constexpr static uint32_t ELF_SHT_LOPROC   = 0x70000000;
+    constexpr static uint32_t ELF_SHT_HIPROC   = 0x7fffffff;
+    constexpr static uint32_t ELF_SHT_LOUSER   = 0x80000000;
+    constexpr static uint32_t ELF_SHT_HIUSER   = 0xffffffff;
+
+    constexpr static uint32_t ELF_PF_X        = 0x1;
+    constexpr static uint32_t ELF_PF_W        = 0x2;
+    constexpr static uint32_t ELF_PF_R        = 0x4;
+    constexpr static uint32_t ELF_PF_MASKOS   = 0x00ff0000;
+    constexpr static uint32_t ELF_PF_MASKPROC = 0xff000000;
+
+    constexpr static uint8_t ELF_ELFCLASS32 = 1;
+    constexpr static uint8_t ELF_ELFCLASS64 = 2;
+
+    constexpr static uint64_t ELF_DT_NULL    = 0x00000000;
+    constexpr static uint64_t ELF_DT_NEEDED  = 0x00000001;
+    constexpr static uint64_t ELF_DT_RELA    = 0x00000007;
+    constexpr static uint64_t ELF_DT_RELASZ  = 0x00000008;
+    constexpr static uint64_t ELF_DT_RELAENT = 0x00000009;
     constexpr auto            ELF64_R_SYM( auto i ) {
         return ( ( i ) >> 32 );
     }
@@ -74,7 +96,7 @@ public:
     using Elf64_Sxword  = int64_t;
 
 private:
-    struct ElfHeader {
+    struct _packed ElfHeader {
         Elf64_Word  e_Magic;
         uint8_t     e_Format;
         uint8_t     e_Endianness;
@@ -144,7 +166,7 @@ private:
         } d_un;
     };
 
-    struct SymbolTableInformation {
+    struct _packed SymbolTableInformation {
         SectionHeaderEntries *shdr;
         size_t                shdr_count;
         SymbolTable          *sym_entries;
@@ -156,6 +178,14 @@ private:
     };
 
 public:
+    struct FileInformation {
+        const char *module_name;
+        uint64_t    size;
+        uint64_t    executable_start;
+        uint64_t    executable_end;
+    };
+
+public:
     enum class ElfErrorCode {
         MAGIC_IS_NOT_STANDARD,
     };
@@ -164,7 +194,7 @@ public:
     explicit Elf( void ) = default;
 
 public:
-    static auto load_elf_file( IN uint64_t address ) -> std::expected< uint64_t, ElfErrorCode >;
+    static auto load_elf_file( IN uint64_t address ) -> std::expected< FileInformation, ElfErrorCode >;
     static auto check_elf_magic( IN void *Ehdr ) -> bool;
 };
 }     // namespace QuantumNEC::Modules

@@ -16,7 +16,7 @@ namespace QuantumNEC::Kernel {
 constexpr auto TASK_KERNEL_STACK_SIZE { 4_KB };     // 4KB
 constexpr auto TASK_USER_STACK_SIZE { 8_MB };       // 8MB
 constexpr auto PCB_STACK_MAGIC { 0x1145141919810ULL };
-constexpr auto TASK_NAME_SIZE { 32ull };
+constexpr auto TASK_NAME_SIZE { 64 };
 
 struct PCB {
     struct Flags {

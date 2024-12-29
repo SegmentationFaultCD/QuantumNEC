@@ -13,7 +13,6 @@ _start:
     nop
     nop 
     nop
-    UD2
     jmp _start
 _rrr:
     retq

@@ -52,15 +52,8 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
                                               TASK_KERNEL_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_4K >,
                                               this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_XD,
                                               MemoryPageType::PAGE_4K );
-        this->memory_manager.page_table->map( (uint64_t)virtual_to_physical( this->context.pcontext->rip ),
-                                              (uint64_t)0x400000,
-                                              10,
-                                              this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U,
-                                              MemoryPageType::PAGE_4K );
-
         // set rsp to point user stack top
         this->context.pcontext->rsp = this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP;
-        this->context.pcontext->rip = (void *)0x400000;
     }
 
     // 栈栈底存PCB的地址

@@ -1,26 +1,36 @@
+#include <kernel/print.hpp>
 #include <modules/loader/loader.hpp>
-
 using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
 using namespace std;
 namespace QuantumNEC::Modules {
-auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleFileType type ) -> std::expected< uint64_t, void > {
+auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleFileType type ) -> std::expected< FileInformation, void > {
     using enum ModuleFileType;
     switch ( type ) {
-    case ELF: {     // Elf文件解析
+    case ELF: {
+        // Elf formatted file load.
         auto resule = this->load_elf_file( (uint64_t)file->address );
         if ( resule.has_value( ) ) {
+            resule.value( ).size        = file->size;
+            resule.value( ).module_name = file->path;
             return resule.value( );
         }
         switch ( resule.error( ) ) {
-        case ElfErrorCode::MAGIC_IS_NOT_STANDARD:     // TODO : 错误处理
+        case ElfErrorCode::MAGIC_IS_NOT_STANDARD:
+            std::println< std::print_level::ERROR >( "File {} doesn't conform to elf formatted, cannot load.", file->path );
             break;
         }
         return { };
     }
     case BIN: {
-        // bin文件，不需要解析，读取出来的即是它入口函数地址
-        return (uint64_t)file->address;
+        // Entire binary file
+        // The start address is the main function entry.
+        return FileInformation {
+            .module_name      = file->path,
+            .size             = file->size,
+            .executable_start = (uint64_t)file->address,
+            .executable_end   = (uint64_t)file->address + file->size
+        };
     }
     case PE: {
         return { };
@@ -30,7 +40,7 @@ auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleF
     }
     return { };
 }
-auto Modules::ModuleLoader::ModuleLoader::load( IN void *, IN ModuleFileType ) -> std::expected< uint64_t, void > {
+auto Modules::ModuleLoader::ModuleLoader::load( IN void *, IN ModuleFileType ) -> std::expected< FileInformation, void > {
     // TODO :
     // 动态挂载
     return { };

@@ -4,14 +4,18 @@
 #include <modules/loader/elf.hpp>
 using namespace QuantumNEC::Kernel;
 namespace QuantumNEC::Modules {
-auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< uint64_t, ElfErrorCode > {
-    auto Elf_header { reinterpret_cast< ElfHeader * >( address ) };
-    if ( !check_elf_magic( Elf_header ) )
+auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< FileInformation, ElfErrorCode > {
+    auto elf_header { reinterpret_cast< ElfHeader * >( address ) };
+    if ( !check_elf_magic( elf_header ) )
         return std::unexpected { ElfErrorCode::MAGIC_IS_NOT_STANDARD };
-    auto P_header = (ProgramHeaderTable *)( address + Elf_header->e_Phoff );
+
+    auto P_header = (ProgramHeaderTable *)( address + elf_header->e_Phoff );
+
+    FileInformation file { };
+
     auto low_address { 0xFFFFFFFFFFFFFFFFul };
     auto high_address { 0ul };
-    for ( uint64_t i { }; i < Elf_header->e_PHeadCount; ++i ) {
+    for ( uint64_t i { }; i < elf_header->e_PHeadCount; ++i ) {
         if ( P_header[ i ].p_type == ELF_PT_LOAD ) {
             if ( low_address > P_header[ i ].p_paddr ) {
                 low_address = P_header[ i ].p_paddr;
@@ -23,25 +27,20 @@ auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< uint64_t, ElfEr
     }
     auto page_count { ( ( high_address - low_address ) >> 12 ) + 1 };
 
+    // allocate memory for relocating
     auto relocate_base { (uint64_t)physical_to_virtual( Kernel::PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( page_count ) ) };
-
-    Kernel::Memory::kernel_page_table->map(
-        (uint64_t)Kernel::virtual_to_physical( relocate_base ),
-        relocate_base,
-        1,
-        Kernel::Memory::kernel_page_table->PAGE_PRESENT | Kernel::Memory::kernel_page_table->PAGE_RW_W | Kernel::Memory::kernel_page_table->PAGE_US_U,
-        MemoryPageType::PAGE_2M );
-
     auto relocate_offset = relocate_base - low_address;
     auto zero_start      = reinterpret_cast< uint64_t      *>( relocate_base );
     for ( uint64_t i { }; i < ( page_count << 9 ); i++ ) {
         *zero_start = 0x000000000000;
         zero_start++;
     }
-    for ( uint64_t i { }; i < Elf_header->e_PHeadCount; i++ ) {
+    auto load_segment_size = 0ul;
+    for ( uint64_t i { }; i < elf_header->e_PHeadCount; i++ ) {
         if ( P_header[ i ].p_type == ELF_PT_LOAD ) {
             auto source_start { reinterpret_cast< uint8_t * >( address + P_header[ i ].p_offset ) };
             auto dest_start { reinterpret_cast< uint8_t * >( P_header[ i ].p_vaddr + relocate_offset ) };
+            load_segment_size += P_header[ i ].p_filesz;
             for ( uint64_t j { }; j < P_header[ i ].p_filesz; j++ ) {
                 *dest_start = *source_start;
                 ++source_start;
@@ -49,7 +48,9 @@ auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< uint64_t, ElfEr
             }
         }
     }
-    return Elf_header->e_Entry + relocate_offset;
+    file.executable_start = (uint64_t)virtual_to_physical( elf_header->e_Entry + relocate_offset );
+    file.executable_end   = file.executable_start + load_segment_size;
+    return file;
 }
 auto Elf::check_elf_magic( IN void *Ehdr ) -> bool {
     auto header = (ElfHeader *)Ehdr;

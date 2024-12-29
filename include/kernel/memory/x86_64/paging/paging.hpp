@@ -228,39 +228,12 @@ public:
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void = 0;
     virtual auto operator=( IN uint64_t table_address ) -> void                                           = 0;
 
-    virtual auto get_address_index_in( IN void *address ) -> uint64_t = 0;
+    virtual auto get_address_index_in( IN void *virtual_address ) -> uint64_t = 0;
 
     virtual auto get_table( void ) -> uint64_t * = 0;
 
 protected:
-    struct PmlxEntry {
-    private:
-        uint64_t *nul { };
-
-        uint64_t *pml1t_entries { };
-        uint64_t *pml2t_entries { };
-        uint64_t *pml3t_entries { };
-        uint64_t *pml4t_entries { };
-        uint64_t *pml5t_entries { };
-
-    public:
-        constexpr auto operator[]( IN Level level ) -> uint64_t *& {
-            using enum Level;
-            switch ( level ) {
-            case PML5:
-                return this->pml5t_entries;
-            case PML4:
-                return this->pml4t_entries;
-            case PDPT:
-                return this->pml3t_entries;
-            case PD:
-                return this->pml2t_entries;
-            case PT:
-                return this->pml1t_entries;
-            }
-            return this->nul;
-        }
-    } pmlx_entry;
+    uint64_t *pmlx_table;
 
 public:
     /**
@@ -321,12 +294,12 @@ public:
 public:
     explicit pml1t( IN pml1t_entry *pml1t_address ) noexcept :
         pmlxt { } {
-        this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml1t_address );
+        this->pmlx_table = (uint64_t *)( pml1t_address );
     }
 
     explicit pml1t( IN pml1t &pml1t ) noexcept :
         pmlxt { } {
-        this->pmlx_entry = pml1t.pmlx_entry;
+        this->pmlx_table = pml1t.pmlx_table;
     }
     explicit pml1t( void ) noexcept :
         pmlxt { } {
@@ -335,58 +308,58 @@ public:
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].p;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].p;
     }
     virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].rw;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].rw;
     }
     virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].us;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].us;
     }
     virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pcd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pcd;
     }
     virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pwt;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pwt;
     }
     virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].a;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].a;
     }
     virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
     virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base << this->PAGE_4K_SHIFT;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].base << this->PAGE_4K_SHIFT;
     }
     virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pat;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pat;
     }
     virtual auto set_p( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].p = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].p = bit;
     }
     virtual auto set_rw( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].rw = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].rw = bit;
     }
     virtual auto set_us( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].us = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].us = bit;
     }
     virtual auto set_pcd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pcd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pcd = bit;
     }
     virtual auto set_pwt( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pwt = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pwt = bit;
     }
     virtual auto set_a( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].a = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].a = bit;
     }
     virtual auto set_xd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].xd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].base = address >> PAGE_4K_SHIFT;
+        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
     }
     virtual auto set_ps_pat( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PT ] )[ index ].pat = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pat = bit;
     }
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void override {
         auto &[ index, base, flags, _mode ] = group;
@@ -401,24 +374,24 @@ public:
         this->set_ps_pat( index, 0 );
     }
     virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_entry[ Level::PT ] = (uint64_t *)table_address;
+        this->pmlx_table = (uint64_t *)table_address;
     }
     virtual auto get_table( void ) -> uint64_t * override {
-        return this->pmlx_entry[ Level::PT ];
+        return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_4K_SHIFT ) & 0x1ff );
     }
     auto operator=( IN pml1t &&pml1 ) -> pml1t & {
-        this->pmlx_entry = pml1.pmlx_entry;
+        this->pmlx_table = pml1.pmlx_table;
         return *this;
     };
     auto operator=( IN pml1t *pml1 ) -> pml1t & {
-        this->pmlx_entry = pml1->pmlx_entry;
+        this->pmlx_table = pml1->pmlx_table;
         return *this;
     };
     auto operator=( IN page_table_entry *entry ) -> pml1t & {
-        this->pmlx_entry[ Level::PT ] = (uint64_t *)entry;
+        this->pmlx_table = (uint64_t *)entry;
         return *this;
     };
 };
@@ -435,7 +408,7 @@ public:
 public:
     explicit pml2t( IN page_table_entry *pml2t_address ) noexcept :
         pmlxt { } {
-        this->pmlx_entry[ Level::PD ] = (uint64_t *)pml2t_address;
+        this->pmlx_table = (uint64_t *)pml2t_address;
     }
     explicit pml2t( void ) noexcept :
         pmlxt { } {};
@@ -443,79 +416,79 @@ public:
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].p;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].p;
     }
     virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].rw;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].rw;
     }
 
     virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].us;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].us;
     }
 
     virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pcd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pcd;
     }
 
     virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pwt;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pwt;
     }
 
     virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].a;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].a;
     }
 
     virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
     virtual auto flags_base( IN uint64_t index, IN MemoryPageType _mode ) -> uint64_t override {
         if ( _mode == MemoryPageType::PAGE_2M ) {
-            return ( (huge_page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base << PAGE_2M_SHIFT;
+            return ( (huge_page_table_entry *)this->pmlx_table )[ index ].base << PAGE_2M_SHIFT;
         }
         else {
-            return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base << PAGE_4K_SHIFT;
+            return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
         }
     }
     virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].ps;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].ps;
     }
     virtual auto set_p( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].p = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].p = bit;
     }
 
     virtual auto set_rw( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].rw = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].rw = bit;
     }
 
     virtual auto set_us( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].us = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].us = bit;
     }
 
     virtual auto set_pcd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pcd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pcd = bit;
     }
 
     virtual auto set_pwt( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].pwt = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pwt = bit;
     }
     virtual auto set_a( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].a = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].a = bit;
     }
 
     virtual auto set_xd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].xd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
 
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
         if ( _mode == MemoryPageType::PAGE_2M ) {
-            ( (huge_page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base = address >> PAGE_2M_SHIFT;
+            ( (huge_page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_2M_SHIFT;
         }
         else {
-            ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].base = address >> PAGE_4K_SHIFT;
+            ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
         }
     }
     virtual auto set_ps_pat( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PD ] )[ index ].ps = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].ps = bit;
     }
 
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void override {
@@ -531,17 +504,17 @@ public:
         this->set_ps_pat( index, !!( flags & PAGE_PS ) );
     }
     virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_entry[ Level::PD ] = (uint64_t *)table_address;
+        this->pmlx_table = (uint64_t *)table_address;
     }
 
     virtual auto get_table( void ) -> uint64_t * override {
-        return this->pmlx_entry[ Level::PD ];
+        return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_2M_SHIFT ) & 0x1ff );
     }
     auto operator=( IN page_table_entry *entry ) -> pml2t & {
-        this->pmlx_entry[ Level::PD ] = (uint64_t *)entry;
+        this->pmlx_table = (uint64_t *)entry;
         return *this;
     }
 };
@@ -557,7 +530,7 @@ public:
 public:
     explicit pml3t( IN page_table_entry *pml3t_address ) noexcept :
         pmlxt { } {
-        this->pmlx_entry[ Level::PDPT ] = (uint64_t *)pml3t_address;
+        this->pmlx_table = (uint64_t *)pml3t_address;
     }
     explicit pml3t( void ) noexcept :
         pmlxt { } {};
@@ -565,78 +538,78 @@ public:
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].p;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].p;
     }
     virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].rw;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].rw;
     }
 
     virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].us;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].us;
     }
 
     virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pcd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pcd;
     }
 
     virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pwt;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pwt;
     }
 
     virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].a;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].a;
     }
     virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].ps;
     }
     virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
     virtual auto flags_base( IN uint64_t index, IN MemoryPageType _mode ) -> uint64_t override {
         if ( _mode == MemoryPageType::PAGE_1G ) {
-            return ( (huge_page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base << PAGE_1G_SHIFT;
+            return ( (huge_page_table_entry *)this->pmlx_table )[ index ].base << PAGE_1G_SHIFT;
         }
         else {
-            return ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base << PAGE_4K_SHIFT;
+            return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
         }
     }
 
     virtual auto set_p( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].p = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].p = bit;
     }
 
     virtual auto set_rw( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].rw = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].rw = bit;
     }
 
     virtual auto set_us( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].us = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].us = bit;
     }
 
     virtual auto set_pcd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pcd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pcd = bit;
     }
 
     virtual auto set_pwt( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].pwt = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pwt = bit;
     }
     virtual auto set_a( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].a = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].a = bit;
     }
 
     virtual auto set_xd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].xd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
     virtual auto set_ps_pat( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].ps = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].ps = bit;
     }
 
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN MemoryPageType _mode ) -> void override {
         if ( _mode == MemoryPageType::PAGE_1G ) {
-            ( (huge_page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_1G_SHIFT;
+            ( (huge_page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_1G_SHIFT;
         }
         else {
-            ( (page_table_entry *)this->pmlx_entry[ Level::PDPT ] )[ index ].base = address >> PAGE_4K_SHIFT;
+            ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
         }
     }
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void override {
@@ -652,17 +625,17 @@ public:
         this->set_ps_pat( index, !!( flags & PAGE_PS ) );
     }
     virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_entry[ Level::PDPT ] = (uint64_t *)table_address;
+        this->pmlx_table = (uint64_t *)table_address;
     }
 
     virtual auto get_table( void ) -> uint64_t * override {
-        return this->pmlx_entry[ Level::PDPT ];
+        return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_1G_SHIFT ) & 0x1ff );
     }
     auto operator=( IN page_table_entry *entry ) -> pml3t & {
-        this->pmlx_entry[ Level::PDPT ] = (uint64_t *)entry;
+        this->pmlx_table = (uint64_t *)entry;
         return *this;
     }
 };
@@ -676,12 +649,12 @@ public:
 public:
     explicit pml4t( IN page_table_entry *pml4t_address ) noexcept :
         pmlxt { } {
-        this->pmlx_entry[ Level::PML4 ] = (uint64_t *)( pml4t_address );
+        this->pmlx_table = (uint64_t *)( pml4t_address );
     }
 
     explicit pml4t( IN pml4t &pml4t ) noexcept :
         pmlxt { } {
-        this->pmlx_entry = pml4t.pmlx_entry;
+        this->pmlx_table = pml4t.pmlx_table;
     }
     explicit pml4t( void ) noexcept :
         pmlxt { } {
@@ -691,55 +664,55 @@ public:
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].p;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].p;
     }
     virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].rw;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].rw;
     }
     virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].us;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].us;
     }
     virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pcd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pcd;
     }
     virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pwt;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pwt;
     }
     virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].a;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].a;
     }
     virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
     virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base << PAGE_4K_SHIFT;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
     }
     virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
         return 0;
     }
     virtual auto set_p( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].p = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].p = bit;
     }
     virtual auto set_rw( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].rw = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].rw = bit;
     }
     virtual auto set_us( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].us = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].us = bit;
     }
     virtual auto set_pcd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pcd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pcd = bit;
     }
     virtual auto set_pwt( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].pwt = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pwt = bit;
     }
     virtual auto set_a( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].a = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].a = bit;
     }
     virtual auto set_xd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].xd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML4 ] )[ index ].base = address >> PAGE_4K_SHIFT;
+        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
     }
     virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN bool bit ) -> void override {
     }
@@ -756,27 +729,27 @@ public:
         this->set_ps_pat( index, !!( flags & PAGE_PAT ) );
     }
     virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_entry[ Level::PML4 ] = (uint64_t *)table_address;
+        this->pmlx_table = (uint64_t *)table_address;
     }
     virtual auto operator=( IN pml4t &pml4_t ) -> void {
-        this->pmlx_entry[ Level::PML4 ] = (uint64_t *)pml4_t.pmlx_entry[ Level::PML4 ];
+        this->pmlx_table = (uint64_t *)pml4_t.pmlx_table;
     }
     virtual auto get_table( void ) -> uint64_t * override {
-        return this->pmlx_entry[ Level::PML4 ];
+        return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_4th_SHIFT ) & 0x1ff );
     }
     auto operator=( IN pml4t &&pml4 ) -> pml4t & {
-        this->pmlx_entry = pml4.pmlx_entry;
+        this->pmlx_table = pml4.pmlx_table;
         return *this;
     };
     auto operator=( IN const pml4t *pml4 ) -> pml4t & {
-        this->pmlx_entry = pml4->pmlx_entry;
+        this->pmlx_table = pml4->pmlx_table;
         return *this;
     };
     auto operator=( IN page_table_entry *entry ) -> pml4t & {
-        this->pmlx_entry[ Level::PML4 ] = (uint64_t *)entry;
+        this->pmlx_table = (uint64_t *)entry;
         return *this;
     };
 };
@@ -790,12 +763,12 @@ public:
 public:
     explicit pml5t( IN page_table_entry *pml5t_address ) noexcept :
         pmlxt { } {
-        this->pmlx_entry[ Level::PML5 ] = (uint64_t *)( pml5t_address );
+        this->pmlx_table = (uint64_t *)( pml5t_address );
     }
 
     explicit pml5t( IN pml5t &pml5t ) noexcept :
         pmlxt { } {
-        this->pmlx_entry = pml5t.pmlx_entry;
+        this->pmlx_table = pml5t.pmlx_table;
     }
     explicit pml5t( void ) noexcept :
         pmlxt { } {
@@ -804,55 +777,55 @@ public:
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].p;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].p;
     }
     virtual auto flags_rw( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].rw;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].rw;
     }
     virtual auto flags_us( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].us;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].us;
     }
     virtual auto flags_pcd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pcd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pcd;
     }
     virtual auto flags_pwt( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pwt;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].pwt;
     }
     virtual auto flags_a( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].a;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].a;
     }
     virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
     virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
         return 0;
     }
     virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base << PAGE_4K_SHIFT;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
     }
     virtual auto set_p( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].p = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].p = bit;
     }
     virtual auto set_rw( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].rw = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].rw = bit;
     }
     virtual auto set_us( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].us = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].us = bit;
     }
     virtual auto set_pcd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pcd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pcd = bit;
     }
     virtual auto set_pwt( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].pwt = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].pwt = bit;
     }
     virtual auto set_a( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].a = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].a = bit;
     }
     virtual auto set_xd( IN uint64_t index, IN bool bit ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].xd = bit;
+        ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
-        ( (page_table_entry *)this->pmlx_entry[ Level::PML5 ] )[ index ].base = address >> PAGE_4K_SHIFT;
+        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
     }
     virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN bool bit ) -> void override {
     }
@@ -869,25 +842,25 @@ public:
         this->set_ps_pat( index, !!( flags & PAGE_PAT ) );
     }
     virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_entry[ Level::PML5 ] = (uint64_t *)table_address;
+        this->pmlx_table = (uint64_t *)table_address;
     }
 
     virtual auto get_table( void ) -> uint64_t * override {
-        return this->pmlx_entry[ Level::PML5 ];
+        return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_5th_SHIFT ) & 0x1ff );
     }
     auto operator=( IN pml5t &&pml5 ) -> pml5t & {
-        this->pmlx_entry = pml5.pmlx_entry;
+        this->pmlx_table = pml5.pmlx_table;
         return *this;
     };
     auto operator=( IN const pml5t *pml5 ) -> pml5t & {
-        this->pmlx_entry = pml5->pmlx_entry;
+        this->pmlx_table = pml5->pmlx_table;
         return *this;
     };
     auto operator=( IN page_table_entry *entry ) -> pml5t & {
-        this->pmlx_entry[ Level::PML5 ] = (uint64_t *)entry;
+        this->pmlx_table = (uint64_t *)entry;
         return *this;
     };
 };

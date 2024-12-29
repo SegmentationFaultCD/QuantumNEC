@@ -48,11 +48,10 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
     auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
         return *page_table[ level - 1 ];
     };
-    auto is_huge = get_table( _level ).is_huge( mode );
-
-    auto page_size  = get_table( _level ).check_page_size( mode );                                     // 确认每页大小
-    auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {                        // 辅助函数，用于递归查找与映射
-        auto index = pmlx_t.get_address_index_in( reinterpret_cast< void * >( virtual_address ) );     // 拿到虚拟地址所在页表入口的index
+    auto is_huge    = get_table( _level ).is_huge( mode );
+    auto page_size  = get_table( _level ).check_page_size( mode );                  // 确认每页大小
+    auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {     // 辅助函数，用于递归查找与映射
+        auto index = pmlx_t.get_address_index_in( reinterpret_cast< void * >( virtual_address ) );
         if ( level == static_cast< uint64_t >( mode ) ) {
             // 当前等级符合分页模式
             // 如，2m分页，那么每个2级页表就是最底层
@@ -64,8 +63,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                     goto normal;
                 }
                 else {
-                    get_table( PAGE_2M ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
-
+                    get_table( PAGE_2M )   = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
                     pmlxt &next_page_table = get_table( PAGE_2M );
                     for ( auto i = 0; i < 512; ++i ) {
                         if ( !next_page_table.flags_ps_pat( i ) ) {
@@ -84,8 +82,8 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                 }
             }
 
-        normal:;     // 如果为huge页那么设置ps位为1
-            pmlx_t = { index, physics_address & ~0x7FFul, ( flags | is_huge ) & 0x7FFul, mode };
+        normal:     // 如果为huge页那么设置ps位为1
+            pmlx_t = { index, physics_address & ~0x7FFul, flags | is_huge, mode };
             // CPU::invlpg( reinterpret_cast< void * >( virtual_address ) );     // 刷新快表
             physics_address += page_size;
             virtual_address += page_size;
@@ -99,10 +97,9 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         // 这种情况下，那么就是继续迭代既可
 
         else if ( !pmlx_t.flags_p( index ) || pmlx_t.flags_ps_pat( index ) ) {
-            // 这个页要是是一个不存在的那么就弄出一个表给他
             auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
-            pmlx_t    = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FFul ), flags, PAGE_4K };
             std::memset( physical_to_virtual( new_ ), 0, pmlx_t.PT_SIZE );
+            pmlx_t = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FFul ), flags, PAGE_4K };
         }
         get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // 得到下一级页表的地址
         self( level - 1, get_table( level - 1 ) );
