@@ -6,16 +6,7 @@ namespace QuantumNEC::Kernel {
 class SchedulerInterface;
 
 template < typename Scheduler >
-concept conform_to_scheduler_standard = std::derived_from< Scheduler, SchedulerInterface >     // must derived from base class __Scheduler__
-                                        && std::constructible_from< Scheduler >                // must have a Default constructor
-                                        && requires( Scheduler::Schedule schedule ) {          // must obey interface agreement
-                                               { Scheduler { }.__insert__( schedule ) } -> std::same_as< typename Scheduler::Schedule * >;
-                                               { Scheduler { }.__sleep__( ) } -> std::same_as< std::expected< typename Scheduler::Schedule *, typename Scheduler::ErrorCode > >;
-                                               { Scheduler { }.__wake_up__( schedule ) } -> std::same_as< typename Scheduler::Schedule * >;
-                                               { Scheduler { }.__pick_next__( ) } -> std::same_as< std::expected< typename Scheduler::Schedule *, typename Scheduler::ErrorCode > >;
-                                               { Scheduler { }.__schedule__( ) } -> std::same_as< std::expected< typename Scheduler::Schedule *, typename Scheduler::ErrorCode > >;
-                                               { Scheduler { }.__remove__( ) } -> std::same_as< std::expected< typename Scheduler::Schedule *, typename Scheduler::ErrorCode > >;
-                                           };
+concept conform_to_scheduler_standard = std::derived_from< Scheduler, SchedulerInterface >;     // must derived from base class __Scheduler__
 
 class SchedulerInterface {
 public:
@@ -38,8 +29,9 @@ public:
     auto schedule( this auto &&self ) {
         return self.__schedule__( );
     }
-    auto remove( this auto &&self ) {
-        return self.__remove__( );
+    auto remove( this auto &&self, auto &schedule ) {
+        self.__remove__( schedule );
     }
 };
+
 }     // namespace QuantumNEC::Kernel

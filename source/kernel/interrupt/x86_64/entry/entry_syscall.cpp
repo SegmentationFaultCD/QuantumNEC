@@ -19,7 +19,7 @@ auto SystemcallEntry::handler( Frame *frame ) noexcept -> Frame * {
     //     frame->regs.rax = static_cast< uint64_t >( Syscall::Status::NO_SYSCALL );
     //     return frame;
     // }
-    std::print( "S" );
+    std::print( "{:x} {:x} {:x}\n", (uint64_t)frame->regs.rax, (uint64_t)frame->regs.rdi, (uint64_t)frame->regs.rsi );
     return frame;
     // return entry( frame );
 }

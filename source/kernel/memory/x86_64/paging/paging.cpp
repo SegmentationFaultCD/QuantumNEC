@@ -59,14 +59,14 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
             // 4K分页，那么就是查到1级页表为止
             // 1G分页，就是查到3级页表为止
             if ( mode == PAGE_1G ) {
-                if ( pmlx_t.flags_ps_pat( index ) ) {
+                if ( pmlx_t.flags_ps_pat( index ) || !pmlx_t.get_table( )[ index ] ) {
                     goto normal;
                 }
                 else {
                     get_table( PAGE_2M )   = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
                     pmlxt &next_page_table = get_table( PAGE_2M );
                     for ( auto i = 0; i < 512; ++i ) {
-                        if ( !next_page_table.flags_ps_pat( i ) ) {
+                        if ( !next_page_table.flags_ps_pat( i ) || next_page_table.get_table( )[ i ] ) {
                             PageWalker { }.free< MemoryPageType::PAGE_4K >( (void *)next_page_table.flags_base( i, PAGE_4K ), 1 );
                         }
                     }
@@ -74,7 +74,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                 }
             }
             if ( mode == PAGE_2M ) {
-                if ( pmlx_t.flags_ps_pat( index ) ) {
+                if ( pmlx_t.flags_ps_pat( index ) || pmlx_t.get_table( )[ index ] ) {
                     goto normal;
                 }
                 else {
@@ -183,13 +183,15 @@ auto pmlxt::VTP_from( IN void *virtual_address, IN MemoryPageType mode ) -> void
         if ( !pmlx_t.flags_p( index ) ) {
             return nullptr;
         }
-        auto entry = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, mode ) );
         if ( !( ( level - offset ) - 1 ) ) {
+            auto entry = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, mode ) );
             return (uint64_t *)virtual_to_physical( entry );
         }
-
-        get_table( level - 1 ) = entry;
-        return self( virtual_address, level - 1, get_table( level - 1 ) );
+        else {
+            auto entry             = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, MemoryPageType::PAGE_4K ) );
+            get_table( level - 1 ) = entry;
+            return self( virtual_address, level - 1, get_table( level - 1 ) );
+        }
     };
     return find_helper( virtual_address, level, *this );
 }

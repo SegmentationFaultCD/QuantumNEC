@@ -10,9 +10,10 @@ auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
     pcb->kernel_stack_base = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
     pcb->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
 
-    pcb->context.pcontext                   = (PCB::ProcessContext *)( pcb->kernel_stack_base + pcb->kernel_stack_size - sizeof( PCB::ProcessContext ) );
-    pcb->context.tcontext                   = reinterpret_cast< PCB::ThreadContext                   *>( pcb->context.pcontext ) - 1;
     *( (uint64_t *)pcb->kernel_stack_base ) = (uint64_t)pcb;
+
+    // pcb->fpu_frame = reinterpret_cast< decltype( pcb->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *pcb->fpu_frame ) );
+
     // 分配PID
     pcb->PID = pid_pool.allocate( );
     // 设置进程名

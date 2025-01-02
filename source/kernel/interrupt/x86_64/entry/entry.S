@@ -109,9 +109,6 @@ save_all_registers:
     PUSH RAX
     MOV  RAX, DS
     PUSH RAX
-    MOV	 RDI, SELECTOR_DATA64_KERNEL
-	MOV	 DS, RDI
-	MOV	 ES, RDI
     MOV  RDI, RSP
     CALL do_IRQ
 .GLOBAL return_from_isr
@@ -142,7 +139,6 @@ return_from_isr:
     POP R15
     ADD RSP, 32 
     IRETQ
-
 
 ret_from_exception:
     HLT

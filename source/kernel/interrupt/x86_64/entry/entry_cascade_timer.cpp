@@ -23,18 +23,13 @@ auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
 
     CPU::switch_cpu( );
 
-    // *ProcessManager::get_running_task( )->context.pcontext = *( (PCB::ProcessContext *)frame );
-    std::println( "S{}", Apic::cpu_id( ) );
+    if ( ProcessManager::get_running_task( )->flags.task_type == PCB::Flags::Type::KERNEL_PROCESS ) {
+        ProcessManager::get_running_task( )->context.pcontext = (PCB::ProcessContext *)frame;
+    }
     auto result = Scheduler { }.schedule( );
 
     if ( result.has_value( ) ) {
-        if ( result.value( )->general_task_node.container == ProcessManager::main_pcb ) {
-            return frame;
-        }
-
-        else {
-            return result.value( )->general_task_node.container->context.pcontext;
-        }
+        return result.value( )->general_task_node.container->context.pcontext;
     }
     else {
         while ( true ) __asm__( "hlt" );

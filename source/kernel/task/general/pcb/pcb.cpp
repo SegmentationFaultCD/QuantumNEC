@@ -46,12 +46,6 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
                                               this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U,
                                               MemoryPageType::PAGE_2M );
 
-        // map kernel stack and set r/w, p and xd
-        this->memory_manager.page_table->map( this->kernel_stack_base,
-                                              (uint64_t)physical_to_virtual( this->kernel_stack_base ),
-                                              TASK_KERNEL_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_4K >,
-                                              this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_XD,
-                                              MemoryPageType::PAGE_4K );
         // set rsp to point user stack top
         this->context.pcontext->rsp = this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP;
     }

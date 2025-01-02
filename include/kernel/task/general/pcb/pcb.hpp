@@ -126,7 +126,7 @@ public:
 #error Not any registers
 #endif
         // activate the fpu
-        this->fpu_frame->load( );
+        // this->fpu_frame->load( );
         // activate the page table
         this->memory_manager.page_table->activate( );
         // set running state
@@ -135,7 +135,7 @@ public:
      * @brief remove task from running state
      */
     auto close( ) {
-        this->fpu_frame->save( );
+        // this->fpu_frame->save( );
     }
     static auto get_running_task( void ) {
         // 得到正在运行的任务

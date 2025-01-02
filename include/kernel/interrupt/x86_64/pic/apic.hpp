@@ -32,16 +32,14 @@ public:
     struct _packed SpuriousInterruptVectorRegister {
         uint32_t : 8;
         uint32_t enable_apic : 1;
-        uint32_t : 4;
+        uint32_t : 3;
         uint32_t mask_eoi : 1;
-        uint32_t : 18;
+        uint32_t : 19;
         explicit SpuriousInterruptVectorRegister( void ) = default;
         explicit SpuriousInterruptVectorRegister( IN uint32_t value ) {
             *this = *reinterpret_cast< SpuriousInterruptVectorRegister * >( &value );
         }
-        explicit SpuriousInterruptVectorRegister( IN uint64_t value ) {
-            *this = *reinterpret_cast< SpuriousInterruptVectorRegister * >( &value );
-        }
+
         operator uint32_t( ) {
             return *( (uint32_t *)this );
         }

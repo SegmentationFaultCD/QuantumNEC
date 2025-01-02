@@ -14,8 +14,9 @@ auto Apic::enable_x2apic( void ) -> void {
     base |= 4 << 8;
     base |= 1 << 11;
     CPU::wrmsr( IA32_APIC_BASE_MSR, base );
+
     // enable SVR
-    SpuriousInterruptVectorRegister svr { CPU::rdmsr( LOCAL_APIC_MSR_SVR ) };
+    SpuriousInterruptVectorRegister svr { (uint32_t)CPU::rdmsr( LOCAL_APIC_MSR_SVR ) };
     svr.enable_apic = SVR_ENABLE_APIC;
     if ( CPU::rdmsr( LOCAL_APIC_MSR_VERSION ) >> 24 & 1 ) {
         svr.mask_eoi = SVR_EOI_MASK;
@@ -24,6 +25,7 @@ auto Apic::enable_x2apic( void ) -> void {
         svr.mask_eoi = SVR_EOI_UNMASK;
     }
     CPU::wrmsr( LOCAL_APIC_MSR_SVR, svr );
+
     // disable seven lvt registers
 
     // I don't know what causes #GP fault when I use msr register to write CMCI register.

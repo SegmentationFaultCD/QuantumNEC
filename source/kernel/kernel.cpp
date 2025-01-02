@@ -240,5 +240,8 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
     // while ( true ) {
     //     Kernel::CPU::hlt( );
     // }
-    while ( true );
+    static int i = 0;
+
+    while ( true )
+        std::print( "SS {}\n", i++ );
 }
