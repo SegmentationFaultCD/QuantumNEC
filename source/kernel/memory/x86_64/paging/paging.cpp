@@ -78,7 +78,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                 check_next_table_under_the_old( level, index, pmlx_t );
             }
             // After checking, now set the entry.
-            pmlx_t = { index,                          // the entry's index in the current page table
+            pmlx_t = { index,                          // The entry's index in the current page table
                        physics_address & ~0x7FFul,     // The low 12 bits is ignoreded, and the further handle is in the pmlx_t's operator= function.
                        flags | get_table( level ).is_huge( mode ),
                        mode };
@@ -91,14 +91,14 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
             auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
             std::memset( physical_to_virtual( new_ ), 0, pmlx_t.PT_SIZE );
             pmlx_t = {
-                index,                                                   // the entry's index in the current page table
+                index,                                                   // The entry's index in the current page table
                 ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FFul ),     // The low 12 bits is ignoreded, and the further handle is in the pmlx_t's operator= function.
                 flags,
-                PAGE_4K     // use PAGE_4K mode to set Beacuse the entry points to a page table rather than a block of memory.
+                PAGE_4K     // Use PAGE_4K mode to set Beacuse the entry points to a page table rather than a block of memory.
             };
         }
 
-        get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // get the next table's base
+        get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // Get the next table's base
         self( level - 1, get_table( level - 1 ) );
     };
 
