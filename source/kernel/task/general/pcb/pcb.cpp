@@ -4,7 +4,8 @@
 #include <kernel/task/general/pcb/pcb.hpp>
 #include <kernel/task/task.hpp>
 namespace QuantumNEC::Kernel {
-PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept {
+PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept :
+    memory_manager { } {
     // 内核栈处理
     this->kernel_stack_base = (uint64_t)PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 );
     this->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
@@ -35,19 +36,18 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry
         // this->context.tcontext->make( (VOID *)Architecture::ArchitectureManager< TARGET_ARCH >::to_process, (uint64_t)this->context.pcontext );
     }
 
-    this->memory_manager.install( );
     if ( _flags_.task_type == Flags::Type::USER_PROCESS ) {
         // 用户进程有自己的页表，所以复制内核页表
-        this->memory_manager.page_table->copy( *x86_64::Paging::kernel_page_table );
+        this->memory_manager.page_table.copy( *x86_64::Paging::kernel_page_table );
         // map user stack and set r/w, u/s, p
-        this->memory_manager.page_table->map( this->user_stack_base,
-                                              this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size + 1,
-                                              TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M >,
-                                              this->memory_manager.page_table->PAGE_PRESENT | this->memory_manager.page_table->PAGE_RW_W | this->memory_manager.page_table->PAGE_US_U,
-                                              MemoryPageType::PAGE_2M );
+        this->memory_manager.page_table.map( this->user_stack_base,
+                                             this->memory_manager.page_table.USER_STACK_VIRTUAL_ADDRESS_TOP - this->user_stack_size + 1,
+                                             TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M >,
+                                             this->memory_manager.page_table.PAGE_PRESENT | this->memory_manager.page_table.PAGE_RW_W | this->memory_manager.page_table.PAGE_US_U,
+                                             MemoryPageType::PAGE_2M );
 
         // set rsp to point user stack top
-        this->context.pcontext->rsp = this->memory_manager.page_table->USER_STACK_VIRTUAL_ADDRESS_TOP;
+        this->context.pcontext->rsp = this->memory_manager.page_table.USER_STACK_VIRTUAL_ADDRESS_TOP;
     }
 
     // 栈栈底存PCB的地址

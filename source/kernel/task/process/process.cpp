@@ -44,12 +44,12 @@ Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t p
                 0
             };
 
-            auto upage_table = this->pcb->memory_manager.page_table;
-            upage_table->map(
+            auto &upage_table = this->pcb->memory_manager.page_table;
+            upage_table.map(
                 file.executable_start,
                 this->__user_process_text_segment_start__,
                 Lib::DIV_ROUND_UP( file.executable_end - file.executable_start, PageAllocater::__page_size__< MemoryPageType::PAGE_4K > ),
-                upage_table->PAGE_PRESENT | upage_table->PAGE_RW_W | upage_table->PAGE_US_U,
+                upage_table.PAGE_PRESENT | upage_table.PAGE_RW_W | upage_table.PAGE_US_U,
                 MemoryPageType::PAGE_4K );
         }
 

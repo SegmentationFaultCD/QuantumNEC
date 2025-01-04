@@ -69,11 +69,9 @@ public:
     struct MemoryManager {
         // 任务所持有的页表地址
 #if defined( __x86_64__ )
-    private:
-        x86_64::pml4t _page_table;
-
     public:
-        x86_64::pmlxt *page_table;
+        x86_64::pml4t page_table;
+
 #elif defined( __aarch64__ )
 #endif
         struct MemoryMap {
@@ -81,9 +79,11 @@ public:
             uint64_t text_end;
             uint64_t data_start;
             uint64_t data_end;
+            MemoryMap( void ) {
+            }
         } map;
-        auto install( ) {
-            this->page_table = new ( &this->_page_table ) decltype( this->_page_table ) { };
+        MemoryManager( void ) :
+            page_table { }, map { } {
         }
     } memory_manager;     // 记录内存分布
 
@@ -109,6 +109,8 @@ public:
 
     uint64_t stack_magic;     // 用于检测栈的溢出
 
+    explicit PCB( void ) noexcept {
+    }
     explicit PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept;
 
     /**
@@ -128,7 +130,7 @@ public:
         // activate the fpu
         // this->fpu_frame->load( );
         // activate the page table
-        this->memory_manager.page_table->activate( );
+        this->memory_manager.page_table.activate( );
         // set running state
     }
     /**

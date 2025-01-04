@@ -6,138 +6,20 @@
 #include <tuple>
 namespace QuantumNEC::Kernel::x86_64 {
 
-struct pml1t_entry {
-    uint64_t p : 1;     // 页是否存在，1为在，0为不在
-    uint64_t rw : 1;
-    uint64_t us : 1;
-    uint64_t pwt : 1;
-    uint64_t pcd : 1;
-    uint64_t a : 1;
-    uint64_t d : 1;
-    uint64_t pat : 1;
-    uint64_t g : 1;
-    uint64_t avl : 3;
-    uint64_t base : 40;
-    uint64_t : 7;
-    uint64_t pk : 4;
-    uint64_t xd : 1;
-    explicit pml1t_entry( void ) noexcept = default;
-};
-struct pml2t_entry {
-    uint64_t p : 1;     // 页是否存在，1为在，0为不在
-    uint64_t rw : 1;
-    uint64_t us : 1;
-    uint64_t pwt : 1;
-    uint64_t pcd : 1;
-    uint64_t a : 1;
-    uint64_t d : 1;
-    uint64_t ps : 1;
-    uint64_t g : 1;
-    uint64_t avl : 3;
-    uint64_t base : 40;
-    uint64_t : 7;
-    uint64_t pk : 4;
-    uint64_t xd : 1;
-    explicit pml2t_entry( void ) noexcept = default;
-};
-struct pml2t_huge_entry {
-    uint64_t p : 1;     // 页是否存在，1为在，0为不在
-    uint64_t rw : 1;
-    uint64_t us : 1;
-    uint64_t pwt : 1;
-    uint64_t pcd : 1;
-    uint64_t a : 1;
-    uint64_t d : 1;
-    uint64_t ps : 1;
-    uint64_t g : 1;
-    uint64_t avl : 3;
-    uint64_t pat : 1;
-    uint64_t : 8;
-    uint64_t base : 31;
-    uint64_t : 7;
-    uint64_t pk : 4;
-    uint64_t xd : 1;
-    explicit pml2t_huge_entry( void ) noexcept = default;
-};
-struct pml3t_entry {
-    uint64_t p : 1;     // 页是否存在，1为在，0为不在
-    uint64_t rw : 1;
-    uint64_t us : 1;
-    uint64_t pwt : 1;
-    uint64_t pcd : 1;
-    uint64_t a : 1;
-    uint64_t d : 1;
-    uint64_t ps : 1;
-    uint64_t g : 1;
-    uint64_t avl : 3;
-    uint64_t base : 40;
-    uint64_t : 7;
-    uint64_t pk : 4;
-    uint64_t xd : 1;
-    explicit pml3t_entry( void ) noexcept = default;
-};
-struct pml3t_huge_entry {
-    uint64_t p : 1;     // 页是否存在，1为在，0为不在
-    uint64_t rw : 1;
-    uint64_t us : 1;
-    uint64_t pwt : 1;
-    uint64_t pcd : 1;
-    uint64_t a : 1;
-    uint64_t d : 1;
-    uint64_t ps : 1;
-    uint64_t g : 1;
-    uint64_t avl : 3;
-    uint64_t pat : 1;
-    uint64_t : 17;
-    uint64_t base : 31;
-    uint64_t : 7;
-    uint64_t pk : 4;
-    uint64_t xd : 1;
-    explicit pml3t_huge_entry( void ) noexcept = default;
-};
-struct pml4t_entry {
-    uint64_t p : 1;     // 页是否存在，1为在，0为不在
-    uint64_t rw : 1;
-    uint64_t us : 1;
-    uint64_t pwt : 1;
-    uint64_t pcd : 1;
-    uint64_t a : 1;
-    uint64_t avl1 : 1;
-    uint64_t : 1;
-    uint64_t avl2 : 4;
-    uint64_t base : 40;
-    uint64_t avl3 : 11;
-    uint64_t xd : 1;
-    explicit pml4t_entry( void ) noexcept = default;
-};
-struct pml5t_entry {
-    uint64_t p : 1;     // 页是否存在，1为在，0为不在
-    uint64_t rw : 1;
-    uint64_t us : 1;
-    uint64_t pwt : 1;
-    uint64_t pcd : 1;
-    uint64_t a : 1;
-    uint64_t avl1 : 1;
-    uint64_t : 1;
-    uint64_t avl2 : 4;
-    uint64_t base : 40;
-    uint64_t avl3 : 11;
-    uint64_t xd : 1;
-    explicit pml5t_entry( void ) noexcept = default;
-};
-
-enum class Level {
-    PML5 = 5,
-    PML4 = 4,
-    PDPT = 3,
-    PD   = 2,
-    PT   = 1,
-
-};
-
 class pmlxt {
+private:
+    enum class Level {
+        PML5 = 5,
+        PML4 = 4,
+        PDPT = 3,
+        PD   = 2,
+        PT   = 1,
+    };
+
 public:
     constexpr static auto PT_SIZE { 0x1000 };
+
+    constexpr static auto PAGE_SHIFT { 12 };
 
     /*
      * 内核层 ： 00000000 00000000 -> FFFFFFFF FFFFFFFF
@@ -157,15 +39,14 @@ public:
     constexpr static auto PAGE_US_S { 0UL << 0 };
     constexpr static auto PAGE_US_U { 1ull << 2 };
     constexpr static auto PAGE_RW_R { 0UL << 0 };
-    constexpr static auto PAGE_5th_SHIFT { 48 };
-    constexpr static auto PAGE_4th_SHIFT { 39 };
-    constexpr static auto PAGE_1G_SHIFT { 30 };
-    constexpr static auto PAGE_2M_SHIFT { 21 };
-    constexpr static auto PAGE_4K_SHIFT { 12 };
+
     constexpr static auto USER_STACK_VIRTUAL_ADDRESS_TOP { 0x00007fffffffffffUL };
 
 public:
     explicit pmlxt( void ) noexcept {
+    }
+    explicit pmlxt( uint64_t *_pmlx_table ) noexcept {
+        this->pmlx_table = _pmlx_table;
     }
     virtual ~pmlxt( void ) noexcept {
     }
@@ -232,6 +113,8 @@ public:
 
     virtual auto get_table( void ) -> uint64_t * = 0;
 
+    auto make( void ) -> pmlxt &;
+
 protected:
     uint64_t *pmlx_table;
 
@@ -259,14 +142,7 @@ public:
      * @param flags 如果为true那么开启页保护，如果为false那么关闭页保护
      */
     auto page_protect( IN bool flags ) -> void;
-    /**
-     * @brief 制作页表
-     * @param flags 页属性
-     * @param level 页表等级（5/4/3/2/1）
-     * @param mode 内存页模式
-     * @return 制作的页目录地址
-     */
-    auto make( IN uint64_t flags, IN Level level, IN MemoryPageType mode ) -> pmlxt &;
+
     /**
      * @brief 激活页表
      * @param pmlx_t 页表地址
@@ -278,7 +154,7 @@ public:
      * @param mode 内存页模式
      * @param pmlx_t 页表地址
      */
-    auto VTP_from( IN void *virtual_address, IN MemoryPageType mode ) -> void *;
+    auto find_physcial_address( IN void *virtual_address, IN MemoryPageType mode ) -> void *;
     /**
      * @brief 复制页表
      */
@@ -287,23 +163,39 @@ public:
 class pml1t : public pmlxt {
     friend pmlxt;
 
+private:
+    struct pml1t_entry {
+        uint64_t p : 1;     // 页是否存在，1为在，0为不在
+        uint64_t rw : 1;
+        uint64_t us : 1;
+        uint64_t pwt : 1;
+        uint64_t pcd : 1;
+        uint64_t a : 1;
+        uint64_t d : 1;
+        uint64_t pat : 1;
+        uint64_t g : 1;
+        uint64_t avl : 3;
+        uint64_t base : 40;
+        uint64_t : 7;
+        uint64_t pk : 4;
+        uint64_t xd : 1;
+        explicit pml1t_entry( void ) noexcept = default;
+    };
+
 public:
     using page_table_entry      = pml1t_entry;
     using huge_page_table_entry = void;
 
 public:
-    explicit pml1t( IN pml1t_entry *pml1t_address ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = (uint64_t *)( pml1t_address );
+    explicit pml1t( IN page_table_entry *pml1t_address ) noexcept :
+        pmlxt { (uint64_t *)( pml1t_address ) } {
     }
 
     explicit pml1t( IN pml1t &pml1t ) noexcept :
         pmlxt { } {
         this->pmlx_table = pml1t.pmlx_table;
     }
-    explicit pml1t( void ) noexcept :
-        pmlxt { } {
-    }
+    explicit pml1t( void ) noexcept;
     virtual ~pml1t( void ) noexcept = default;
 
 public:
@@ -329,7 +221,7 @@ public:
         return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
     virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_table )[ index ].base << this->PAGE_4K_SHIFT;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].base << this->PAGE_SHIFT;
     }
     virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
         return ( (page_table_entry *)this->pmlx_table )[ index ].pat;
@@ -356,7 +248,7 @@ public:
         ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
-        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
+        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_SHIFT;
     }
     virtual auto set_ps_pat( IN uint64_t index, IN bool bit ) -> void override {
         ( (page_table_entry *)this->pmlx_table )[ index ].pat = bit;
@@ -380,8 +272,9 @@ public:
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
-        return ( ( (uint64_t)address >> PAGE_4K_SHIFT ) & 0x1ff );
+        return ( ( (uint64_t)address >> PAGE_SHIFT ) & 0x1ff );
     }
+
     auto operator=( IN pml1t &&pml1 ) -> pml1t & {
         this->pmlx_table = pml1.pmlx_table;
         return *this;
@@ -397,6 +290,45 @@ public:
 };
 class pml2t : public pmlxt {
     friend pmlxt;
+    constexpr static auto PAGE_HUGE_SHIFT { 21 };
+
+private:
+    struct pml2t_entry {
+        uint64_t p : 1;     // 页是否存在，1为在，0为不在
+        uint64_t rw : 1;
+        uint64_t us : 1;
+        uint64_t pwt : 1;
+        uint64_t pcd : 1;
+        uint64_t a : 1;
+        uint64_t d : 1;
+        uint64_t ps : 1;
+        uint64_t g : 1;
+        uint64_t avl : 3;
+        uint64_t base : 40;
+        uint64_t : 7;
+        uint64_t pk : 4;
+        uint64_t xd : 1;
+        explicit pml2t_entry( void ) noexcept = default;
+    };
+    struct pml2t_huge_entry {
+        uint64_t p : 1;     // 页是否存在，1为在，0为不在
+        uint64_t rw : 1;
+        uint64_t us : 1;
+        uint64_t pwt : 1;
+        uint64_t pcd : 1;
+        uint64_t a : 1;
+        uint64_t d : 1;
+        uint64_t ps : 1;
+        uint64_t g : 1;
+        uint64_t avl : 3;
+        uint64_t pat : 1;
+        uint64_t : 8;
+        uint64_t base : 31;
+        uint64_t : 7;
+        uint64_t pk : 4;
+        uint64_t xd : 1;
+        explicit pml2t_huge_entry( void ) noexcept = default;
+    };
 
 public:
     using page_table_entry      = pml2t_entry;
@@ -407,11 +339,9 @@ public:
     // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
 public:
     explicit pml2t( IN page_table_entry *pml2t_address ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = (uint64_t *)pml2t_address;
+        pmlxt { (uint64_t *)( pml2t_address ) } {
     }
-    explicit pml2t( void ) noexcept :
-        pmlxt { } {};
+    explicit pml2t( void ) noexcept;
     virtual ~pml2t( void ) noexcept = default;
 
 public:
@@ -443,10 +373,10 @@ public:
     }
     virtual auto flags_base( IN uint64_t index, IN MemoryPageType _mode ) -> uint64_t override {
         if ( _mode == MemoryPageType::PAGE_2M ) {
-            return ( (huge_page_table_entry *)this->pmlx_table )[ index ].base << PAGE_2M_SHIFT;
+            return ( (huge_page_table_entry *)this->pmlx_table )[ index ].base << PAGE_HUGE_SHIFT;
         }
         else {
-            return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
+            return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_SHIFT;
         }
     }
     virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
@@ -481,10 +411,10 @@ public:
 
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
         if ( _mode == MemoryPageType::PAGE_2M ) {
-            ( (huge_page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_2M_SHIFT;
+            ( (huge_page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_HUGE_SHIFT;
         }
         else {
-            ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
+            ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_SHIFT;
         }
     }
     virtual auto set_ps_pat( IN uint64_t index, IN bool bit ) -> void override {
@@ -511,8 +441,9 @@ public:
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
-        return ( ( (uint64_t)address >> PAGE_2M_SHIFT ) & 0x1ff );
+        return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
     }
+
     auto operator=( IN page_table_entry *entry ) -> pml2t & {
         this->pmlx_table = (uint64_t *)entry;
         return *this;
@@ -520,6 +451,45 @@ public:
 };
 class pml3t : public pmlxt {
     friend pmlxt;
+    constexpr static auto PAGE_HUGE_SHIFT { 30 };
+
+private:
+    struct pml3t_entry {
+        uint64_t p : 1;     // 页是否存在，1为在，0为不在
+        uint64_t rw : 1;
+        uint64_t us : 1;
+        uint64_t pwt : 1;
+        uint64_t pcd : 1;
+        uint64_t a : 1;
+        uint64_t d : 1;
+        uint64_t ps : 1;
+        uint64_t g : 1;
+        uint64_t avl : 3;
+        uint64_t base : 40;
+        uint64_t : 7;
+        uint64_t pk : 4;
+        uint64_t xd : 1;
+        explicit pml3t_entry( void ) noexcept = default;
+    };
+    struct pml3t_huge_entry {
+        uint64_t p : 1;     // 页是否存在，1为在，0为不在
+        uint64_t rw : 1;
+        uint64_t us : 1;
+        uint64_t pwt : 1;
+        uint64_t pcd : 1;
+        uint64_t a : 1;
+        uint64_t d : 1;
+        uint64_t ps : 1;
+        uint64_t g : 1;
+        uint64_t avl : 3;
+        uint64_t pat : 1;
+        uint64_t : 17;
+        uint64_t base : 31;
+        uint64_t : 7;
+        uint64_t pk : 4;
+        uint64_t xd : 1;
+        explicit pml3t_huge_entry( void ) noexcept = default;
+    };
 
 public:
     using page_table_entry      = pml3t_entry;
@@ -529,11 +499,9 @@ public:
     // 一种是当分页模式为1G时放弃二级页表，直接从三级页表把内存基地址写入
 public:
     explicit pml3t( IN page_table_entry *pml3t_address ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = (uint64_t *)pml3t_address;
+        pmlxt { (uint64_t *)( pml3t_address ) } {
     }
-    explicit pml3t( void ) noexcept :
-        pmlxt { } {};
+    explicit pml3t( void ) noexcept;
     virtual ~pml3t( void ) noexcept = default;
 
 public:
@@ -567,10 +535,10 @@ public:
     }
     virtual auto flags_base( IN uint64_t index, IN MemoryPageType _mode ) -> uint64_t override {
         if ( _mode == MemoryPageType::PAGE_1G ) {
-            return ( (huge_page_table_entry *)this->pmlx_table )[ index ].base << PAGE_1G_SHIFT;
+            return ( (huge_page_table_entry *)this->pmlx_table )[ index ].base << PAGE_HUGE_SHIFT;
         }
         else {
-            return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
+            return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_SHIFT;
         }
     }
 
@@ -606,10 +574,10 @@ public:
 
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN MemoryPageType _mode ) -> void override {
         if ( _mode == MemoryPageType::PAGE_1G ) {
-            ( (huge_page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_1G_SHIFT;
+            ( (huge_page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_HUGE_SHIFT;
         }
         else {
-            ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
+            ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_SHIFT;
         }
     }
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void override {
@@ -632,8 +600,9 @@ public:
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
-        return ( ( (uint64_t)address >> PAGE_1G_SHIFT ) & 0x1ff );
+        return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
     }
+
     auto operator=( IN page_table_entry *entry ) -> pml3t & {
         this->pmlx_table = (uint64_t *)entry;
         return *this;
@@ -643,23 +612,38 @@ class pml4t : public pmlxt {
     friend pmlxt;
 
 public:
+    constexpr static auto PAGE_HUGE_SHIFT { 39 };
+
+private:
+    struct pml4t_entry {
+        uint64_t p : 1;     // 页是否存在，1为在，0为不在
+        uint64_t rw : 1;
+        uint64_t us : 1;
+        uint64_t pwt : 1;
+        uint64_t pcd : 1;
+        uint64_t a : 1;
+        uint64_t avl1 : 1;
+        uint64_t : 1;
+        uint64_t avl2 : 4;
+        uint64_t base : 40;
+        uint64_t avl3 : 11;
+        uint64_t xd : 1;
+        explicit pml4t_entry( void ) noexcept = default;
+    };
+
+public:
     using page_table_entry      = pml4t_entry;
     using huge_page_table_entry = void;
     // 五级页表是最大的了
 public:
     explicit pml4t( IN page_table_entry *pml4t_address ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = (uint64_t *)( pml4t_address );
+        pmlxt { (uint64_t *)( pml4t_address ) } {
     }
-
     explicit pml4t( IN pml4t &pml4t ) noexcept :
         pmlxt { } {
         this->pmlx_table = pml4t.pmlx_table;
     }
-    explicit pml4t( void ) noexcept :
-        pmlxt { } {
-
-        };
+    explicit pml4t( void ) noexcept;
     virtual ~pml4t( void ) noexcept = default;
 
 public:
@@ -685,7 +669,7 @@ public:
         return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
     virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_SHIFT;
     }
     virtual auto flags_ps_pat( [[maybe_unused]] IN uint64_t index ) -> uint64_t override {
         return 0;
@@ -712,7 +696,7 @@ public:
         ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
-        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
+        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_SHIFT;
     }
     virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN bool bit ) -> void override {
     }
@@ -738,8 +722,9 @@ public:
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
-        return ( ( (uint64_t)address >> PAGE_4th_SHIFT ) & 0x1ff );
+        return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
     }
+
     auto operator=( IN pml4t &&pml4 ) -> pml4t & {
         this->pmlx_table = pml4.pmlx_table;
         return *this;
@@ -757,22 +742,38 @@ class pml5t : public pmlxt {
     friend pmlxt;
 
 public:
+    constexpr static auto PAGE_HUGE_SHIFT { 48 };
+
+private:
+    struct pml5t_entry {
+        uint64_t p : 1;     // 页是否存在，1为在，0为不在
+        uint64_t rw : 1;
+        uint64_t us : 1;
+        uint64_t pwt : 1;
+        uint64_t pcd : 1;
+        uint64_t a : 1;
+        uint64_t avl1 : 1;
+        uint64_t : 1;
+        uint64_t avl2 : 4;
+        uint64_t base : 40;
+        uint64_t avl3 : 11;
+        uint64_t xd : 1;
+        explicit pml5t_entry( void ) noexcept = default;
+    };
+
+public:
     using page_table_entry      = pml5t_entry;
     using huge_page_table_entry = void;
     // 五级页表是最大的了
 public:
     explicit pml5t( IN page_table_entry *pml5t_address ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = (uint64_t *)( pml5t_address );
+        pmlxt { (uint64_t *)( pml5t_address ) } {
     }
-
     explicit pml5t( IN pml5t &pml5t ) noexcept :
         pmlxt { } {
         this->pmlx_table = pml5t.pmlx_table;
     }
-    explicit pml5t( void ) noexcept :
-        pmlxt { } {
-    }
+    explicit pml5t( void ) noexcept;
     virtual ~pml5t( void ) noexcept = default;
 
 public:
@@ -801,7 +802,7 @@ public:
         return 0;
     }
     virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
-        return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_4K_SHIFT;
+        return ( (page_table_entry *)this->pmlx_table )[ index ].base << PAGE_SHIFT;
     }
     virtual auto set_p( IN uint64_t index, IN bool bit ) -> void override {
         ( (page_table_entry *)this->pmlx_table )[ index ].p = bit;
@@ -825,7 +826,7 @@ public:
         ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
     virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
-        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_4K_SHIFT;
+        ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_SHIFT;
     }
     virtual auto set_ps_pat( [[maybe_unused]] IN uint64_t index, [[maybe_unused]] IN bool bit ) -> void override {
     }
@@ -849,8 +850,9 @@ public:
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
-        return ( ( (uint64_t)address >> PAGE_5th_SHIFT ) & 0x1ff );
+        return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
     }
+
     auto operator=( IN pml5t &&pml5 ) -> pml5t & {
         this->pmlx_table = pml5.pmlx_table;
         return *this;

@@ -5,7 +5,7 @@
 #include <kernel/task/task.hpp>
 namespace QuantumNEC::Kernel {
 auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
-    auto pcb = reinterpret_cast< PCB * >( KHeapWalker { }.allocate( sizeof( PCB ) ) );
+    auto pcb = new ( KHeapWalker { }.allocate( sizeof( PCB ) ) ) PCB { };
     // 内核栈处理
     pcb->kernel_stack_base = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
     pcb->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
@@ -37,9 +37,8 @@ auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
     pcb->schedule.signal = 0;
     pcb->PPID            = 0;
 
-    pcb->memory_manager.install( );
-    *pcb->memory_manager.page_table = (uint64_t)x86_64::Paging::kernel_page_table->get_table( );
-    pcb->schedule.virtual_deadline  = SchedulerHelper::make_virtual_deadline( pcb->schedule.priority );
+    pcb->memory_manager.page_table = (uint64_t)x86_64::Paging::kernel_page_table->get_table( );
+    pcb->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( pcb->schedule.priority );
 
     SchedulerHelper::running_queue.append( pcb->schedule.general_task_node );
     return pcb;
