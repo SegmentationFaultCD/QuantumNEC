@@ -18,6 +18,10 @@ inline auto scheduler_remove( Scheduler &scheduler, Scheduler::Schedule &schedul
     scheduler.remove( schedule );
     return scheduler;
 }
+inline auto scheduler_hang( Scheduler &scheduler, Scheduler::Schedule &schedule ) -> Scheduler & {
+    scheduler.hang( schedule );
+    return scheduler;
+}
 
 auto operator|( auto &&L, auto &&R )
     requires std::invocable< decltype( R ), decltype( L ) > && conform_to_scheduler_standard< decltype( L ) >

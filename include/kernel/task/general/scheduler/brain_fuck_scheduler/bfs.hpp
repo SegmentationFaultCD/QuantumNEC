@@ -8,6 +8,8 @@
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
 #include <lib/spin_lock.hpp>
+#include <utility>
+
 namespace QuantumNEC::Kernel {
 
 // 该调度器思想由Con Kolivas发明
@@ -18,6 +20,7 @@ template < typename PCB >
 class BrainFuckScheduler : public SchedulerInterface {
     friend BrainFuckSchedulerHelper< PCB >;
     using __helper__ = BrainFuckSchedulerHelper< PCB >;
+    using self       = BrainFuckScheduler< PCB >;
 
 public:
     struct Schedule {
@@ -45,6 +48,11 @@ public:
         CAN_NOT_INSERT_TASK,
         NO_TASK_CAN_SCHEDULER
     };
+
+public:
+    auto operator|( PCB &pcb ) -> std::pair< self &, PCB & > {
+        return { *this, pcb };
+    }
 
 public:
     enum Priority {
@@ -174,8 +182,8 @@ private:
         // Interrupt::enable_interrupt( );
         return &schedule;
     }
-    // 任务睡眠
-    auto __sleep__( void ) -> std::expected< Schedule *, ErrorCode > {
+    // Task hang
+    auto __hang__( void ) -> void {
         std::unreachable( );
     }
     // 任务调度

@@ -17,15 +17,21 @@ public:
     auto insert( this auto &&self, auto &schedule ) {
         return self.__insert__( schedule );
     }
-    auto sleep( this auto &&self ) {
-        return self.__sleep__( );
+    auto hang( this auto &&self, auto &schedule ) {
+        self.__hang__( );
     }
     auto wake_up( this auto &&self, auto &schedule ) noexcept {
         return self.__wake_up__( schedule );
     }
+
+private:
     auto pick_next( this auto &&self ) {
         return self.__pick_next__( );
     }
+
+public:
+    // Use the function in ISR
+    // You shouldn't use the function in any place except in ISR
     auto schedule( this auto &&self ) {
         return self.__schedule__( );
     }
