@@ -53,36 +53,56 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         // Enter handler.
         if ( level == static_cast< uint64_t >( mode ) ) {
             if ( mode != PAGE_4K ) {
-                auto check_next_table = [ get_table ]( this auto &self, uint64_t level, uint64_t index, pmlxt &pmlx_t ) -> void {
-                    if ( !pmlx_t.flags_ps_pat( index ) && pmlx_t.get_table( )[ index ] && level != 1 ) {
+                // User need to map huge page
+                auto check_next_table_under_the_old = [ get_table ]( this auto &self, uint64_t level, uint64_t index, pmlxt &pmlx_t ) -> void {
+                    // Check whether there are other page tables that under the old page table is referenced by the old entry or not.
+
+                    if ( pmlx_t.get_table( )[ index ]         // The entry isn't NULL,
+                         && !pmlx_t.flags_ps_pat( index )     // PS bit isn't set, that means there is a page table that is referenced by this entry. (If the next rule 'level != 1' is true)
+                         && level != 1 ) {
                         get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
                         for ( auto i = 0; i < 512; ++i ) {
                             self( level - 1, i, get_table( level ) );
                         }
+                        // After we delete the all of page tables that under the old page table,
+                        // We also ought to delete this old page table
                         PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( get_table( level - 1 ).get_table( ) ), 1 );
                     }
                     else if ( level == 1 ) {
+                        // Delete this page table
+                        // Then return. Because there is no page table under the pml1t.
                         PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( pmlx_t.get_table( ) ), 1 );
                     }
                     return;
                 };
-                check_next_table( level, index, pmlx_t );
+                check_next_table_under_the_old( level, index, pmlx_t );
             }
-            pmlx_t = { index, physics_address & ~0x7FFul, flags | get_table( level ).is_huge( mode ), mode };
+            // After checking, now set the entry.
+            pmlx_t = { index,                          // the entry's index in the current page table
+                       physics_address & ~0x7FFul,     // The low 12 bits is ignoreded, and the further handle is in the pmlx_t's operator= function.
+                       flags | get_table( level ).is_huge( mode ),
+                       mode };
             physics_address += get_table( level ).check_page_size( mode );
             virtual_address += get_table( level ).check_page_size( mode );
             return;
         }
-        else if ( !pmlx_t.flags_p( index ) && pmlx_t.flags_ps_pat( index ) ) {
+        else if ( !pmlx_t.flags_p( index ) || pmlx_t.flags_ps_pat( index ) ) {
+            // P bit isn't set or ps bit is set, that means the entry don't point to any page tables
             auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
             std::memset( physical_to_virtual( new_ ), 0, pmlx_t.PT_SIZE );
-            pmlx_t = { index, ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FFul ), flags, PAGE_4K };
+            pmlx_t = {
+                index,                                                   // the entry's index in the current page table
+                ( reinterpret_cast< uint64_t >( new_ ) & ~0x7FFul ),     // The low 12 bits is ignoreded, and the further handle is in the pmlx_t's operator= function.
+                flags,
+                PAGE_4K     // use PAGE_4K mode to set Beacuse the entry points to a page table rather than a block of memory.
+            };
         }
-        get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // 得到下一级页表的地址
+
+        get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );     // get the next table's base
         self( level - 1, get_table( level - 1 ) );
     };
 
-    while ( size-- ) {     // 重复循环映射
+    while ( size-- ) {
         map_helper( level, *this );
     }
 }
