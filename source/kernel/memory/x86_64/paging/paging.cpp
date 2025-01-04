@@ -44,15 +44,14 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                           &pml5t
     };
     // 从最高级别页表开始遍历
-    auto _level    = Paging::support_5level_paging ? 5 : 4;
+    auto level     = Paging::support_5level_paging ? 5 : 4;
     auto get_table = [ & ]( IN uint64_t level ) -> pmlxt & {
         return *page_table[ level - 1 ];
     };
-    auto is_huge   = get_table( _level ).is_huge( mode );
-    auto page_size = get_table( _level ).check_page_size( mode );     // 确认每页大小
 
-    auto map_helper = [ & ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {     // 辅助函数，用于递归查找与映射
+    auto map_helper = [ &mode, &get_table, &physics_address, &virtual_address, flags ]( this auto &self, uint64_t level, pmlxt &pmlx_t ) {     // 辅助函数，用于递归查找与映射
         auto index = pmlx_t.get_address_index_in( reinterpret_cast< void * >( virtual_address ) );
+
         if ( level == static_cast< uint64_t >( mode ) ) {
             if ( mode != PAGE_4K ) {
                 auto check_next_table = [ get_table ]( this auto &self, uint64_t level, uint64_t index, pmlxt &pmlx_t ) -> void {
@@ -70,13 +69,11 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                 };
                 check_next_table( level, index, pmlx_t );
             }
-        normal:
-            pmlx_t = { index, physics_address & ~0x7FFul, flags | is_huge, mode };
-            physics_address += page_size;
-            virtual_address += page_size;
+            pmlx_t = { index, physics_address & ~0x7FFul, flags | get_table( level ).is_huge( mode ), mode };
+            physics_address += get_table( level ).check_page_size( mode );
+            virtual_address += get_table( level ).check_page_size( mode );
             return;
         }
-
         else if ( !pmlx_t.flags_p( index ) || pmlx_t.flags_ps_pat( index ) ) {
             auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
             std::memset( physical_to_virtual( new_ ), 0, pmlx_t.PT_SIZE );
@@ -87,7 +84,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
     };
 
     while ( size-- ) {     // 重复循环映射
-        map_helper( _level, *this );
+        map_helper( level, *this );
     }
 }
 auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageType mode ) -> void {
