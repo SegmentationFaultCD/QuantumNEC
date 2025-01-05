@@ -62,11 +62,11 @@ Process::Process( Process &&process ) noexcept {
 }
 auto Process::join( void ) noexcept -> void {
     Scheduler scheduler;
+    auto      pcb_view = scheduler | this->pcb->schedule;
     if ( !this->has_inserted ) {
-        scheduler.insert( this->pcb->schedule );
+        pcb_view | scheduler_inserter { brain_fuck_scheduler_insert };
         this->has_inserted = true;
     }
-
-    scheduler.wake_up( this->pcb->schedule );
+    pcb_view | scheduler_wakeuper { brain_fuck_scheduler_wake_up };
 }
 }     // namespace QuantumNEC::Kernel

@@ -130,9 +130,35 @@ auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageTyp
             virtual_address += get_table( level ).check_page_size( mode );
             return;
         }
-
         else if ( level == static_cast< uint64_t >( mode ) ) {
+            // To unmap a page, we only should set the P bit is in the corresponding entry.
             pmlx_t.set_p( index, 0 );
+            if ( mode != PAGE_4K ) {
+                // If the page tabel is not pml1t,
+                // Under the page table, there may be other page tables.
+                auto check_next_table_under_the_old = [ get_table ]( this auto &self, uint64_t level, uint64_t index, pmlxt &pmlx_t ) -> void {
+                    // Check whether there are other page tables that under the old page table is referenced by the old entry or not.
+                    if ( pmlx_t.get_table( )[ index ]         // The entry isn't NULL,
+                         && !pmlx_t.flags_ps_pat( index )     // PS bit isn't set, that means there is a page table that is referenced by this entry. (If the next rule 'level != 1' is true)
+                         && level != 1 ) {
+                        get_table( level - 1 ) = (uint64_t)physical_to_virtual( pmlx_t.flags_base( index, PAGE_4K ) );
+                        for ( auto i = 0; i < 512; ++i ) {
+                            self( level - 1, i, get_table( level ) );
+                        }
+                        // After we delete the all of page tables that under the old page table,
+                        // We also ought to delete this old page table
+                        PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( get_table( level - 1 ).get_table( ) ), 1 );
+                    }
+                    else if ( level == 1 ) {
+                        // Delete this page table
+                        // Then return. Because there is no page table under the pml1t.
+                        PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( pmlx_t.get_table( ) ), 1 );
+                    }
+                    return;
+                };
+                check_next_table_under_the_old( level, index, pmlx_t );
+            }
+            // After all of these works, flush TLB.
             CPU::invlpg( reinterpret_cast< void * >( virtual_address ) );
             virtual_address += get_table( level ).check_page_size( mode );
             return;
@@ -184,14 +210,8 @@ auto pmlxt::find_physcial_address( IN void *virtual_address, IN MemoryPageType m
 }
 auto pmlxt::page_protect( IN bool flags ) -> void {
     auto cr0 = CPU::read_cr0( );
-    if ( !flags ) {
-        cr0.WP = 1;
-        CPU::write_cr0( cr0 );
-    }
-    else {
-        cr0.WP = 0;
-        CPU::write_cr0( cr0 );
-    }
+    cr0.WP   = !flags;
+    CPU::write_cr0( cr0 );
 };
 
 auto pmlxt::activate( void ) -> void {

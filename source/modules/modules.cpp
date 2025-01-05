@@ -15,25 +15,9 @@ Modules::Module::Module( void ) noexcept {
     for ( auto i { 0ul }; i < Kernel::__config.modules.module_count; ++i ) {
         auto file_entry = loader.load( Kernel::__config.modules.modules[ i ], ModuleLoader::ModuleFileType::ELF );
         if ( file_entry.has_value( ) ) {
-            auto j = strlen( Kernel::__config.modules.modules[ i ]->path ), k = 0ul;
-
-            // 解析类型名
-
-            // map rip and set r/w, p and u/s
-
             println< print_level::SYSTEM >( "Service {} ready!", Kernel::__config.modules.modules[ i ]->path );
             Kernel::Process servicer { file_entry.value( ), 1, Kernel::PCB::Flags::Type::USER_PROCESS };
             servicer.join( );
-            // service.value( )->memory_manager.map.text_start = file_entry.value( );
-            // service.value( )->memory_manager.map.text_end   = file_entry.value( ) + Kernel::__config.modules.modules[ i ]->size;
-            // if ( service.has_value( ) ) {
-            //     service.value( )->memory_manager.page_table->map(
-            //         (uint64_t)Kernel::x86_64::virtual_to_physical( service.value( )->context.pcontext->rip ),
-            //         (uint64_t)service.value( )->context.pcontext->rip,
-            //         Lib::DIV_ROUND_UP( service.value( )->memory_manager.map.text_start - service.value( )->memory_manager.map.text_end, Kernel::PageWalker::__page_size__< Kernel::MemoryPageType::PAGE_4K > ),
-            //         service.value( )->memory_manager.page_table->PAGE_PRESENT | service.value( )->memory_manager.page_table->PAGE_RW_W | service.value( )->memory_manager.page_table->PAGE_US_U,
-            //         Kernel::MemoryPageType::PAGE_4K );
-            // }
         }
         else {
             // TODO fault handler
