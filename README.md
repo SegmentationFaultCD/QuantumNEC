@@ -54,4 +54,4 @@ xmake run # 运行
 # Reference
 - Modern Bootloader[limine](https://github.com/limine-bootloader/limine)
 # Contribution
-If you want to make a contribute to this project, please read[Contribution guidebook](scripts/CONTRIBUTING.md)
+If you want to make a contribute to this project, please read [contribution guidebook](scripts/CONTRIBUTING.md)
