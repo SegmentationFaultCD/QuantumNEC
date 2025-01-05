@@ -104,6 +104,7 @@ using namespace QuantumNEC;
 //     virtual auto f( void ) -> void override {
 //     }
 // };
+#include <kernel/task/process/process.hpp>
 auto micro_kernel_entry( IN BootConfig &config ) -> void {
     Kernel::__config = config;
     // Kernel::__config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
@@ -128,6 +129,8 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
 
     // cre.create( "PRocD", 0, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     Modules::Module mod { };
+
+    while ( true );
 
     Kernel::Interrupt::enable_interrupt( );
 
@@ -240,8 +243,7 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
     // while ( true ) {
     //     Kernel::CPU::hlt( );
     // }
-    static int i = 0;
 
-    while ( true )
-        std::print( "SS {}\n", i++ );
+    while ( true ) {
+    }
 }

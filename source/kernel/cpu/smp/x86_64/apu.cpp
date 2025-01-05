@@ -25,6 +25,7 @@ using namespace std;
     lock.release( );
     Interrupt::enable_interrupt( );
     CPU::hlt( );
+    long a = 0;
     while ( true ) {
     }
 }
