@@ -156,22 +156,4 @@
         "random": false
     },
     "background.enabled": true,
-    // "background.fullscreen": {
-    //     "useFront": true,
-    //     "images": ["file:////home/Gzh/QuantumNEC/images/wallpaper.jpg"],
-    //     "style": {
-    //         "background-position": "0% 100%",
-    //         "background-size": "auto",
-    //         "opacity": 0.8
-    //     },
-    //     "styles": [
-    //         {},
-    //         {},
-    //         {}
-    //     ],
-    //     // "size": "cover",
-    //     // "position": "center",
-    //     "interval": 0,
-    //     "random": false
-    // },
 }
