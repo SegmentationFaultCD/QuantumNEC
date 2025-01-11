@@ -3,7 +3,6 @@
 #include <kernel/driver/driver.hpp>
 #include <kernel/memory/memory.hpp>
 #include <kernel/print.hpp>
-#include <kernel/syscall/message.hpp>
 #include <kernel/task/general/pcb/pid.hpp>
 
 #include <kernel/task/general/scheduler/scheduler.hpp>
@@ -82,8 +81,11 @@ public:
             MemoryMap( void ) {
             }
         } map;
+
         MemoryManager( void ) :
             page_table { }, map { } {
+        }
+        ~MemoryManager( void ) {
         }
     } memory_manager;     // 记录内存分布
 
@@ -97,8 +99,6 @@ public:
         ThreadContext  *tcontext;
     } context;     // 上下文 记录寄存器状态
 
-    Message message;     // 进程消息体
-
     uint64_t PID;                        // 任务ID
     uint64_t PPID;                       // 父进程ID
     char_t   name[ TASK_NAME_SIZE ];     // 任务名
@@ -108,10 +108,11 @@ public:
     FloatPointUnit::FpuFrame *fpu_frame;
 
     uint64_t stack_magic;     // 用于检测栈的溢出
-
     explicit PCB( void ) noexcept {
     }
     explicit PCB( const char_t *_name_, uint64_t _priority_, Flags _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept;
+
+    ~PCB( void ) noexcept;
 
     /**
      * @brief 激活任务
@@ -132,6 +133,10 @@ public:
 
         // activate the page table
         this->memory_manager.page_table.activate( );
+        if ( this->flags.task_type == Flags::Type::USER_PROCESS ) {
+            // CPU::wrmsr( x86_64::IA32_KERNEL_GS_BASE, x86_64::GlobalSegmentDescriptorTable::gdt->tss[ this->schedule.cpu_id ].get_rsp0( ) );
+            // CPU::wrmsr( x86_64::IA32_USER_GS_BASE, this->context.pcontext->rsp );
+        }
         // set running state
     }
     /**

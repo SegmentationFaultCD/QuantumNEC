@@ -108,8 +108,12 @@ auto PCB::ProcessContext::make( IN void *_entry, IN uint64_t stack_top, IN Flags
 
     return false;
 }
-
-auto PCB::ThreadContext::make( void *entry, IN uint64_t _arg ) -> bool {
+PCB::~PCB( void ) noexcept {
+    PageCollector { }.free< MemoryPageType::PAGE_4K >( (void *)this->kernel_stack_base, 1 );
+    PageCollector { }.free< MemoryPageType::PAGE_2M >( (void *)this->user_stack_base, TASK_USER_STACK_SIZE / PageWalker::__page_size__< MemoryPageType::PAGE_2M > );     // 用户栈8M大小)
+    KHeapCollector { }.free( this->fpu_frame );
+}
+auto PCB::ThreadContext::make( void *, IN uint64_t ) -> bool {
     return true;
 }
 }     // namespace QuantumNEC::Kernel

@@ -3,6 +3,7 @@
 #include <kernel/interrupt/interrupt.hpp>
 #include <kernel/memory/memory.hpp>
 #include <kernel/print.hpp>
+#include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
 #include <lib/spin_lock.hpp>
 using namespace QuantumNEC;
@@ -18,6 +19,7 @@ using namespace std;
     Interrupt::idt->load( cpu->processor_id );
     Memory::gdt->load( cpu->processor_id );
     Memory::gdt->tss[ cpu->processor_id ].load_tr( SELECTOR_TSS );
+
     Interrupt::enable_x2apic( );
     Sse::activate( );     // 激活SSE
     Syscall::initializate( );
@@ -25,7 +27,7 @@ using namespace std;
     lock.release( );
     Interrupt::enable_interrupt( );
     CPU::hlt( );
-    long a = 0;
+
     while ( true ) {
     }
 }

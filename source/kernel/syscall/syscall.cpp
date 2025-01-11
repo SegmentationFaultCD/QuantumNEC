@@ -12,13 +12,9 @@ using namespace std;
  * 所有syscall_开头的系统调用集合处
  */
 
-auto         syscall_send_receive( IN Interrupt::InterruptFrame *frame ) -> Interrupt::InterruptFrame *;
 _C_LINK auto system_call( void ) -> void;
 
 Syscall::Syscall( void ) noexcept {
-    this->set_syscall_table( static_cast< uint64_t >( Syscall::Function::SYSCALL_MESSAGE_SEND ), syscall_send_receive );
-    this->set_syscall_table( static_cast< uint64_t >( Syscall::Function::SYSCALL_MESSAGE_RECEIVE ), syscall_send_receive );
-    this->set_syscall_table( static_cast< uint64_t >( Syscall::Function::SYSCALL_MESSAGE_SEND_RECEIVE ), syscall_send_receive );
     this->initializate( );
     println< print_level::OK >( "Initialize system call." );
 }

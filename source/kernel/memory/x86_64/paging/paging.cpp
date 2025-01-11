@@ -28,11 +28,11 @@ uint64_t      address { };
 
 using namespace std;
 auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode ) -> void {
-    pml1t  pml1t { };
-    pml2t  pml2t { };
-    pml3t  pml3t { };
-    pml4t  pml4t { };
-    pml5t  pml5t { };
+    pml1t  pml1t { NULL };
+    pml2t  pml2t { NULL };
+    pml3t  pml3t { NULL };
+    pml4t  pml4t { NULL };
+    pml5t  pml5t { NULL };
     pmlxt *page_table[] {
         &pml1t,
         &pml2t,
@@ -107,11 +107,11 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
     }
 }
 auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageType mode ) -> void {
-    pml1t  pml1t { };
-    pml2t  pml2t { };
-    pml3t  pml3t { };
-    pml4t  pml4t { };
-    pml5t  pml5t { };
+    pml1t  pml1t { NULL };
+    pml2t  pml2t { NULL };
+    pml3t  pml3t { NULL };
+    pml4t  pml4t { NULL };
+    pml5t  pml5t { NULL };
     pmlxt *page_table[] {
         &pml1t,
         &pml2t,
@@ -172,11 +172,11 @@ auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageTyp
 }
 
 auto pmlxt::find_physcial_address( IN void *virtual_address, IN MemoryPageType mode ) -> void * {
-    pml1t  pml1t { };
-    pml2t  pml2t { };
-    pml3t  pml3t { };
-    pml4t  pml4t { };
-    pml5t  pml5t { };
+    pml1t  pml1t { NULL };
+    pml2t  pml2t { NULL };
+    pml3t  pml3t { NULL };
+    pml4t  pml4t { NULL };
+    pml5t  pml5t { NULL };
     pmlxt *page_table[] {
         &pml1t,
         &pml2t,
@@ -224,24 +224,15 @@ auto pmlxt::copy( IN pmlxt &from ) -> void {
     std::memset( this->pmlx_table, 0, PT_SIZE / 2 );
     std::memcpy( this->pmlx_table + 256, from.get_table( ) + 256, PT_SIZE / 2 );
 }
-auto pmlxt::make( void ) -> pmlxt & {
-    this->pmlx_table = (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) );
-    std::memset( this->pmlx_table, 0, this->PT_SIZE );
-    return *this;
+
+pmlxt::pmlxt( void ) noexcept :
+    can_allocate { true },
+    pmlx_table { (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) } {
 }
-pml1t::pml1t( void ) noexcept :
-    pmlxt( (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) ) {
+pmlxt::~pmlxt( void ) noexcept {
+    if ( this->can_allocate ) {
+        PageCollector { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( this->pmlx_table ), 1 );
+    }
 }
-pml2t::pml2t( void ) noexcept :
-    pmlxt( (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) ) {
-}
-pml3t::pml3t( void ) noexcept :
-    pmlxt( (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) ) {
-}
-pml4t::pml4t( void ) noexcept :
-    pmlxt( (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) ) {
-}
-pml5t::pml5t( void ) noexcept :
-    pmlxt( (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) ) {
-}
+
 }     // namespace QuantumNEC::Kernel::x86_64

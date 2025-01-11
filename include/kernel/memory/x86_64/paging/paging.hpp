@@ -43,13 +43,14 @@ public:
     constexpr static auto USER_STACK_VIRTUAL_ADDRESS_TOP { 0x00007fffffffffffUL };
 
 public:
-    explicit pmlxt( void ) noexcept {
+    explicit pmlxt( void ) noexcept;
+    explicit pmlxt( uint64_t *_pmlx_table ) noexcept :
+        pmlx_table { _pmlx_table }, can_allocate { false } {
     }
-    explicit pmlxt( uint64_t *_pmlx_table ) noexcept {
-        this->pmlx_table = _pmlx_table;
-    }
-    virtual ~pmlxt( void ) noexcept {
-    }
+    virtual ~pmlxt( void ) noexcept;
+
+private:
+    bool can_allocate = false;
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t                                            = 0;
@@ -108,12 +109,8 @@ public:
 
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void = 0;
     virtual auto operator=( IN uint64_t table_address ) -> void                                           = 0;
-
-    virtual auto get_address_index_in( IN void *virtual_address ) -> uint64_t = 0;
-
-    virtual auto get_table( void ) -> uint64_t * = 0;
-
-    auto make( void ) -> pmlxt &;
+    virtual auto get_address_index_in( IN void *virtual_address ) -> uint64_t                             = 0;
+    virtual auto get_table( void ) -> uint64_t                                                          * = 0;
 
 protected:
     uint64_t *pmlx_table;
@@ -187,16 +184,18 @@ public:
     using huge_page_table_entry = void;
 
 public:
+public:
     explicit pml1t( IN page_table_entry *pml1t_address ) noexcept :
         pmlxt { (uint64_t *)( pml1t_address ) } {
     }
-
     explicit pml1t( IN pml1t &pml1t ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = pml1t.pmlx_table;
+        pmlxt { pml1t.pmlx_table } {
     }
-    explicit pml1t( void ) noexcept;
-    virtual ~pml1t( void ) noexcept = default;
+    explicit pml1t( void ) noexcept :
+        pmlxt { } {
+    }
+    virtual ~pml1t( void ) noexcept {
+    }
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -341,8 +340,14 @@ public:
     explicit pml2t( IN page_table_entry *pml2t_address ) noexcept :
         pmlxt { (uint64_t *)( pml2t_address ) } {
     }
-    explicit pml2t( void ) noexcept;
-    virtual ~pml2t( void ) noexcept = default;
+    explicit pml2t( IN pml2t &pml2t ) noexcept :
+        pmlxt { pml2t.pmlx_table } {
+    }
+    explicit pml2t( void ) noexcept :
+        pmlxt { } {
+    }
+    virtual ~pml2t( void ) noexcept {
+    }
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -501,8 +506,14 @@ public:
     explicit pml3t( IN page_table_entry *pml3t_address ) noexcept :
         pmlxt { (uint64_t *)( pml3t_address ) } {
     }
-    explicit pml3t( void ) noexcept;
-    virtual ~pml3t( void ) noexcept = default;
+    explicit pml3t( IN pml3t &pml3t ) noexcept :
+        pmlxt { pml3t.pmlx_table } {
+    }
+    explicit pml3t( void ) noexcept :
+        pmlxt { } {
+    }
+    virtual ~pml3t( void ) noexcept {
+    }
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -640,11 +651,13 @@ public:
         pmlxt { (uint64_t *)( pml4t_address ) } {
     }
     explicit pml4t( IN pml4t &pml4t ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = pml4t.pmlx_table;
+        pmlxt { pml4t.pmlx_table } {
     }
-    explicit pml4t( void ) noexcept;
-    virtual ~pml4t( void ) noexcept = default;
+    explicit pml4t( void ) noexcept :
+        pmlxt { } {
+    }
+    virtual ~pml4t( void ) noexcept {
+    }
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {
@@ -770,11 +783,13 @@ public:
         pmlxt { (uint64_t *)( pml5t_address ) } {
     }
     explicit pml5t( IN pml5t &pml5t ) noexcept :
-        pmlxt { } {
-        this->pmlx_table = pml5t.pmlx_table;
+        pmlxt { pml5t.pmlx_table } {
     }
-    explicit pml5t( void ) noexcept;
-    virtual ~pml5t( void ) noexcept = default;
+    explicit pml5t( void ) noexcept :
+        pmlxt { } {
+    }
+    virtual ~pml5t( void ) noexcept {
+    }
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t override {

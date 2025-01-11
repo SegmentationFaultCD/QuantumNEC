@@ -45,6 +45,9 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( void ) noexcept {
 
     // 加载GDT
     this->gdt->load( 0 );
+
+    this->gdt->tss[ 0 ].set_rsp0( (uint64_t)physical_to_virtual( PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) + 4_KB );
+
     // 加载全局段中的TSS
     this->gdt->tss[ 0 ].load_tr( SELECTOR_TSS );
 

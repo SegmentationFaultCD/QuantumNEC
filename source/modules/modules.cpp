@@ -18,9 +18,6 @@ Modules::Module::Module( void ) noexcept {
             println< print_level::SYSTEM >( "Service {} ready!", Kernel::__config.modules.modules[ i ]->path );
             Kernel::Process servicer { file_entry.value( ), 1, Kernel::PCB::Flags::Type::USER_PROCESS };
             servicer.join( );
-
-            Kernel::Process service2 { file_entry.value( ), 1, Kernel::PCB::Flags::Type::USER_PROCESS };
-            service2.join( );
         }
         else {
             // TODO fault handler

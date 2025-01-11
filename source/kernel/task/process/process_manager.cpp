@@ -12,8 +12,6 @@ auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
 
     *( (uint64_t *)pcb->kernel_stack_base ) = (uint64_t)pcb;
 
-    // pcb->fpu_frame = reinterpret_cast< decltype( pcb->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *pcb->fpu_frame ) );
-
     // 分配PID
     pcb->PID = pid_pool.allocate( );
     // 设置进程名
@@ -53,7 +51,9 @@ auto ProcessManager::get_running_task( void ) -> PCB * {
     auto kstack = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
     return (PCB *)( *( (uint64_t *)kstack ) );
 }
+
 _C_LINK auto get_current_kernel_stack_top_in_user_mode( void ) -> uint64_t {
     return x86_64::GlobalSegmentDescriptorTable::gdt->tss[ Interrupt::cpu_id( ) ].get_rsp0( );
 }
+
 }     // namespace QuantumNEC::Kernel
