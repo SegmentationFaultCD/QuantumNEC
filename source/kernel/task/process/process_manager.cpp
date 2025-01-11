@@ -19,10 +19,10 @@ auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
     // 时间片越多优先级越高
     pcb->schedule.priority = Scheduler::Priority::IDLEPRIO;
     // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
-    pcb->flags.fpu_enable = PCB::Flags::Fpu::ENABLE;
-    pcb->flags.fpu_used   = PCB::Flags::Fpu::USED;
+    pcb->flags.fpu_enable = PCB::__flags__::__fpu_state__::ENABLE;
+    pcb->flags.fpu_used   = PCB::__flags__::__fpu_state__::USED;
     pcb->schedule.state   = Scheduler::Schedule::State::RUNNING;
-    pcb->flags.task_type  = PCB::Flags::Type::KERNEL_PROCESS;
+    pcb->flags.task_type  = PCB::__flags__::__type__::KERNEL_PROCESS;
 
     // 当前cpu的id
     pcb->schedule.cpu_id = Interrupt::cpu_id( );

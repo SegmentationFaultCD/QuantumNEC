@@ -14,9 +14,9 @@ public:
     };
 
 public:
-    explicit Process( const char_t *name, uint64_t priority, void *entry, PCB::Flags::Type type ) noexcept;
+    explicit Process( const char_t *name, uint64_t priority, void *entry, PCB::__flags__::__type__ type ) noexcept;
     explicit Process( Process &&process ) noexcept;
-    explicit Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, PCB::Flags::Type type ) noexcept;
+    explicit Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, PCB::__flags__::__type__ type ) noexcept;
 
     Process( const Process &process ) noexcept                     = delete;
     auto operator=( const Process &process ) noexcept -> Process & = delete;

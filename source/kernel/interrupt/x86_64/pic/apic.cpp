@@ -223,4 +223,5 @@ auto Apic::apic_id( ) -> uint64_t {
     CPU::cpuid( status );
     return ( status.rbx >> 24 ) & 0xff;
 }
+
 }     // namespace QuantumNEC::Kernel::x86_64

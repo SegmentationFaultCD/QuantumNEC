@@ -112,14 +112,14 @@ private:
     class
     {
     private:
-        uint8_t globalSystemInterrupt_[ 24 ];
+        uint8_t global_system_interrupt[ 24 ];
 
     public:
         auto operator[]( IN uint8_t source ) -> uint8_t & {
-            return globalSystemInterrupt_[ source ];
+            return global_system_interrupt[ source ];
         }
         auto get( IN uint8_t source ) -> uint8_t {
-            return globalSystemInterrupt_[ source ] != 0xff ? globalSystemInterrupt_[ source ] : source;
+            return global_system_interrupt[ source ] != 0xff ? global_system_interrupt[ source ] : source;
         }
     } inline static global_system_interrupt;
 
@@ -128,8 +128,11 @@ public:
 
     constexpr static auto hpet_signature { SIGN_32( 'H', 'P', 'E', 'T' ) };
 
+    static auto get_ioapic_from_gsi( uint32_t gsi ) -> uint32_t;
+
 private:
-    inline static MADT *madt;
+    inline static MADT   *madt;
+    inline static IOApic *ioapic_entry_in_madt;
 
 public:
     inline static HPET *hpet;

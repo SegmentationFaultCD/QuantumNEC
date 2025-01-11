@@ -52,7 +52,7 @@ public:
             struct __page_information__;
 
             using __node_key__   = uint64_t;
-            using __group_type__ = RedBlackTree< __page_information__, __node_key__ >;
+            using __group_type__ = Lib::RedBlackTree< __page_information__, __node_key__ >;
             using __node_type__  = __group_type__::RedBlackTreeNode;
             struct _aligned( page_information_block_size ) __page_information__ {
                 __node_type__ group_node;     // 连接每个页头

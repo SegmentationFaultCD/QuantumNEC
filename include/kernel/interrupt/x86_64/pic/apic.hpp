@@ -15,8 +15,8 @@ public:
     };
     struct ApicInformation {
         uint64_t          local_apic_address;
-        uint8_t           core_count;
-        uint8_t           local_apic_ID[ NR_CPUS ];
+        uint64_t          core_count;
+        uint64_t          local_apic_ID[ NR_CPUS ];
         uint64_t          ioapic_count;
         IOApicInformation ioapic[ 8 ];     // ioapic最多可以有8个
     };
@@ -173,6 +173,7 @@ public:
     static auto uninstall_ioapic( IN irq_t irq ) -> void;
     static auto ioapic_level_ack( IN irq_t irq ) -> void;
     static auto ioapic_edge_ack( IN irq_t irq ) -> void;
+
     static auto apic_id( void ) -> uint64_t;
 
     static auto cpu_id( void ) {

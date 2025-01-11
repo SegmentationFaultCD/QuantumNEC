@@ -23,8 +23,8 @@ auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
 
     CPU::switch_cpu( );
 
-    if ( ProcessManager::get_running_task( )->flags.task_type == PCB::Flags::Type::KERNEL_PROCESS ) {
-        ProcessManager::get_running_task( )->context.pcontext = (PCB::ProcessContext *)frame;
+    if ( ProcessManager::get_running_task( )->flags.task_type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
+        ProcessManager::get_running_task( )->context.pcontext = (PCB::__context__::__process__ *)frame;
     }
     auto result = Scheduler { }.schedule( );
 

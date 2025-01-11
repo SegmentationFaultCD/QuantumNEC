@@ -2,11 +2,11 @@
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/task/process/process.hpp>
 namespace QuantumNEC::Kernel {
-Process::Process( const char_t *name, uint64_t priority, void *entry, PCB::Flags::Type type ) noexcept {
-    if ( type != PCB::Flags::Type::THREAD ) {
-        PCB::Flags flags {
-            .fpu_enable = PCB::Flags::Fpu::ENABLE,
-            .fpu_used   = PCB::Flags::Fpu::USED,
+Process::Process( const char_t *name, uint64_t priority, void *entry, PCB::__flags__::__type__ type ) noexcept {
+    if ( type != PCB::__flags__::__type__::THREAD ) {
+        PCB::__flags__ flags {
+            .fpu_enable = PCB::__flags__::__fpu_state__::ENABLE,
+            .fpu_used   = PCB::__flags__::__fpu_state__::USED,
             .task_type  = type,
         };
         this->pcb = new ( KHeapWalker { }.allocate( sizeof( PCB ) ) ) PCB {
@@ -19,14 +19,14 @@ Process::Process( const char_t *name, uint64_t priority, void *entry, PCB::Flags
         this->has_inserted = false;
     }
 }
-Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, PCB::Flags::Type type ) noexcept {
-    if ( type != PCB::Flags::Type::THREAD ) {
-        PCB::Flags flags {
-            .fpu_enable = PCB::Flags::Fpu::ENABLE,
-            .fpu_used   = PCB::Flags::Fpu::USED,
+Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, PCB::__flags__::__type__ type ) noexcept {
+    if ( type != PCB::__flags__::__type__::THREAD ) {
+        PCB::__flags__ flags {
+            .fpu_enable = PCB::__flags__::__fpu_state__::ENABLE,
+            .fpu_used   = PCB::__flags__::__fpu_state__::USED,
             .task_type  = type,
         };
-        if ( type == PCB::Flags::Type::KERNEL_PROCESS ) {
+        if ( type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
             this->pcb = new ( KHeapWalker { }.allocate( sizeof( PCB ) ) ) PCB {
                 file.module_name,
                 priority,

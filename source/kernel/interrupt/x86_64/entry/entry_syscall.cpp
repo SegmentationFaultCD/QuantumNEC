@@ -14,14 +14,8 @@ auto SystemcallEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexcep
 }
 auto SystemcallEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
-    // auto entry = Syscall::get_syscall_table( )[ frame->regs.rax ];
-    // if ( !entry ) {
-    //     frame->regs.rax = static_cast< uint64_t >( Syscall::Status::NO_SYSCALL );
-    //     return frame;
-    // }
     std::println( "{:x} {:x} {:x} {}\n", (uint64_t)frame->regs.rax, (uint64_t)frame->regs.rdi, (uint64_t)frame->regs.rsi, Apic::cpu_id( ) );
     return frame;
-    // return entry( frame );
 }
 auto SystemcallEntry::do_register( void ) -> void {
     Apic::IOApicRedirectionEntry entry { };

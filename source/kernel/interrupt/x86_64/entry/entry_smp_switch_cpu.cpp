@@ -14,8 +14,8 @@ auto SymmetricMultiprocessingSwitchCPUEntry::error_code( [[maybe_unused]] uint64
 }
 auto SymmetricMultiprocessingSwitchCPUEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
-    if ( ProcessManager::get_running_task( )->flags.task_type == PCB::Flags::Type::KERNEL_PROCESS ) {
-        ProcessManager::get_running_task( )->context.pcontext = (PCB::ProcessContext *)frame;
+    if ( ProcessManager::get_running_task( )->flags.task_type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
+        ProcessManager::get_running_task( )->context.pcontext = (PCB::__context__::__process__ *)frame;
     }
     auto result = scheduler.schedule( );
     if ( result.has_value( ) ) {

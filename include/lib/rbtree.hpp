@@ -1,7 +1,7 @@
 #pragma once
 #include <lib/Uefi.hpp>
 #include <utility>
-namespace QuantumNEC {
+namespace QuantumNEC::Lib {
 template < typename T, typename Keyofvalue >
 class RedBlackTree {
 public:
@@ -467,4 +467,4 @@ private:
     Node    *_root = nullptr;
     Node    *_nil  = nullptr;
 };
-}     // namespace QuantumNEC
+}     // namespace QuantumNEC::Lib
