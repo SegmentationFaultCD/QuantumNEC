@@ -28,17 +28,17 @@ auto SlabAllocater::allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> voi
     KHeapAllocator< Slab >     kheap_allocator { };
     KHeapAllocator< uint64_t > color_map_allocator { };
     if ( !slab_cache->total_free ) {
-        slab = allocator_traits< decltype( kheap_allocator ) >::allocate( kheap_allocator, 1 );
+        slab = std::allocator_traits< decltype( kheap_allocator ) >::allocate( kheap_allocator, 1 );
 
         if ( !slab ) {
             return NULL;
         }
         slab->list.container = slab;
 
-        slab->page = allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
+        slab->page = std::allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
 
         if ( !slab->page ) {
-            allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
+            std::allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
             return NULL;
         }
         std::memset( slab->page, 0, PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );
@@ -48,11 +48,11 @@ auto SlabAllocater::allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> voi
 
         slab->virtual_address = physical_to_virtual( slab->page );
         slab->color_length    = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
-        slab->color_map       = allocator_traits< decltype( color_map_allocator ) >::allocate( color_map_allocator, slab->color_length / sizeof( uint64_t ) );
+        slab->color_map       = std::allocator_traits< decltype( color_map_allocator ) >::allocate( color_map_allocator, slab->color_length / sizeof( uint64_t ) );
 
         if ( !slab->color_map ) {
-            allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
-            allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
+            std::allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+            std::allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
             return NULL;
         }
         slab_cache->pool_list.insert( &slab->list, &slab_cache->cache_pool->list );
@@ -82,9 +82,9 @@ auto SlabAllocater::allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> voi
 
     if ( !slab ) {
         slab_cache->pool_list.remove( slab->list );
-        allocator_traits< decltype( color_map_allocator ) >::deallocate( color_map_allocator, slab->color_map, slab->color_length / sizeof( uint64_t ) );
-        allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
-        allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
+        std::allocator_traits< decltype( color_map_allocator ) >::deallocate( color_map_allocator, slab->color_map, slab->color_length / sizeof( uint64_t ) );
+        std::allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+        std::allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
     }
     return NULL;
 }

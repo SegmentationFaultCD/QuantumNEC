@@ -8,7 +8,7 @@ namespace QuantumNEC::Kernel {
 inline PageAllocator< MemoryPageType::PAGE_2M > page_allocator { };
 
 KHeapManager::KHeapManager( ) noexcept {
-    auto zone = (uint64_t)physical_to_virtual( allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, this->cache_size_count ) );
+    auto zone = (uint64_t)physical_to_virtual( std::allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, this->cache_size_count ) );
 
     for ( auto i = 0ul; i < this->cache_size_count; ++i ) {
         this->slab_caches[ i ].visit(
@@ -29,7 +29,7 @@ KHeapManager::KHeapManager( ) noexcept {
                 }
                 slab_cache.value( ).total_free                  = slab_cache.value( ).cache_pool->color_count;
                 slab_cache.value( ).total_using                 = 0;
-                slab_cache.value( ).cache_pool->page            = allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
+                slab_cache.value( ).cache_pool->page            = std::allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
                 slab_cache.value( ).cache_pool->virtual_address = physical_to_virtual( slab_cache.value( ).cache_pool->page );
                 slab_cache.value( ).cache_pool->list.container  = slab_cache.value( ).cache_pool;
                 slab_cache.value( ).pool_list.append( slab_cache.value( ).cache_pool->list );

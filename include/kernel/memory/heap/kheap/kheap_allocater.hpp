@@ -1,5 +1,4 @@
 #pragma once
-#include <concepts>
 #include <cstddef>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <lib/Uefi.hpp>
@@ -43,7 +42,7 @@ public:
                 }
                 else {
                     if ( slab = [ &page_allocator, &slab_cache, this ] -> Slab * {
-                             auto page = allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
+                             auto page = std::allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
 
                              if ( !page ) {
                                  return NULL;
@@ -88,7 +87,7 @@ public:
 
                              } break;
                              default:
-                                 allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, page, 1 );
+                                 std::allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, page, 1 );
                                  return NULL;
                              }
                              std::memset( slab->color_map, 0xff, slab->color_length );
@@ -156,11 +155,11 @@ public:
                     case 128:
                     case 256:
                     case 512:
-                        allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+                        std::allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
                         break;
                     default:
                         KHeapAllocator< uint64_t > { }.deallocate( slab->color_map, slab->color_count );
-                        allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+                        std::allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
                         KHeapAllocator< Slab > { }.deallocate( slab, slab->color_count );
                         break;
                     }

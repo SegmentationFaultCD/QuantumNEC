@@ -7,8 +7,8 @@ namespace QuantumNEC::Kernel {
 auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
     KHeapAllocator< PCB > pcb_allocator;
 
-    auto pcb = allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
-    allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, pcb );
+    auto pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
+    std::allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, pcb );
 
     // 内核栈处理
     pcb->kernel_stack_base = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );

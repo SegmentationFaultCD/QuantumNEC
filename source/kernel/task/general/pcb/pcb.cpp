@@ -10,14 +10,14 @@ inline KHeapAllocator< FloatPointUnit::FpuFrame > fpu_frame_allocator;
 PCB::PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept :
     memory_manager { } {     // 内核栈处理
 
-    this->kernel_stack_base = (uint64_t)allocator_traits< decltype( kernel_stack_allocator ) >::allocate( kernel_stack_allocator, 1 );
+    this->kernel_stack_base = (uint64_t)std::allocator_traits< decltype( kernel_stack_allocator ) >::allocate( kernel_stack_allocator, 1 );
     this->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
     // 设置内核栈
     auto kernel_stack = this->kernel_stack_base + this->kernel_stack_size;
     kernel_stack -= sizeof( __context__::__process__ );
     this->context.pcontext = reinterpret_cast< __context__::__process__ * >( physical_to_virtual( kernel_stack ) );
     // 设置用户栈
-    this->user_stack_base = (uint64_t)allocator_traits< decltype( user_stack_allocator ) >::allocate( user_stack_allocator, TASK_USER_STACK_SIZE / PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );     // 用户栈8M大小
+    this->user_stack_base = (uint64_t)std::allocator_traits< decltype( user_stack_allocator ) >::allocate( user_stack_allocator, TASK_USER_STACK_SIZE / PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );     // 用户栈8M大小
     this->user_stack_size = TASK_USER_STACK_SIZE;
 
     if ( _flags_.task_type != __flags__::__type__::THREAD ) {
@@ -57,7 +57,7 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_e
     *(uint64_t *)physical_to_virtual( this->kernel_stack_base ) = uint64_t( this );
 
     // 浮点栈放在PCB后面
-    this->fpu_frame = allocator_traits< decltype( fpu_frame_allocator ) >::allocate( fpu_frame_allocator, 1 );
+    this->fpu_frame = std::allocator_traits< decltype( fpu_frame_allocator ) >::allocate( fpu_frame_allocator, 1 );
     // 分配PID
     this->PID = pid_pool.allocate( );
     // 设置进程名
@@ -112,9 +112,9 @@ auto PCB::__context__::__process__::make( IN void *_entry, IN uint64_t stack_top
     return false;
 }
 PCB::~PCB( void ) noexcept {
-    allocator_traits< decltype( kernel_stack_allocator ) >::deallocate( kernel_stack_allocator, (void *)this->kernel_stack_base, 1 );
-    allocator_traits< decltype( user_stack_allocator ) >::deallocate( user_stack_allocator, (void *)this->user_stack_base, TASK_USER_STACK_SIZE / PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );
-    allocator_traits< decltype( fpu_frame_allocator ) >::deallocate( fpu_frame_allocator, this->fpu_frame, 1 );
+    std::allocator_traits< decltype( kernel_stack_allocator ) >::deallocate( kernel_stack_allocator, (void *)this->kernel_stack_base, 1 );
+    std::allocator_traits< decltype( user_stack_allocator ) >::deallocate( user_stack_allocator, (void *)this->user_stack_base, TASK_USER_STACK_SIZE / PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );
+    std::allocator_traits< decltype( fpu_frame_allocator ) >::deallocate( fpu_frame_allocator, this->fpu_frame, 1 );
 }
 auto PCB::__context__::__thread__::make( void *, IN uint64_t ) -> bool {
     return true;

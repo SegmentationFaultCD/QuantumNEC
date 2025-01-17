@@ -1,16 +1,12 @@
 #pragma once
 #include <cstddef>
-
 #include <kernel/memory/memory.hpp>
 #include <kernel/memory/page/page_manager.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/rbtree.hpp>
 #include <lib/shared_spinlock.hpp>
 #include <libcxx/bitset.hpp>
-#include <limits>
-#include <utility>
-
-#include <kernel/memory/allocater.hpp>
+#include <libcxx/memory.hpp>
 namespace QuantumNEC::Kernel {
 template < typename T >
 auto ___kheap_allocate__( size_t size ) -> T *;
@@ -234,7 +230,7 @@ public:
 public:
     // 分配器
 
-    auto allocate_at_least( size_type __size__ ) -> allocation_result< void > {
+    auto allocate_at_least( size_type __size__ ) -> std::allocation_result< void > {
         return { this->allocate( __size__ ), __size__ };
     }
 

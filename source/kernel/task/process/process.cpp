@@ -10,13 +10,13 @@ Process::Process( const char_t *name, uint64_t priority, void *entry, PCB::__fla
             .task_type  = type,
         };
         KHeapAllocator< PCB > pcb_allocator;
-        this->pcb = allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
-        allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
-                                                                  name,
-                                                                  priority,
-                                                                  flags,
-                                                                  entry,
-                                                                  0ul );
+        this->pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
+        std::allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
+                                                                       name,
+                                                                       priority,
+                                                                       flags,
+                                                                       entry,
+                                                                       0ul );
         this->has_inserted = false;
     }
 }
@@ -30,22 +30,22 @@ Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t p
         KHeapAllocator< PCB > pcb_allocator;
 
         if ( type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
-            this->pcb = allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
-            allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
-                                                                      file.module_name,
-                                                                      priority,
-                                                                      flags,
-                                                                      physical_to_virtual( file.executable_start ),
-                                                                      0ul );
+            this->pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
+            std::allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
+                                                                           file.module_name,
+                                                                           priority,
+                                                                           flags,
+                                                                           physical_to_virtual( file.executable_start ),
+                                                                           0ul );
         }
         else {
-            this->pcb = allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
-            allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
-                                                                      file.module_name,
-                                                                      priority,
-                                                                      flags,
-                                                                      (void *)this->__user_process_text_segment_start__,
-                                                                      0ul );
+            this->pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
+            std::allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
+                                                                           file.module_name,
+                                                                           priority,
+                                                                           flags,
+                                                                           (void *)this->__user_process_text_segment_start__,
+                                                                           0ul );
 
             auto &upage_table = this->pcb->memory_manager.page_table;
             upage_table.map(

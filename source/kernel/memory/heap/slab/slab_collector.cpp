@@ -24,9 +24,9 @@ auto SlabCollector::free( IN SlabCache *slab_cache, IN void *address, IN uint64_
             if ( !slab->using_count && slab_cache->total_free >= slab->color_count * 3 / 2 ) {
                 slab_cache->pool_list.remove( slab->list );
                 slab_cache->total_free -= slab->color_count;
-                allocator_traits< decltype( color_map_allocator ) >::deallocate( color_map_allocator, slab->color_map, 1 );
-                allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
-                allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
+                std::allocator_traits< decltype( color_map_allocator ) >::deallocate( color_map_allocator, slab->color_map, 1 );
+                std::allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+                std::allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
             }
             return;
         }

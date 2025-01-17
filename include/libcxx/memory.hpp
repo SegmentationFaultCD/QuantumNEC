@@ -1,7 +1,7 @@
 #pragma once
 #include <lib/Uefi.hpp>
 #include <type_traits>
-namespace QuantumNEC::Kernel {
+namespace std {
 
 template < typename T, typename SizeType = size_t >
 struct allocation_result {
@@ -36,4 +36,4 @@ public:
         }
     }
 };
-}     // namespace QuantumNEC::Kernel
+}     // namespace std
