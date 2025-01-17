@@ -73,14 +73,13 @@ public:
 
 private:
     auto __insert__( Schedule &schedule ) -> Schedule * {
-        Interrupt::disable_interrupt( );
         helper::global_lock.acquire( );
         // 根据优先级插入任务等待队列队尾
         helper::task_queue[ schedule.priority ].append( schedule.general_task_node );
         helper::bitmap[ schedule.priority ] = true;
         schedule.state                      = Schedule::State::READY;
         helper::global_lock.release( );
-        Interrupt::enable_interrupt( );
+
         return &schedule;
     }
 
@@ -142,7 +141,6 @@ private:
     }
     // 任务唤醒
     auto __wake_up__( Schedule &schedule ) -> Schedule * {
-        Interrupt::disable_interrupt( );
         helper::global_lock.acquire( );
         // 遍历运行队列查找是否可以抢占VD大于插入任务的CPU
         for ( auto &running_pcb : helper::running_queue ) {
@@ -170,7 +168,7 @@ private:
                 schedule.cpu_id = running_pcb.schedule.cpu_id;
                 schedule.state  = Schedule::State::RUNNING;
                 helper::global_lock.release( );
-                Interrupt::enable_interrupt( );
+
                 CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
 
                 return &schedule;
@@ -179,7 +177,7 @@ private:
 
         // the virtual deadline is too big, none of running tasks can be respaced.
         helper::global_lock.release( );
-        Interrupt::enable_interrupt( );
+
         return &schedule;
     }
     // Task hang

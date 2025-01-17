@@ -1,7 +1,6 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/global/x86_64/global.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
-#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/memory/x86_64/paging/paging.hpp>
 #include <kernel/memory/x86_64/paging/ptv.hpp>
 #include <kernel/print.hpp>
@@ -23,8 +22,8 @@ Paging::Paging( void ) noexcept {
 
     this->kernel_page_table->page_protect( false );
 }
-PageAllocater allocater { };
-uint64_t      address { };
+inline PageAllocator< MemoryPageType::PAGE_4K > table_allocator;
+uint64_t                                        address { };
 
 using namespace std;
 auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN uint64_t size, IN uint64_t flags, IN MemoryPageType mode ) -> void {
@@ -66,12 +65,12 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
                         }
                         // After we delete the all of page tables that under the old page table,
                         // We also ought to delete this old page table
-                        PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( get_table( level - 1 ).get_table( ) ), 1 );
+                        allocator_traits< decltype( table_allocator ) >::deallocate( table_allocator, virtual_to_physical( get_table( level - 1 ).get_table( ) ), 1 );
                     }
                     else if ( level == 1 ) {
                         // Delete this page table
                         // Then return. Because there is no page table under the pml1t.
-                        PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( pmlx_t.get_table( ) ), 1 );
+                        allocator_traits< decltype( table_allocator ) >::deallocate( table_allocator, virtual_to_physical( pmlx_t.get_table( ) ), 1 );
                     }
                     return;
                 };
@@ -88,7 +87,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
         }
         else if ( !pmlx_t.flags_p( index ) || pmlx_t.flags_ps_pat( index ) ) {
             // P bit isn't set or ps bit is set, that means the entry don't point to any page tables
-            auto new_ = allocater.allocate< MemoryPageType::PAGE_4K >( 1 );
+            auto new_ = allocator_traits< decltype( table_allocator ) >::allocate( table_allocator, 1 );
             std::memset( physical_to_virtual( new_ ), 0, pmlx_t.PT_SIZE );
             pmlx_t = {
                 index,                                                   // The entry's index in the current page table
@@ -147,12 +146,12 @@ auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageTyp
                         }
                         // After we delete the all of page tables that under the old page table,
                         // We also ought to delete this old page table
-                        PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( get_table( level - 1 ).get_table( ) ), 1 );
+                        allocator_traits< decltype( table_allocator ) >::deallocate( table_allocator, virtual_to_physical( get_table( level - 1 ).get_table( ) ), 1 );
                     }
                     else if ( level == 1 ) {
                         // Delete this page table
                         // Then return. Because there is no page table under the pml1t.
-                        PageWalker { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( pmlx_t.get_table( ) ), 1 );
+                        allocator_traits< decltype( table_allocator ) >::deallocate( table_allocator, virtual_to_physical( pmlx_t.get_table( ) ), 1 );
                     }
                     return;
                 };
@@ -227,11 +226,11 @@ auto pmlxt::copy( IN pmlxt &from ) -> void {
 
 pmlxt::pmlxt( void ) noexcept :
     can_allocate { true },
-    pmlx_table { (uint64_t *)physical_to_virtual( PageWalker { }.allocate< MemoryPageType::PAGE_4K >( 1 ) ) } {
+    pmlx_table { (uint64_t *)physical_to_virtual( allocator_traits< decltype( table_allocator ) >::allocate( table_allocator, 1 ) ) } {
 }
 pmlxt::~pmlxt( void ) noexcept {
     if ( this->can_allocate ) {
-        PageCollector { }.free< MemoryPageType::PAGE_4K >( virtual_to_physical( this->pmlx_table ), 1 );
+        allocator_traits< decltype( table_allocator ) >::deallocate( table_allocator, virtual_to_physical( this->pmlx_table ), 1 );
     }
 }
 

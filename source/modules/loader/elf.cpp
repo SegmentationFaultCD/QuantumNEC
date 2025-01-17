@@ -27,8 +27,9 @@ auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< FileInformation
     }
     auto page_count { ( ( high_address - low_address ) >> 12 ) + 1 };
 
+    Kernel::PageAllocator< MemoryPageType::PAGE_4K > allocater;
     // allocate memory for relocating
-    auto relocate_base { (uint64_t)physical_to_virtual( Kernel::PageAllocater { }.allocate< MemoryPageType::PAGE_4K >( page_count ) ) };
+    auto relocate_base { (uint64_t)physical_to_virtual( allocator_traits< decltype( allocater ) >::allocate( allocater, page_count ) ) };
     auto relocate_offset = relocate_base - low_address;
     auto zero_start      = reinterpret_cast< uint64_t      *>( relocate_base );
     for ( uint64_t i { }; i < ( page_count << 9 ); i++ ) {

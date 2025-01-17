@@ -8,30 +8,31 @@ using namespace std;
 PageManager::PageManager( void ) noexcept {
     auto memory_descriptor { &__config.memory_map };
 
-    using PH  = PageAllocater::__page_header__< PAGE_2M, PAGE_1G >;
-    using PHI = PH::__helper__::__page_information__;
+    using Allocater = PageAllocator< MemoryPageType::PAGE_2M >;
+    using PH        = Allocater::__page_header__< PAGE_1G >;
+    using PHI       = PH::__helper__::__page_information__;
 
     uint64_t *info_address { };     // 找到一块空闲内存
     for ( auto i = 0ul; i < __config.memory_map.entry_count; ++i ) {
         if ( memory_descriptor->entries[ i ]->type == LIMINE_MEMMAP_USABLE ) {
-            if ( memory_descriptor->entries[ i ]->base / PageAllocater::__page_size__< MemoryPageType::PAGE_2M > > 0 ) {
+            if ( memory_descriptor->entries[ i ]->base / Allocater::__page_size__ > 0 ) {
                 info_address = new ( physical_to_virtual( memory_descriptor->entries[ i ]->base ) ) uint64_t { };
                 break;
             }
         }
     }
 
-    std::memset( (void *)info_address, 0, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+    std::memset( (void *)info_address, 0, Allocater::__page_size__ );
 
-    constexpr auto initialization_header_count { PageAllocater::__page_size__< MemoryPageType::PAGE_2M > / PH::__helper__::header_size };
+    constexpr auto initialization_header_count { Allocater::__page_size__ / PH::__helper__::header_size };
 
     PH page_header { initialization_header_count, (uint64_t)info_address, 0ul };
 
     // Initialize global_memory_address for 1G allocater.
-    PageAllocater::global_memory_address = initialization_header_count * PH::__helper__::__zone_min_memory__;
+    Allocater::global_memory_address = initialization_header_count * PH::__helper__::__zone_min_memory__;
 
     auto bitmap = &page_header[ 0 ].bitmap;
-    bitmap->set( reinterpret_cast< uint64_t >( virtual_to_physical( info_address ) ) / PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+    bitmap->set( reinterpret_cast< uint64_t >( virtual_to_physical( info_address ) ) / Allocater::__page_size__ );
     bitmap->set( 0, 32 );
 
     for ( auto i = 0ul; i < __config.memory_map.entry_count; ++i ) {
@@ -44,11 +45,11 @@ PageManager::PageManager( void ) noexcept {
         case LIMINE_MEMMAP_ACPI_RECLAIMABLE:           // ACPI可回收内存
         case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:     // 启动时服务可回收内存
             // 如果是这三种类型那么就计算空闲内存
-            start = Lib::DIV_ROUND_UP( start, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
-            end   = end / PageAllocater::__page_size__< MemoryPageType::PAGE_2M >;
+            start = Lib::DIV_ROUND_UP( start, Allocater::__page_size__ );
+            end   = end / Allocater::__page_size__;
             // 统计空闲内存
             if ( end >= start ) {
-                this->free_memory_total += ( end - start ) * PageAllocater::__page_size__< MemoryPageType::PAGE_2M >;
+                this->free_memory_total += ( end - start ) * Allocater::__page_size__;
             }
 
             break;
@@ -64,10 +65,10 @@ PageManager::PageManager( void ) noexcept {
             // 计算取得所在区域的header的编号
             auto &&base_index = ( base_address & PH::__helper__::__zone_memory_mask__( ) ) / PH::__helper__::__zone_min_memory__;
             // 取得处于所在header的bitmap中的编号
-            auto &&index = (base_address & PageAllocater::__page_mask__< PAGE_2M >) / PageAllocater::__page_size__< PAGE_2M > % PH::__helper__::page_descriptor_count;
+            auto &&index = ( base_address & Allocater::__page_mask__ ) / Allocater::__page_size__ % PH::__helper__::page_descriptor_count;
 
-            start = start / PageAllocater::__page_size__< MemoryPageType::PAGE_2M >;
-            end   = Lib::DIV_ROUND_UP( end, PageAllocater::__page_size__< MemoryPageType::PAGE_2M > );
+            start = start / Allocater::__page_size__;
+            end   = Lib::DIV_ROUND_UP( end, Allocater::__page_size__ );
             // 将这部分内存添加至bitmap
             page_header[ base_index ].bitmap.set( index, end - start );
             page_header[ base_index ].flags.state = PHI::__page_flags__::__page_state__::NORMAL;

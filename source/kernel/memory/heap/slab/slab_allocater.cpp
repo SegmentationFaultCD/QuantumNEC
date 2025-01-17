@@ -1,13 +1,10 @@
 #include <kernel/memory/heap/kheap/kheap_allocater.hpp>
-#include <kernel/memory/heap/kheap/kheap_collector.hpp>
-#include <kernel/memory/heap/kheap/kheap_walker.hpp>
 #include <kernel/memory/heap/slab/slab_allocater.hpp>
 #include <kernel/memory/heap/slab/slab_creater.hpp>
 #include <kernel/memory/memory.hpp>
-#include <kernel/memory/page/page_walker.hpp>
+#include <kernel/memory/page/page_allocater.hpp>
 namespace QuantumNEC::Kernel {
-inline PageWalker  page_walker { };
-inline KHeapWalker kheap_walker { };
+inline PageAllocator< MemoryPageType::PAGE_2M > page_allocator { };
 
 auto SlabAllocater::allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> void * {
     auto slab { slab_cache->cache_pool };
@@ -28,32 +25,34 @@ auto SlabAllocater::allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> voi
         }
         return NULL;
     };
+    KHeapAllocator< Slab >     kheap_allocator { };
+    KHeapAllocator< uint64_t > color_map_allocator { };
     if ( !slab_cache->total_free ) {
-        slab = reinterpret_cast< Slab * >( kheap_walker.allocate( sizeof( Slab ) ) );
+        slab = allocator_traits< decltype( kheap_allocator ) >::allocate( kheap_allocator, 1 );
 
         if ( !slab ) {
             return NULL;
         }
         slab->list.container = slab;
 
-        slab->page = page_walker.allocate< MemoryPageType::PAGE_2M >( 1 );
+        slab->page = allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
 
         if ( !slab->page ) {
-            kheap_walker.free( slab );
+            allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
             return NULL;
         }
-        std::memset( slab->page, 0, PageWalker::__page_size__< MemoryPageType::PAGE_2M > );
-        slab->using_count = PageWalker::__page_size__< MemoryPageType::PAGE_2M > / slab_cache->size;
+        std::memset( slab->page, 0, PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );
+        slab->using_count = PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ / slab_cache->size;
         slab->color_count = slab->using_count;
         slab->free_count  = slab->color_count;
 
         slab->virtual_address = physical_to_virtual( slab->page );
         slab->color_length    = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
-        slab->color_map       = reinterpret_cast< uint64_t       *>( kheap_walker.allocate( slab->color_length ) );
+        slab->color_map       = allocator_traits< decltype( color_map_allocator ) >::allocate( color_map_allocator, slab->color_length / sizeof( uint64_t ) );
 
         if ( !slab->color_map ) {
-            page_walker.free< MemoryPageType::PAGE_2M >( slab->page, 1 );
-            kheap_walker.free( slab );
+            allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+            allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
             return NULL;
         }
         slab_cache->pool_list.insert( &slab->list, &slab_cache->cache_pool->list );
@@ -80,11 +79,12 @@ auto SlabAllocater::allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> voi
             }
         }
     }
+
     if ( !slab ) {
         slab_cache->pool_list.remove( slab->list );
-        kheap_walker.free( slab->color_map );
-        page_walker.free< MemoryPageType::PAGE_2M >( slab, 1 );
-        kheap_walker.free( slab );
+        allocator_traits< decltype( color_map_allocator ) >::deallocate( color_map_allocator, slab->color_map, slab->color_length / sizeof( uint64_t ) );
+        allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+        allocator_traits< decltype( kheap_allocator ) >::deallocate( kheap_allocator, slab, 1 );
     }
     return NULL;
 }

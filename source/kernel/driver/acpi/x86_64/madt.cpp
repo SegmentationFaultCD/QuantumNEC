@@ -4,7 +4,7 @@
 namespace QuantumNEC::Kernel::x86_64 {
 using namespace Kernel;
 using namespace std;
-auto Madt::get_ioapic_from_gsi( uint32_t gsi ) -> uint32_t {
+auto Madt::get_ioapic_from_gsi( uint32_t ) -> uint32_t {
     // for ( auto i = 0; i < ioapic_entry_in_madt->length; ++i ) {
     // }
     return 0;

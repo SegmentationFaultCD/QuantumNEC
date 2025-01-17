@@ -1,11 +1,15 @@
 #include <kernel/cpu/cpu.hpp>
-#include <kernel/memory/heap/kheap/kheap_walker.hpp>
-#include <kernel/memory/page/page_walker.hpp>
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
 #include <kernel/task/process/process_manager.hpp>
 #include <kernel/task/task.hpp>
 namespace QuantumNEC::Kernel {
+
 auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
-    auto pcb = new ( KHeapWalker { }.allocate( sizeof( PCB ) ) ) PCB { };
+    KHeapAllocator< PCB > pcb_allocator;
+
+    auto pcb = allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
+    allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, pcb );
+
     // 内核栈处理
     pcb->kernel_stack_base = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
     pcb->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
@@ -42,8 +46,8 @@ auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
     return pcb;
 }
 ProcessManager::ProcessManager( void ) noexcept {
-    auto pcb       = this->main_process_install( 0 );
-    pcb->fpu_frame = reinterpret_cast< decltype( pcb->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *main_pcb->fpu_frame ) );
+    auto pcb = this->main_process_install( 0 );
+    // pcb->fpu_frame = reinterpret_cast< decltype( pcb->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *main_pcb->fpu_frame ) );
     this->main_pcb = pcb;
 }
 auto ProcessManager::get_running_task( void ) -> PCB * {

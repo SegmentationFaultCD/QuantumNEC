@@ -1,4 +1,3 @@
-#include <kernel/memory/page/page_walker.hpp>
 #include <kernel/print.hpp>
 #include <kernel/task/process/process.hpp>
 #include <kernel/task/task.hpp>
@@ -23,6 +22,7 @@ Modules::Module::Module( void ) noexcept {
             // TODO fault handler
         }
     }
+
     // TODO 挂载动态模块文件
 }
 }     // namespace QuantumNEC::Modules

@@ -2,9 +2,8 @@
 #include <kernel/driver/driver.hpp>
 #include <kernel/interrupt/interrupt.hpp>
 #include <kernel/memory/heap/kheap/kheap_allocater.hpp>
-#include <kernel/memory/heap/kheap/kheap_collector.hpp>
 #include <kernel/memory/memory.hpp>
-#include <kernel/memory/page/page_walker.hpp>
+
 #include <kernel/print.hpp>
 #include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
@@ -104,6 +103,19 @@ using namespace QuantumNEC;
 //     virtual auto f( void ) -> void override {
 //     }
 // };
+class S {
+public:
+    struct B {
+        Kernel::x86_64::pml4t s { };
+        Kernel::x86_64::pml4t sa { };
+        B( ) :
+            s { }, sa { } {
+        }
+    } s;
+    S( ) :
+        s { } {
+    }
+};
 #include <kernel/task/process/process.hpp>
 auto micro_kernel_entry( IN BootConfig &config ) -> void {
     Kernel::__config = config;
@@ -129,8 +141,6 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
 
     // cre.create( "PRocD", 0, (void *)ProcC, Kernel::PCB::Type::KERNEL_PROCESS );
     Modules::Module mod { };
-
-    while ( true );
 
     Kernel::Interrupt::enable_interrupt( );
 
