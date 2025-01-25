@@ -2,7 +2,8 @@
 #include <atomic>
 #include <lib/Uefi.hpp>
 namespace QuantumNEC::Lib {
-class spinlock : std::atomic_flag {
+class spinlock :
+    std::atomic_flag {
 public:
     explicit spinlock( void ) noexcept {
     }

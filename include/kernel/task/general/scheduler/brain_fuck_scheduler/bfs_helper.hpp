@@ -2,7 +2,7 @@
 #include <kernel/interrupt/interrupt.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 #include <libcxx/cstring.hpp>
 namespace QuantumNEC::Kernel {
 template < typename PCB >
@@ -156,11 +156,17 @@ public:
     inline static Lib::ListTable< PCB > running_queue { };
 
 public:
-    static auto make_virtual_deadline( uint64_t priority ) {
+    static auto make_virtual_deadline( uint64_t priority, uint64_t jiffies ) {
         /**
          * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * [rr_interval * count](jiffies)
          */
-        return Interrupt::global_jiffies + prio_ratios[ priority ] * rr_interval;
+        return Interrupt::global_jiffies + prio_ratios[ priority ] * jiffies;
+    }
+    static auto make_jiffies( [[maybe_unused]] uint64_t priority ) {
+        /**
+         * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * [rr_interval * count](jiffies)
+         */
+        return rr_interval;
     }
 };
 }     // namespace QuantumNEC::Kernel

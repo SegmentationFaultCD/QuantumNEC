@@ -33,7 +33,7 @@ auto SlabAllocater::allocate( IN SlabCache *slab_cache, IN uint64_t arg ) -> voi
         if ( !slab ) {
             return NULL;
         }
-        slab->list.container = slab;
+        slab->list = *slab;
 
         slab->page = std::allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
 

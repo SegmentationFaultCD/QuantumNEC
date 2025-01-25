@@ -73,7 +73,7 @@ using TaskStateSegmentDescriptor = TaskStateSegmentDescriptor64;
 class GlobalSegmentDescriptorTable {
 public:
     explicit GlobalSegmentDescriptorTable( void ) noexcept;
-    virtual ~GlobalSegmentDescriptorTable( void ) noexcept = default;
+    ~GlobalSegmentDescriptorTable( void ) noexcept = default;
 
 public:
     class _GDT : public Descriptor< GlobalSegmentDescriptor, GLOBAL_SEGMENT_DESCRIPTOR_TABLE_COUNT, SEGMENT_DESCRIPTOR_COUNT > {

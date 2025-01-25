@@ -7,7 +7,7 @@
 #include <kernel/task/general/scheduler/interface.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 #include <utility>
 
 namespace QuantumNEC::Kernel {
@@ -73,13 +73,12 @@ public:
 
 private:
     auto __insert__( Schedule &schedule ) -> Schedule * {
-        helper::global_lock.acquire( );
+        // helper::global_lock.acquire( );
         // 根据优先级插入任务等待队列队尾
         helper::task_queue[ schedule.priority ].append( schedule.general_task_node );
         helper::bitmap[ schedule.priority ] = true;
         schedule.state                      = Schedule::State::READY;
-        helper::global_lock.release( );
-
+        // helper::global_lock.release( );
         return &schedule;
     }
 
@@ -98,7 +97,6 @@ private:
         }
         if ( index < 100 ) {
             // 实时任务，直接弹出首位
-
             return &( *helper::task_queue[ index ].begin( ) ).schedule;
         }
         else {
@@ -114,12 +112,12 @@ private:
                 p        = q->next;
                 tail     = head->prev;
                 while ( num-- ) {
-                    if ( q->container->schedule.virtual_deadline < Interrupt::global_jiffies ) {
+                    if ( ( *q )->schedule.virtual_deadline < Interrupt::global_jiffies ) {
                         // deadline小于当前进程则直接弹出这个
 
-                        return &q->container->schedule;
+                        return &( *q )->schedule;
                     }
-                    if ( q->container->schedule.virtual_deadline > p->container->schedule.virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
+                    if ( ( *q )->schedule.virtual_deadline > ( *p )->schedule.virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
                     {
                         q->next    = p->next;
                         p->next    = q;
@@ -133,7 +131,7 @@ private:
             }
 
             // 全部整理一遍后，弹出头
-            return &head->container->schedule;
+            return &( *head )->schedule;
         }
         // 查找失败
 
@@ -141,12 +139,11 @@ private:
     }
     // 任务唤醒
     auto __wake_up__( Schedule &schedule ) -> Schedule * {
-        helper::global_lock.acquire( );
+        // helper::global_lock.acquire( );
         // 遍历运行队列查找是否可以抢占VD大于插入任务的CPU
         for ( auto &running_pcb : helper::running_queue ) {
             if ( running_pcb.schedule.virtual_deadline > schedule.virtual_deadline ) {
-                // 不为空，说明有任务的VD比这个任务VS大
-                // 那就抢占
+                // 不为空，说明有任务的VD比这个任务VS大, 那就抢占
 
                 // 处理抢占的任务，将它归入所对应优先级的队列之中，并从运行队列中删除
                 helper::running_queue.remove( running_pcb.schedule.general_task_node );
@@ -167,16 +164,16 @@ private:
 
                 schedule.cpu_id = running_pcb.schedule.cpu_id;
                 schedule.state  = Schedule::State::RUNNING;
-                helper::global_lock.release( );
+                // helper::global_lock.release( );
 
-                CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
+                // CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
 
                 return &schedule;
             }
         }
 
         // the virtual deadline is too big, none of running tasks can be respaced.
-        helper::global_lock.release( );
+        // helper::global_lock.release( );
 
         return &schedule;
     }
@@ -186,16 +183,14 @@ private:
     }
     // 任务调度
     auto __schedule__( void ) -> std::expected< Schedule *, ErrorCode > {
-        helper::global_lock.acquire( );
         for ( auto cpu_id = Interrupt::cpu_id( ); auto &pcb : helper::running_queue ) {
             if ( cpu_id == pcb.schedule.cpu_id ) {
                 if ( pcb.schedule.jiffies ) {
                     if ( PCB::get_running_task( ) != &pcb ) {
-                        static_assert( std::invocable< decltype( PCB::get_running_task ) > );
+                        static_assert( std::invocable< decltype( PCB::get_running_task ) >, "PCB type don't has get_running_task function!" );
                         pcb.activate( );
                     }
                     pcb.schedule.jiffies--;
-                    helper::global_lock.release( );
                     return &pcb.schedule;
                 }
                 else {
@@ -203,41 +198,59 @@ private:
                     auto result = this->__pick_next__( );
                     if ( result.has_value( ) ) {
                         auto new_pcb = result.value( );
-
                         helper::task_queue[ new_pcb->priority ].remove( new_pcb->general_task_node );
-
                         helper::running_queue.remove( pcb.schedule.general_task_node );
                         helper::task_queue[ pcb.schedule.priority ].append( pcb.schedule.general_task_node );
                         helper::bitmap[ pcb.schedule.priority ] = true;
                         pcb.schedule.state                      = Schedule::State::READY;
-
                         pcb.close( );
-
                         // 重新计算VD，填充时间片
-                        pcb.schedule.virtual_deadline = helper::make_virtual_deadline( pcb.schedule.priority );
-                        pcb.schedule.jiffies          = helper::rr_interval;
+                        pcb.schedule.jiffies          = helper::make_jiffies( pcb.schedule.priority );
+                        pcb.schedule.virtual_deadline = helper::make_virtual_deadline( pcb.schedule.priority, pcb.schedule.jiffies );
                         new_pcb->state                = Schedule::State::RUNNING;
                         new_pcb->cpu_id               = pcb.schedule.cpu_id;
                         if ( helper::task_queue[ new_pcb->priority ].is_empty( ) ) {
                             helper::bitmap[ new_pcb->priority ] = false;
                         }
                         helper::running_queue.append( new_pcb->general_task_node );
-                        new_pcb->general_task_node.container->activate( );
-                        helper::global_lock.release( );
-
+                        new_pcb->general_task_node->activate( );
                         return new_pcb;
-                    }
-                    else {
-                        // TODO fault handler
                     }
                 }
             }
+            else {
+                // The task has been removed.
+                // auto result = this->__pick_next__( );
+                // if ( result.has_value( ) ) {
+                //     auto replaced_pcb = result.value( );
+                //     helper::task_queue[ replaced_pcb->priority ].remove( replaced_pcb->general_task_node );
+                //     replaced_pcb->state  = Schedule::State::RUNNING;
+                //     replaced_pcb->cpu_id = pcb.schedule.cpu_id;
+                //     if ( helper::task_queue[ replaced_pcb->priority ].is_empty( ) ) {
+                //         helper::bitmap[ replaced_pcb->priority ] = false;
+                //     }
+                //     helper::running_queue.append( replaced_pcb->general_task_node );
+                //     replaced_pcb->general_task_node.container->activate( );
+                //     helper::global_lock.release( );
+                //     return replaced_pcb;
+                // }
+            }
         }
-        helper::global_lock.release( );
+        // helper::global_lock.release( );
         return std::unexpected { ErrorCode::NO_TASK_CAN_SCHEDULER };
     }
     // Task remove
-    auto __remove__( Schedule & ) -> void {
+    auto __remove__( Schedule &schedule ) -> void {
+        if ( schedule.state == Schedule::State::RUNNING ) {
+            schedule.jiffies = 0;
+            helper::running_queue.remove( schedule.general_task_node );
+            return;
+        }
+        else {
+            // The task isn't running, we are sure that is is in task queue.
+            helper::task_queue[ schedule.priority ].remove( schedule.general_task_node );
+            return;
+        }
     }
 };
 

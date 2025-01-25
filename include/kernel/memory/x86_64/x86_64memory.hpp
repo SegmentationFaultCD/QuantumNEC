@@ -11,7 +11,7 @@ class Memory :
     public GlobalSegmentDescriptorTable {
 public:
     explicit Memory( void ) noexcept = default;
-    virtual ~Memory( void ) noexcept = default;
+    ~Memory( void ) noexcept         = default;
 };
 
 }     // namespace QuantumNEC::Kernel::x86_64

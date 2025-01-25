@@ -3,7 +3,7 @@
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/x86_64/segment/gdt.hpp>
 #include <kernel/print.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 #include <libcxx/cstring.hpp>
 using namespace std;
 namespace QuantumNEC::Kernel::x86_64 {
@@ -45,8 +45,6 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( void ) noexcept {
 
     // 加载GDT
     this->gdt->load( 0 );
-    PageAllocator< MemoryPageType::PAGE_4K > stack_allocator;
-    this->gdt->tss[ 0 ].set_rsp0( (uint64_t)physical_to_virtual( allocator_traits< decltype( stack_allocator ) >::allocate( stack_allocator, 1 ) ) + 4_KB );
 
     // 加载全局段中的TSS
     this->gdt->tss[ 0 ].load_tr( SELECTOR_TSS );

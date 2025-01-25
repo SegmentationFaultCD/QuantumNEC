@@ -1,7 +1,7 @@
 #pragma once
 #include <kernel/driver/driver.hpp>
 #include <lib/Uefi.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 #include <libcxx/format.hpp>
 #include <tuple>
 namespace std {

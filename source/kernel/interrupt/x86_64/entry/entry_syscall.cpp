@@ -14,7 +14,7 @@ auto SystemcallEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexcep
 }
 auto SystemcallEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
-    std::println( "NOW: {:x} {:x} {:x} {}", (uint64_t)frame->regs.rax, (uint64_t)frame->regs.rdi, (uint64_t)frame->regs.rsi, Apic::cpu_id( ) );
+    std::println( "RAX: {} {}", (uint64_t)frame->regs.rdi, Apic::apic_id( ) );
     return frame;
 }
 auto SystemcallEntry::do_register( void ) -> void {

@@ -8,7 +8,7 @@
 #include <kernel/task/general/scheduler/scheduler.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 #include <libcxx/cstring.hpp>
 namespace QuantumNEC::Kernel {
 
@@ -131,11 +131,7 @@ public:
 
         // activate the page table
         this->memory_manager.page_table.activate( );
-        if ( this->flags.task_type == __flags__::__type__::USER_PROCESS ) {
-            // CPU::wrmsr( x86_64::IA32_KERNEL_GS_BASE, x86_64::GlobalSegmentDescriptorTable::gdt->tss[ this->schedule.cpu_id ].get_rsp0( ) );
-            // CPU::wrmsr( x86_64::IA32_USER_GS_BASE, this->context.pcontext->rsp );
-        }
-        // set running state
+        // CPU::wrmsr( x86_64::IA32_USER_GS_BASE, (uint64_t)physical_to_virtual( this->kernel_stack_base ) );
     }
     /**
      * @brief remove task from running state

@@ -210,7 +210,7 @@ target("test02.elf")
 
 
 target("micro_kernel")
-    add_deps("c", "cxx", "test02.elf", "servicer.elf") 
+    add_deps("c", "cxx", "test02.elf","test03.elf", "servicer.elf") 
 
     set_kind("binary")
     add_cxxflags(
@@ -291,8 +291,8 @@ target("run")
         local qemu_flags =  "-enable-kvm \
                              -drive if=pflash,format=raw,readonly=on,file=scripts/bios/x86_64efi.bios \
                              -drive file=fat:rw:vm,index=0,format=vvfat \
-                             -m 16G \
-                             -smp 2,cores=2,threads=1,sockets=1 \
+                             -m 4G \
+                             -smp 4,cores=4,threads=1,sockets=1 \
                              -device nec-usb-xhci,id=xhci \
                              -no-shutdown \
                              -device qxl-vga,vgamem_mb=128 \

@@ -22,7 +22,7 @@ enum MemoryPageType : uint64_t {
 class PageManager {
 public:
     explicit PageManager( void ) noexcept;
-    virtual ~PageManager( void ) noexcept = default;
+    ~PageManager( void ) noexcept = default;
 
 private:
     inline static size_t all_memory_total { };

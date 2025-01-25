@@ -31,9 +31,10 @@ KHeapManager::KHeapManager( ) noexcept {
                 slab_cache.value( ).total_using                 = 0;
                 slab_cache.value( ).cache_pool->page            = std::allocator_traits< decltype( page_allocator ) >::allocate( page_allocator, 1 );
                 slab_cache.value( ).cache_pool->virtual_address = physical_to_virtual( slab_cache.value( ).cache_pool->page );
-                slab_cache.value( ).cache_pool->list.container  = slab_cache.value( ).cache_pool;
+                slab_cache.value( ).cache_pool->list            = *slab_cache.value( ).cache_pool;
                 slab_cache.value( ).pool_list.append( slab_cache.value( ).cache_pool->list );
             } );
+        std::println( "{}", (void *)zone );
     }
 }
 }     // namespace QuantumNEC::Kernel

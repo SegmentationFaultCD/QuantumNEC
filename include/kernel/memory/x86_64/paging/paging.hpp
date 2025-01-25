@@ -893,5 +893,6 @@ private:
 
 public:
     explicit Paging( void ) noexcept;
+    ~Paging( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel::x86_64

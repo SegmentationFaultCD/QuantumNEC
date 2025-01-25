@@ -201,7 +201,7 @@ constexpr auto IA32_LSTAR { 0xc0000082 };
 constexpr auto IA32_FMASK { 0xc0000084 };
 constexpr auto IA32_EFER_SCE { 1 };
 
-constexpr auto IA32_KERNEL_GS_BASE { 0xf0000102 };
+constexpr auto IA32_KERNEL_GS_BASE { 0xc0000102 };
 constexpr auto IA32_USER_GS_BASE { 0xc0000101 };
 constexpr auto IA32_USER_FS_BASE { 0xc0000100 };
 // TIME

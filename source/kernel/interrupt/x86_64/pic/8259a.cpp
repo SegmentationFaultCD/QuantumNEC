@@ -1,7 +1,7 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/interrupt/x86_64/pic/8259a.hpp>
 #include <kernel/print.hpp>
-#include <lib/spin_lock.hpp>
+
 namespace QuantumNEC::Kernel::x86_64 {
 using namespace std;
 PIC8259A::PIC8259A( void ) noexcept {

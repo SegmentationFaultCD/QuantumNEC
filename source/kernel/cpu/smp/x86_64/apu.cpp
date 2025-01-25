@@ -5,7 +5,7 @@
 #include <kernel/print.hpp>
 #include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 using namespace QuantumNEC;
 using namespace QuantumNEC::Kernel;
 using namespace std;
@@ -16,18 +16,19 @@ using namespace std;
     // 挂载这个核心的GDT IDT TSS
     // 很重要所以必须加上锁
     lock.acquire( );
-    Interrupt::idt->load( cpu->processor_id );
-    Memory::gdt->load( cpu->processor_id );
-    Memory::gdt->tss[ cpu->processor_id ].load_tr( SELECTOR_TSS );
+    Interrupt::idt->load( Interrupt::cpu_id( ) );
+    Memory::gdt->load( Interrupt::cpu_id( ) );
+    ProcessManager::main_process_install( Interrupt::cpu_id( ) );
+    Memory::gdt->tss[ Interrupt::cpu_id( ) ].load_tr( SELECTOR_TSS );
 
     Interrupt::enable_x2apic( );
     Sse::activate( );     // 激活SSE
     Syscall::initializate( );
-    ProcessManager::main_process_install( cpu->processor_id );
+
     lock.release( );
+
     Interrupt::enable_interrupt( );
     CPU::hlt( );
-
     while ( true ) {
     }
 }

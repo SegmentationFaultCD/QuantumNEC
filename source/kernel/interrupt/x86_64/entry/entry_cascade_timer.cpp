@@ -18,25 +18,23 @@ auto CascadeTimerEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexc
 }
 auto CascadeTimerEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
-
+    Lib::spinlock lock;
     Interrupt::global_jiffies++;
 
     CPU::switch_cpu( );
-
-    if ( ProcessManager::get_running_task( )->flags.task_type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
-        ProcessManager::get_running_task( )->context.pcontext = (PCB::__context__::__process__ *)frame;
+    lock.acquire( );
+    if ( PCB::get_running_task( )->flags.task_type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
+        PCB::get_running_task( )->context.pcontext = (PCB::__context__::__process__ *)frame;
     }
-    auto result = Scheduler { }.schedule( );
-
-    if ( result.has_value( ) ) {
-        return result.value( )->general_task_node.container->context.pcontext;
+    if ( auto result = Scheduler { }.schedule( ); result.has_value( ) ) {
+        auto context = result.value( )->general_task_node->context.pcontext;
+        lock.release( );
+        return context;
     }
     else {
-        while ( true ) __asm__( "hlt" );
+        lock.release( );
+        return frame;
     }
-    // 在这里进行任务调度
-
-    return frame;
 }
 auto CascadeTimerEntry::do_register( void ) -> void {
     Apic::IOApicRedirectionEntry entry { };

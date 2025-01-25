@@ -15,7 +15,7 @@ Modules::Module::Module( void ) noexcept {
         auto file_entry = loader.load( Kernel::__config.modules.modules[ i ], ModuleLoader::ModuleFileType::ELF );
         if ( file_entry.has_value( ) ) {
             println< print_level::SYSTEM >( "Service {} ready!", Kernel::__config.modules.modules[ i ]->path );
-            Kernel::Process servicer { file_entry.value( ), 1, Kernel::PCB::__flags__::__type__::USER_PROCESS };
+            Kernel::Process servicer { file_entry.value( ), 0, Kernel::PCB::__flags__::__type__::USER_PROCESS };
             servicer.join( );
         }
         else {

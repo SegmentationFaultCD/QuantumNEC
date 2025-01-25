@@ -3,7 +3,6 @@
 #include <kernel/interrupt/x86_64/pit/apic_timer.hpp>
 #include <kernel/interrupt/x86_64/pit/hpet.hpp>
 #include <kernel/memory/memory.hpp>
-#include <lib/spin_lock.hpp>
 
 namespace QuantumNEC::Kernel::x86_64 {
 using namespace std;

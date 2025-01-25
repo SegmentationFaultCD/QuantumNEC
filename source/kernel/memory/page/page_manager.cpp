@@ -3,6 +3,7 @@
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/memory/page/page_manager.hpp>
 #include <kernel/print.hpp>
+
 namespace QuantumNEC::Kernel {
 using namespace std;
 PageManager::PageManager( void ) noexcept {
@@ -38,21 +39,21 @@ PageManager::PageManager( void ) noexcept {
     for ( auto i = 0ul; i < __config.memory_map.entry_count; ++i ) {
         auto entry = memory_descriptor->entries[ i ];
         auto start { entry->base }, end { start + entry->length };
-        this->all_memory_total = end;     // 这个是总内存
-                                          // 可以使用的内存，可回收内存皆属于空闲内存
+        this->all_memory_total = end;
         switch ( entry->type ) {
         case LIMINE_MEMMAP_USABLE:                     // 未使用
         case LIMINE_MEMMAP_ACPI_RECLAIMABLE:           // ACPI可回收内存
         case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:     // 启动时服务可回收内存
+        {
             // 如果是这三种类型那么就计算空闲内存
-            start = Lib::DIV_ROUND_UP( start, Allocater::__page_size__ );
-            end   = end / Allocater::__page_size__;
+            auto &&start_index = Lib::DIV_ROUND_UP( start, Allocater::__page_size__ );
+            auto &&end_index   = end / Allocater::__page_size__;
             // 统计空闲内存
-            if ( end >= start ) {
-                this->free_memory_total += ( end - start ) * Allocater::__page_size__;
+            if ( end_index >= start_index ) {
+                auto size = end_index - start_index;
+                this->free_memory_total += size * Allocater::__page_size__;
             }
-
-            break;
+        } break;
         case LIMINE_MEMMAP_RESERVED:               // 保留内存
         case LIMINE_MEMMAP_ACPI_NVS:               // ACPI NVS内存
         case LIMINE_MEMMAP_BAD_MEMORY:             // 错误内存
@@ -67,10 +68,10 @@ PageManager::PageManager( void ) noexcept {
             // 取得处于所在header的bitmap中的编号
             auto &&index = ( base_address & Allocater::__page_mask__ ) / Allocater::__page_size__ % PH::__helper__::page_descriptor_count;
 
-            start = start / Allocater::__page_size__;
-            end   = Lib::DIV_ROUND_UP( end, Allocater::__page_size__ );
+            auto &&start_index = start / Allocater::__page_size__;
+            auto &&end_index   = Lib::DIV_ROUND_UP( end, Allocater::__page_size__ );
             // 将这部分内存添加至bitmap
-            page_header[ base_index ].bitmap.set( index, end - start );
+            page_header[ base_index ].bitmap.set( index, end_index - start_index );
             page_header[ base_index ].flags.state = PHI::__page_flags__::__page_state__::NORMAL;
             break;
         }

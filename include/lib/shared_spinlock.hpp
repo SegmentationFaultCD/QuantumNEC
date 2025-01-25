@@ -1,7 +1,7 @@
 #pragma once
 #include <concepts>
 #include <cstdint>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 namespace QuantumNEC::Lib {
 template < typename T >
     requires std::copy_constructible< T >

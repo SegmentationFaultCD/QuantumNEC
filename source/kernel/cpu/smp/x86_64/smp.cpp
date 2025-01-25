@@ -2,15 +2,19 @@
 #include <kernel/memory/heap/kheap/kheap_allocater.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/task/task.hpp>
-#include <lib/spin_lock.hpp>
+#include <lib/spinlock.hpp>
 namespace QuantumNEC::Kernel::x86_64 {
 SymmetricMultiprocessing::SymmetricMultiprocessing( void ) noexcept {
     using namespace QuantumNEC::Kernel;
     using namespace std;
-    PageAllocator< MemoryPageType::PAGE_4K > stack_allocator;
+    // PageAllocator< MemoryPageType::PAGE_4K > stack_allocator;
+
+    // auto stack_start = (uint64_t)allocator_traits< decltype( stack_allocator ) >::allocate( stack_allocator, __config.smp.cpu_count );
+    // Memory::gdt->tss[ 0 ].set_rsp0( (uint64_t)stack_start + PageAllocator< MemoryPageType::PAGE_4K >::__page_size__ );
+    // stack_start += PageAllocator< MemoryPageType::PAGE_4K >::__page_size__;
     for ( auto i { 1ul }; i < __config.smp.cpu_count; ++i ) {
-        auto stack_start = allocator_traits< decltype( stack_allocator ) >::allocate( stack_allocator, 1 );
-        Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocator< MemoryPageType::PAGE_4K >::__page_size__ );
+        // Memory::gdt->tss[ i ].set_rsp0( (uint64_t)stack_start + PageAllocator< MemoryPageType::PAGE_4K >::__page_size__ );
+        // stack_start += PageAllocator< MemoryPageType::PAGE_4K >::__page_size__;
         __config.smp.cpus[ i ]->goto_address = apu_entry;
     }
     println< print_level::OK >( "Initialize Symmetric Multiprocessing" );

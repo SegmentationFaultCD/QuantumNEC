@@ -1,20 +1,25 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/memory/heap/kheap/kheap_allocater.hpp>
+#include <kernel/memory/memory.hpp>
 #include <kernel/task/process/process_manager.hpp>
 #include <kernel/task/task.hpp>
 namespace QuantumNEC::Kernel {
-
-auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
+auto ProcessManager::main_process_install( uint64_t core ) -> PCB * {
     KHeapAllocator< PCB > pcb_allocator;
 
     auto pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
-    std::allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, pcb );
 
+    // 当前cpu的id
+    pcb->schedule.cpu_id = Interrupt::cpu_id( );
     // 内核栈处理
-    pcb->kernel_stack_base = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
+    pcb->kernel_stack_base = (uint64_t)virtual_to_physical( CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 ) );
     pcb->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
 
-    *( (uint64_t *)pcb->kernel_stack_base ) = (uint64_t)pcb;
+#if defined( __x86_64__ )
+    x86_64::GlobalSegmentDescriptorTable::gdt->tss[ pcb->schedule.cpu_id ].set_rsp0( (uint64_t)virtual_to_physical( pcb->kernel_stack_base + pcb->kernel_stack_size ) );
+#endif
+
+    *( (uint64_t *)physical_to_virtual( pcb->kernel_stack_base ) ) = (uint64_t)pcb;
 
     // 分配PID
     pcb->PID = pid_pool.allocate( );
@@ -28,32 +33,27 @@ auto ProcessManager::main_process_install( uint64_t ) -> PCB * {
     pcb->schedule.state   = Scheduler::Schedule::State::RUNNING;
     pcb->flags.task_type  = PCB::__flags__::__type__::KERNEL_PROCESS;
 
-    // 当前cpu的id
-    pcb->schedule.cpu_id = Interrupt::cpu_id( );
     // 魔术字节
-    pcb->stack_magic                          = PCB_STACK_MAGIC;
-    pcb->schedule.general_task_node.container = pcb;
-    pcb->schedule.jiffies                     = SchedulerHelper::rr_interval;
-    pcb->schedule.cpu_id                      = Interrupt::cpu_id( );
+    pcb->stack_magic                = PCB_STACK_MAGIC;
+    pcb->schedule.general_task_node = *pcb;
+    pcb->schedule.jiffies           = SchedulerHelper::make_jiffies( pcb->schedule.priority );
+    pcb->schedule.virtual_deadline  = SchedulerHelper::make_virtual_deadline( pcb->schedule.priority, pcb->schedule.jiffies );
+    pcb->schedule.cpu_id            = core;
     // 暂时没啥用
     pcb->schedule.signal = 0;
     pcb->PPID            = 0;
 
     pcb->memory_manager.page_table = (uint64_t)x86_64::Paging::kernel_page_table->get_table( );
-    pcb->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( pcb->schedule.priority );
+    KHeapAllocator< FloatPointUnit::FpuFrame > fpu_frame_allocater;
 
+    pcb->fpu_frame = std::allocator_traits< decltype( fpu_frame_allocater ) >::allocate( fpu_frame_allocater, 1 );
     SchedulerHelper::running_queue.append( pcb->schedule.general_task_node );
+
     return pcb;
 }
 ProcessManager::ProcessManager( void ) noexcept {
-    auto pcb = this->main_process_install( 0 );
-    // pcb->fpu_frame = reinterpret_cast< decltype( pcb->fpu_frame ) >( KHeapWalker { }.allocate( sizeof *main_pcb->fpu_frame ) );
+    auto pcb       = this->main_process_install( 0 );
     this->main_pcb = pcb;
-}
-auto ProcessManager::get_running_task( void ) -> PCB * {
-    // 得到正在运行的任务
-    auto kstack = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
-    return (PCB *)( *( (uint64_t *)kstack ) );
 }
 
 _C_LINK auto get_current_kernel_stack_top_in_user_mode( void ) -> uint64_t {

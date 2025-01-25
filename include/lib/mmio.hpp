@@ -3,6 +3,7 @@
 #include <lib/Uefi.hpp>
 namespace QuantumNEC::Lib {
 template < typename Bit >
+    requires std::integral< Bit >
 class MMIO {
 public:
     explicit MMIO( auto address ) :

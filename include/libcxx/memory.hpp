@@ -10,6 +10,11 @@ struct allocation_result {
 };
 
 template < class Alloc >
+    requires requires {
+        typename Alloc::type;
+        typename Alloc::difference_type;
+        typename Alloc::size_type;
+    }
 class allocator_traits {
 public:
     using allocator_type  = Alloc;

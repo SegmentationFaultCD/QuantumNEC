@@ -119,9 +119,11 @@ return_from_isr:
     POP RAX
     MOV ES, RAX
     POP RAX
-    MOV FS, RAX
+    // MOV FS, RAX
     POP RAX
-    MOV GS, RAX
+    // MOV GS, RAX
+    // ignore FS, GS
+
     POP RAX
     POP RBX
     POP RCX
@@ -696,6 +698,7 @@ INTERRUPT_ENTRY 0xff
 // Five state will be saved, too
 .GLOBAL system_call
 system_call:
+    CLI
     // save into user stack
     PUSH RBP  //                0x60
 
@@ -774,6 +777,7 @@ system_call:
     // OSDEV says : Note that the Kernel does not automatically have a kernel stack loaded. This is the handler's responsibility.
     // So, we should switch to kernel stack by ourselves
     POP RBP
+    STI
     SYSRETQ
 .section .data
 

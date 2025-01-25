@@ -7,9 +7,14 @@ template < typename T >
 class ListTable {
 public:
     struct ListNode {
+        friend ListTable;
+public:
         ListNode *prev { }; /* 上一个节点 */
         ListNode *next { }; /* 下一个节点 */
-        T        *container { };
+    private:
+        T *container { };
+
+    public:
         explicit ListNode( void ) noexcept = default;
 
         /**
@@ -31,6 +36,17 @@ public:
             this->next      = node.next;
             this->prev      = node.prev;
             return *this;
+        }
+        auto operator=( T &data ) -> ListNode & {
+            this->container = &data;
+            return *this;
+        }
+
+        auto operator*( ) -> T & {
+            return *this->container;
+        }
+        auto operator->( ) -> T * {
+            return this->container;
         }
     };
 
@@ -137,8 +153,10 @@ public:
      * @param entry 要弹出的节点
      */
     auto remove( IN OUT Node &entry ) {
-        entry.next->prev = entry.prev;
-        entry.prev->next = entry.next;
+        if ( entry.next && entry.prev ) {
+            entry.next->prev = entry.prev;
+            entry.prev->next = entry.next;
+        }
     }
     /**
      * @brief 将链表第一个元素弹出并返回

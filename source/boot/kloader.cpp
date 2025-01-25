@@ -7,8 +7,7 @@ using namespace QuantumNEC;
 
 namespace {
 
-__attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION( 3 );
-
+__attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION( 2 );
 }
 
 // The Limine requests can be placed anywhere, but it is important that
@@ -20,44 +19,44 @@ namespace {
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_framebuffer_request framebuffer_request = {
     .id       = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 3,
+    .revision = 2,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_memmap_request memmap_request = {
     .id       = LIMINE_MEMMAP_REQUEST,
-    .revision = 3,
+    .revision = 2,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_rsdp_request acpi_request = {
     .id       = LIMINE_RSDP_REQUEST,
-    .revision = 3,
+    .revision = 2,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_hhdm_request hhdm_request = {
     .id       = LIMINE_HHDM_REQUEST,
-    .revision = 3,
+    .revision = 2,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_smp_request smp_request = {
     .id       = LIMINE_SMP_REQUEST,
-    .revision = 3,
+    .revision = 2,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_paging_mode_request paging_mode_request = {
     .id       = LIMINE_PAGING_MODE_REQUEST,
-    .revision = 3,
+    .revision = 2,
     .response = nullptr
 };
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_module_request modules_request = {
     .id       = LIMINE_MODULE_REQUEST,
-    .revision = 3,
+    .revision = 2,
     .response = nullptr
 };
 
 __attribute__( ( used, section( ".limine_requests" ) ) ) static volatile struct limine_stack_size_request stack_size_request = {
     .id         = LIMINE_STACK_SIZE_REQUEST,
-    .revision   = 3,
+    .revision   = 2,
     .stack_size = Kernel::TASK_KERNEL_STACK_SIZE,
 };
 }     // namespace

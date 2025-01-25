@@ -15,7 +15,7 @@ auto SlabDestroyer::destory( SlabCache *slab_cache ) -> void {
     // 遍历销毁SLAB内存池
 
     while ( slab_cache->pool_list.is_empty( ) ) {
-        auto slab = reinterpret_cast< Slab * >( slab_cache->pool_list.pop( )->container );
+        auto slab = &*( *slab_cache->pool_list.pop( ) );
         std::allocator_traits< decltype( color_map_allocator ) >::deallocate( color_map_allocator, slab->color_map, slab->color_length / sizeof( uint64_t ) );
         std::allocator_traits< decltype( page_allocater ) >::deallocate( page_allocater, slab->page, 1 );
         std::allocator_traits< decltype( slab_allocator ) >::deallocate( slab_allocator, slab, 1 );

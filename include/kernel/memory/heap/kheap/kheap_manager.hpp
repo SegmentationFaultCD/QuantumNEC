@@ -73,6 +73,6 @@ public:
 
 public:
     explicit KHeapManager( void ) noexcept;
-    virtual ~KHeapManager( void ) noexcept = default;
+    ~KHeapManager( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel

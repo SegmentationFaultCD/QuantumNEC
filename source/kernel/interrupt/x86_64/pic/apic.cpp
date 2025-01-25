@@ -3,7 +3,6 @@
 #include <kernel/interrupt/x86_64/pic/apic.hpp>
 #include <kernel/print.hpp>
 #include <lib/mmio.hpp>
-#include <lib/spin_lock.hpp>
 namespace QuantumNEC::Kernel::x86_64 {
 using namespace std;
 auto Apic::enable_xapic( void ) -> void {

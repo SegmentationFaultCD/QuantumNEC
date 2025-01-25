@@ -1,7 +1,6 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/interrupt/x86_64/pit/8254.hpp>
 #include <kernel/print.hpp>
-#include <lib/spin_lock.hpp>
 namespace QuantumNEC::Kernel::x86_64 {
 using namespace std;
 P8254::P8254( void ) noexcept {

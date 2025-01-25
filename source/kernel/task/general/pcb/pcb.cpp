@@ -11,6 +11,7 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_e
     memory_manager { } {     // 内核栈处理
 
     this->kernel_stack_base = (uint64_t)std::allocator_traits< decltype( kernel_stack_allocator ) >::allocate( kernel_stack_allocator, 1 );
+
     this->kernel_stack_size = TASK_KERNEL_STACK_SIZE;
     // 设置内核栈
     auto kernel_stack = this->kernel_stack_base + this->kernel_stack_size;
@@ -18,6 +19,7 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_e
     this->context.pcontext = reinterpret_cast< __context__::__process__ * >( physical_to_virtual( kernel_stack ) );
     // 设置用户栈
     this->user_stack_base = (uint64_t)std::allocator_traits< decltype( user_stack_allocator ) >::allocate( user_stack_allocator, TASK_USER_STACK_SIZE / PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );     // 用户栈8M大小
+
     this->user_stack_size = TASK_USER_STACK_SIZE;
 
     if ( _flags_.task_type != __flags__::__type__::THREAD ) {
@@ -64,12 +66,13 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_e
     std::strncpy( this->name, _name_, TASK_NAME_SIZE );
 
     // 时间片越多优先级越高
-    this->schedule.priority                    = _priority_;
-    this->schedule.general_task_node.container = this;
+    this->schedule.priority          = _priority_;
+    this->schedule.general_task_node = *this;
     // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
     this->flags                     = _flags_;
-    this->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( this->schedule.priority );
-    this->schedule.jiffies          = SchedulerHelper::rr_interval;
+    this->schedule.jiffies          = SchedulerHelper::make_jiffies( this->schedule.priority );
+    this->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( this->schedule.priority, this->schedule.jiffies );
+
     // 当前cpu的id
     this->schedule.cpu_id = Interrupt::cpu_id( );
     // 魔术字节

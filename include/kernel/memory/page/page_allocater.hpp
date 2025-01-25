@@ -56,7 +56,7 @@ public:
             constexpr static auto page_information_block_size { 256 };
 
         public:
-            constexpr static auto page_descriptor_count { 1024 };     // 一个bitmap所有bit
+            constexpr static auto page_descriptor_count { 512 };     // 一个bitmap所有bit
 
             struct __page_information__;
 

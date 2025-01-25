@@ -31,7 +31,7 @@ auto SlabCreater::create( uint64_t size, IN FuncPtr< void *, void *, uint64_t > 
     }
 
     slab_cache->pool_list.append( slab_cache->cache_pool->list );
-    slab_cache->cache_pool->list.container = slab_cache->cache_pool;
+    slab_cache->cache_pool->list = *slab_cache->cache_pool;
 
     slab_cache->cache_dma_pool   = NULL;
     slab_cache->cache_pool->page = std::allocator_traits< decltype( page_allocater ) >::allocate( page_allocater, 1 );

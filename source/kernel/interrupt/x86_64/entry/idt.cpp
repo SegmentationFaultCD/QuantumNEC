@@ -1,7 +1,6 @@
 #include <kernel/cpu/cpu.hpp>
 #include <kernel/interrupt/x86_64/entry/idt.hpp>
 #include <kernel/print.hpp>
-#include <lib/spin_lock.hpp>
 #include <libcxx/cstring.hpp>
 using namespace QuantumNEC::Kernel::x86_64;
 using namespace std;

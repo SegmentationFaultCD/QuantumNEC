@@ -10,20 +10,22 @@
 namespace QuantumNEC::Kernel {
 
 class Memory :
-    public PageManager,
-    public KHeapManager,
 #if defined( __x86_64__ )
-    public x86_64::Memory
+    public x86_64::Memory,
 #elif defined( __aarch64__ )
 #endif
-{
+    public PageManager,
+    public KHeapManager {
 public:
     explicit Memory( void ) noexcept :
+#if defined( __x86_64__ )
+        x86_64::Memory { },
+#elif defined( __aarch64__ )
+#endif
         PageManager { },
-        KHeapManager { },
-        x86_64::Memory { } {
+        KHeapManager { } {
     }
 
-    virtual ~Memory( void ) noexcept = default;
+    ~Memory( void ) noexcept = default;
 };     // namespace QuantumNEC::Kernel
 }     // namespace QuantumNEC::Kernel
