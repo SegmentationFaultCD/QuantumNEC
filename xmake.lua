@@ -11,6 +11,7 @@ set_optimize("none")
 
 set_languages("c23", "c++26") 
 target("c")
+    add_toolchains("gcc")
     add_cxxflags(
             "-fno-builtin", -- 不要内建函数
             "-mcmodel=large", -- 大内存模式
@@ -40,6 +41,7 @@ target("c")
         print("静态库<libc>编译完成，在"..run_dir)
     end)
 target("cxx")
+    add_toolchains("gcc")
     add_deps("c")
     add_cxxflags(
             "-fno-builtin", -- 不要内建函数
@@ -71,7 +73,36 @@ target("cxx")
         os.cp(""..run_dir.."/libcxx.a", "./library/")
         print("静态库<libcxx>编译完成，在"..run_dir)
     end)
+
+target("os-terminal")
+    set_kind("phony")
+    -- add_toolchains("rustup", "cbindgen")
+    before_build(function (target) 
+        print("开始编译静态库<libos-terminal>")
+        print("注意：此静态库为外部提供")
+        end)
+    on_build(function (target)
+        os.cd("source/libos-terminal")
+        os.exec("rm -rf libos_terminal-x86_64.a")
+        os.exec("rustup target add x86_64-unknown-none")
+        os.exec("cargo install cbindgen")
+        os.exec("rustup component add rust-src")
+        os.exec("cargo build --release")
+        os.exec("mv target/x86_64-unknown-none/release/libos_terminal.a libos_terminal-x86_64.a")
+        -- os.exec("cbindgen --output os_terminal.h")
+        os.cd("../..")
+        end)
+    after_build(function (target)
+        local inch_path = "include/libos-terminal"
+        local souh_path = "source/libos-terminal"
+        local lib_path = "library"
+        os.cp("source/libos-terminal/os_terminal.h", inch_path.."/")
+        os.cp("source/libos-terminal/libos_terminal-x86_64.a", lib_path.."/")
+        print("静态库<libos-terminal>编译完成")
+    end) 
+
 target("servicer.elf")
+    add_toolchains("gcc")
     add_deps("c", "cxx")
     add_cxxflags(
             "-fno-builtin", -- 不要内建函数
@@ -116,102 +147,10 @@ target("servicer.elf")
         run_dir = target:rundir()
         print("模块文件servicer.elf编译完成，在"..run_dir)
     end)
-target("test02.elf")
-    add_deps("c", "cxx")
-    add_cxxflags(
-            "-fno-builtin", -- 不要内建函数
-            "-mcmodel=large", -- 大内存模式
-            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
-            "-fno-stack-protector", -- 不要栈保护
-            "-nostdlib", -- 不要标准库
-            "-nostartfiles", -- 不要默认启动文件
-            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
-            "-fno-common", -- 共享全局变量
-            "-fno-rtti", -- 不要运行时类型信息鉴别
-            "-fno-exceptions", -- 不需要异常
-            "-mno-red-zone", -- 禁用红色区域
-            "-fno-stack-check", -- 不要栈检查
-            "-Wall", 
-            "-Wextra",
-            "-Werror",
-            "-static",
-            "-fPIE", {force = true}
-    )
-    set_kind("binary") 
-    add_files("source/modules/service/test02.cpp")
-    add_linkdirs("library")
-    add_links("c", "cxx")
-    add_ldflags("-ffreestanding")
-    before_build(function (target) 
-        print("开始编译模块文件test02.elf")
-        end)
-    on_link(function (target)
-        local object_dir = target:objectdir()
-        local run_dir = target:rundir()
-        local ldfiles = ""
-        for key,val in pairs(target:objectfiles()) do 
-            ldfiles = ldfiles..val.." "
-        end
-        local ldflags = "-L./library -e __libc_start_main"
-        local libs = "-lcxx -lc"
-        os.exec("ld "..ldflags.." -o "..run_dir.."/test02.elf "..ldfiles.." "..libs)
-        os.cp(run_dir.."/test02.elf", "vm/QuantumNEC/SYSTEM64/")
-    end)
-    after_build(function (target) 
-        run_dir = target:rundir()
-        print("模块文件test02.elf编译完成，在"..run_dir)
-    end)
-  target("test03.elf")
-    add_deps("c", "cxx")
-    add_cxxflags(
-            "-fno-builtin", -- 不要内建函数
-            "-mcmodel=large", -- 大内存模式
-            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
-            "-fno-stack-protector", -- 不要栈保护
-            "-nostdlib", -- 不要标准库
-            "-nostartfiles", -- 不要默认启动文件
-            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
-            "-fno-common", -- 共享全局变量
-            "-fno-rtti", -- 不要运行时类型信息鉴别
-            "-fno-exceptions", -- 不需要异常
-            "-mno-red-zone", -- 禁用红色区域
-            "-fno-stack-check", -- 不要栈检查
-            "-Wall", 
-            "-Wextra",
-            "-Werror",
-            "-static",
-            "-fPIE", {force = true}
-    )
-    set_kind("binary") 
-    add_files("source/modules/service/test03.cpp")
-    add_linkdirs("library")
-    add_links("c", "cxx")
-    add_ldflags("-ffreestanding")
-    before_build(function (target) 
-        print("开始编译模块文件test03.elf")
-        end)
-    on_link(function (target)
-        local object_dir = target:objectdir()
-        local run_dir = target:rundir()
-        local ldfiles = ""
-        for key,val in pairs(target:objectfiles()) do 
-            ldfiles = ldfiles..val.." "
-        end
-        local ldflags = "-L./library -e __libc_start_main"
-        local libs = "-lcxx -lc"
-        os.exec("ld "..ldflags.." -o "..run_dir.."/test03.elf "..ldfiles.." "..libs)
-        os.cp(run_dir.."/test03.elf", "vm/QuantumNEC/SYSTEM64/")
-    end)
-    after_build(function (target) 
-        run_dir = target:rundir()
-        print("模块文件test03.elf编译完成，在"..run_dir)
-    end)
- 
-
 
 target("micro_kernel")
-    add_deps("c", "cxx", "test02.elf","test03.elf", "servicer.elf") 
-
+    add_toolchains("gcc")
+    add_deps("c", "cxx", "servicer.elf", "os-terminal") 
     set_kind("binary")
     add_cxxflags(
             "-fno-builtin", -- 不要内建函数
@@ -227,6 +166,10 @@ target("micro_kernel")
             "-mno-red-zone", -- 禁用红色区域
             "-fno-stack-check", -- 不要栈检查
             "-Wall", 
+            "-mno-mmx",
+            "-mno-sse",
+            "-mno-sse2",
+            "-mno-80387",
             "-Wextra",
             -- "-Werror",
             "-D APIC",
@@ -244,7 +187,7 @@ target("micro_kernel")
     )
  
     add_linkdirs("library")
-    add_links("sys", "cxx", "c")
+    add_links("cxx", "c")
 
     add_files(
         "source/boot/*.cpp",
@@ -274,7 +217,7 @@ target("micro_kernel")
             ldfiles = ldfiles..val.." "
         end
         local ldflags = "-L./library"
-        local libs = "-lsys -lcxx -lc -los_terminal"
+        local libs = "-lcxx -lc -los_terminal-x86_64"
         local lds = "scripts/linker/x86_64linker.lds"
         os.exec("ld "..ldflags.." -o "..run_dir.."/micro_kernel.elf "..ldfiles.." "..libs.." -T "..lds)
         os.cp(run_dir.."/micro_kernel.elf", "vm/QuantumNEC/")
@@ -283,9 +226,8 @@ target("micro_kernel")
         run_dir = target:rundir()
         print("编译内核完成")
     end)
-target("run")
+target("run") 
     set_kind("phony")
-    add_deps("micro_kernel")
     set_default(true)
     on_build(function (target)
         local qemu_flags =  "-enable-kvm \
@@ -305,7 +247,7 @@ target("run")
                              -name QuantumNEC \
                              -boot order=dc \
                              -net none \
-                             -rtc base=localtime"
+                             -rtc base=localtime "
                       -- -nographic"-- -d in_asm"    --   
         os.exec("qemu-system-x86_64 "..qemu_flags)
     end)

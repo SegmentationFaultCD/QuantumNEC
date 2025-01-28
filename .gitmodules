@@ -1,3 +1,6 @@
 [submodule "source/boot/limine"]
 	path = source/boot/limine
-	url = https://github.com/limine-bootloader/limine
+	url = git@github.com:limine-bootloader/limine.git
+[submodule "source/libos-terminal"]
+	path = source/libos-terminal
+	url = git@github.com:plos-clan/libos-terminal.git
