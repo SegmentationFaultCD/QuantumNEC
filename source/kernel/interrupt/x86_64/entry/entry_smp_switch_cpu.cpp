@@ -16,17 +16,16 @@ auto SymmetricMultiprocessingSwitchCPUEntry::error_code( [[maybe_unused]] uint64
 auto SymmetricMultiprocessingSwitchCPUEntry::handler( Frame *frame ) noexcept -> Frame * {
     Lib::spinlock lock;
     Apic::eoi( frame->vector );
-    lock.acquire( );
+
     if ( PCB::get_running_task( )->flags.task_type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
+        lock.acquire( );
         PCB::get_running_task( )->context.pcontext = (PCB::__context__::__process__ *)frame;
+        lock.release( );
     }
     if ( auto result = Scheduler { }.schedule( ); result.has_value( ) ) {
-        auto context = result.value( )->general_task_node->context.pcontext;
-        lock.release( );
-        return context;
+        return result.value( )->general_task_node->context.pcontext;
     }
     else {
-        lock.release( );
         return frame;
     }
 }

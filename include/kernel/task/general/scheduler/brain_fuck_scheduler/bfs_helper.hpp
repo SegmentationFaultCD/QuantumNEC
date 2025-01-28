@@ -163,9 +163,6 @@ public:
         return Interrupt::global_jiffies + prio_ratios[ priority ] * jiffies;
     }
     static auto make_jiffies( [[maybe_unused]] uint64_t priority ) {
-        /**
-         * virtual deadline计算方法： virtual deadline = niffies(当前时间，也就是global_jiffies) + prio_ratios[priority] * [rr_interval * count](jiffies)
-         */
         return rr_interval;
     }
 };

@@ -71,8 +71,5 @@ auto Process::join( void ) noexcept -> void {
         this->has_inserted = true;
     }
     pcb_view | scheduler_wakeuper { brain_fuck_scheduler_wake_up };
-    std::println( "{:x}", (void *)this->pcb->schedule.cpu_id );
-    std::println( "{:x}", (void *)this->pcb->schedule.jiffies );
-    std::println( "{:x}", (void *)this->pcb->schedule.virtual_deadline );
 }
 }     // namespace QuantumNEC::Kernel

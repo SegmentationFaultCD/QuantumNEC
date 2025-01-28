@@ -50,7 +50,7 @@ public:
     virtual ~pmlxt( void ) noexcept;
 
 private:
-    bool can_allocate = false;
+    bool can_allocate;
 
 public:
     virtual auto flags_p( IN uint64_t index ) -> uint64_t                                            = 0;
@@ -108,9 +108,23 @@ public:
     };
 
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void = 0;
-    virtual auto operator=( IN uint64_t table_address ) -> void                                           = 0;
     virtual auto get_address_index_in( IN void *virtual_address ) -> uint64_t                             = 0;
-    virtual auto get_table( void ) -> uint64_t                                                          * = 0;
+    virtual auto get_table( void ) -> uint64_t *                                                          = 0;
+
+public:
+    auto operator=( IN uint64_t table_address ) -> void {
+        this->pmlx_table   = (uint64_t *)table_address;
+        this->can_allocate = false;
+    }
+
+protected:
+    auto operator=( IN auto entry ) -> pmlxt &
+        requires std::is_pointer_v< decltype( entry ) >
+    {
+        this->pmlx_table   = (uint64_t *)entry;
+        this->can_allocate = false;
+        return *this;
+    }
 
 protected:
     uint64_t *pmlx_table;
@@ -144,7 +158,7 @@ public:
      * @brief 激活页表
      * @param pmlx_t 页表地址
      */
-    auto activate( ) -> void;
+    auto activate( void ) -> void;
     /**
      * @brief 根据页表和虚拟地址找出物理地址
      * @param virtual_address 虚拟地址
@@ -219,7 +233,7 @@ public:
     virtual auto flags_xd( IN uint64_t index ) -> uint64_t override {
         return ( (page_table_entry *)this->pmlx_table )[ index ].xd;
     }
-    virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType _mode ) -> uint64_t override {
+    virtual auto flags_base( IN uint64_t index, IN [[maybe_unused]] MemoryPageType mode ) -> uint64_t override {
         return ( (page_table_entry *)this->pmlx_table )[ index ].base << this->PAGE_SHIFT;
     }
     virtual auto flags_ps_pat( IN uint64_t index ) -> uint64_t override {
@@ -246,7 +260,7 @@ public:
     virtual auto set_xd( IN uint64_t index, IN bool bit ) -> void override {
         ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
-    virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
+    virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType mode ) -> void override {
         ( (page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_SHIFT;
     }
     virtual auto set_ps_pat( IN uint64_t index, IN bool bit ) -> void override {
@@ -264,28 +278,17 @@ public:
         this->set_base( index, base, _mode );
         this->set_ps_pat( index, 0 );
     }
-    virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_table = (uint64_t *)table_address;
+    auto operator=( IN pml1t_entry *entry ) -> pml1t & {
+        this->pmlxt::operator=( entry );
+        return *this;
     }
+
     virtual auto get_table( void ) -> uint64_t * override {
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_SHIFT ) & 0x1ff );
     }
-
-    auto operator=( IN pml1t &&pml1 ) -> pml1t & {
-        this->pmlx_table = pml1.pmlx_table;
-        return *this;
-    };
-    auto operator=( IN pml1t *pml1 ) -> pml1t & {
-        this->pmlx_table = pml1->pmlx_table;
-        return *this;
-    };
-    auto operator=( IN page_table_entry *entry ) -> pml1t & {
-        this->pmlx_table = (uint64_t *)entry;
-        return *this;
-    };
 };
 class pml2t : public pmlxt {
     friend pmlxt;
@@ -414,8 +417,8 @@ public:
         ( (page_table_entry *)this->pmlx_table )[ index ].xd = bit;
     }
 
-    virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType _mode ) -> void override {
-        if ( _mode == MemoryPageType::PAGE_2M ) {
+    virtual auto set_base( IN uint64_t index, IN uint64_t address, IN [[maybe_unused]] MemoryPageType mode ) -> void override {
+        if ( mode == MemoryPageType::PAGE_2M ) {
             ( (huge_page_table_entry *)this->pmlx_table )[ index ].base = address >> PAGE_HUGE_SHIFT;
         }
         else {
@@ -438,20 +441,15 @@ public:
         this->set_base( index, base, _mode );
         this->set_ps_pat( index, !!( flags & PAGE_PS ) );
     }
-    virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_table = (uint64_t *)table_address;
+    auto operator=( IN pml2t_entry *entry ) -> pml2t & {
+        this->pmlxt::operator=( entry );
+        return *this;
     }
-
     virtual auto get_table( void ) -> uint64_t * override {
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
-    }
-
-    auto operator=( IN page_table_entry *entry ) -> pml2t & {
-        this->pmlx_table = (uint64_t *)entry;
-        return *this;
     }
 };
 class pml3t : public pmlxt {
@@ -592,7 +590,7 @@ public:
         }
     }
     virtual auto operator=( IN std::tuple< uint64_t, uint64_t, uint64_t, MemoryPageType > group ) -> void override {
-        auto &[ index, base, flags, _mode ] = group;
+        auto &[ index, base, flags, mode ] = group;
         this->set_p( index, !!( flags & PAGE_PRESENT ) );
         this->set_rw( index, !!( flags & PAGE_RW_W ) );
         this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -600,23 +598,18 @@ public:
         this->set_pcd( index, !!( flags & PAGE_PCD ) );
         this->set_a( index, !!( flags & PAGE_ACCESSED ) );
         this->set_xd( index, !!( flags & PAGE_XD ) );
-        this->set_base( index, base, _mode );
+        this->set_base( index, base, mode );
         this->set_ps_pat( index, !!( flags & PAGE_PS ) );
     }
-    virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_table = (uint64_t *)table_address;
+    auto operator=( IN pml3t_entry *entry ) -> pml3t & {
+        this->pmlxt::operator=( entry );
+        return *this;
     }
-
     virtual auto get_table( void ) -> uint64_t * override {
         return this->pmlx_table;
     }
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
-    }
-
-    auto operator=( IN page_table_entry *entry ) -> pml3t & {
-        this->pmlx_table = (uint64_t *)entry;
-        return *this;
     }
 };
 class pml4t : public pmlxt {
@@ -725,11 +718,9 @@ public:
         this->set_base( index, base, _mode );
         this->set_ps_pat( index, !!( flags & PAGE_PAT ) );
     }
-    virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_table = (uint64_t *)table_address;
-    }
-    virtual auto operator=( IN pml4t &pml4_t ) -> void {
-        this->pmlx_table = (uint64_t *)pml4_t.pmlx_table;
+    auto operator=( IN pml4t_entry *entry ) -> pml4t & {
+        this->pmlxt::operator=( entry );
+        return *this;
     }
     virtual auto get_table( void ) -> uint64_t * override {
         return this->pmlx_table;
@@ -737,19 +728,6 @@ public:
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
     }
-
-    auto operator=( IN pml4t &&pml4 ) -> pml4t & {
-        this->pmlx_table = pml4.pmlx_table;
-        return *this;
-    };
-    auto operator=( IN const pml4t *pml4 ) -> pml4t & {
-        this->pmlx_table = pml4->pmlx_table;
-        return *this;
-    };
-    auto operator=( IN page_table_entry *entry ) -> pml4t & {
-        this->pmlx_table = (uint64_t *)entry;
-        return *this;
-    };
 };
 class pml5t : public pmlxt {
     friend pmlxt;
@@ -857,9 +835,6 @@ public:
         this->set_base( index, base, _mode );
         this->set_ps_pat( index, !!( flags & PAGE_PAT ) );
     }
-    virtual auto operator=( IN uint64_t table_address ) -> void override {
-        this->pmlx_table = (uint64_t *)table_address;
-    }
 
     virtual auto get_table( void ) -> uint64_t * override {
         return this->pmlx_table;
@@ -867,19 +842,10 @@ public:
     virtual auto get_address_index_in( IN void *address ) -> uint64_t override {
         return ( ( (uint64_t)address >> PAGE_HUGE_SHIFT ) & 0x1ff );
     }
-
-    auto operator=( IN pml5t &&pml5 ) -> pml5t & {
-        this->pmlx_table = pml5.pmlx_table;
+    auto operator=( IN pml5t_entry *entry ) -> pml5t & {
+        this->pmlxt::operator=( entry );
         return *this;
-    };
-    auto operator=( IN const pml5t *pml5 ) -> pml5t & {
-        this->pmlx_table = pml5->pmlx_table;
-        return *this;
-    };
-    auto operator=( IN page_table_entry *entry ) -> pml5t & {
-        this->pmlx_table = (uint64_t *)entry;
-        return *this;
-    };
+    }
 };
 
 class Paging {

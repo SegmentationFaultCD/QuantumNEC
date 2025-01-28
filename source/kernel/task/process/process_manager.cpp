@@ -43,7 +43,7 @@ auto ProcessManager::main_process_install( uint64_t core ) -> PCB * {
     pcb->schedule.signal = 0;
     pcb->PPID            = 0;
 
-    pcb->memory_manager.page_table = (uint64_t)x86_64::Paging::kernel_page_table->get_table( );
+    pcb->memory_manager.page_table = (decltype( pcb->memory_manager.page_table )::page_table_entry *)x86_64::Paging::kernel_page_table->get_table( );
     KHeapAllocator< FloatPointUnit::FpuFrame > fpu_frame_allocater;
 
     pcb->fpu_frame = std::allocator_traits< decltype( fpu_frame_allocater ) >::allocate( fpu_frame_allocater, 1 );

@@ -139,7 +139,7 @@ private:
     }
     // 任务唤醒
     auto __wake_up__( Schedule &schedule ) -> Schedule * {
-        // helper::global_lock.acquire( );
+        helper::global_lock.acquire( );
         // 遍历运行队列查找是否可以抢占VD大于插入任务的CPU
         for ( auto &running_pcb : helper::running_queue ) {
             if ( running_pcb.schedule.virtual_deadline > schedule.virtual_deadline ) {
@@ -164,7 +164,7 @@ private:
 
                 schedule.cpu_id = running_pcb.schedule.cpu_id;
                 schedule.state  = Schedule::State::RUNNING;
-                // helper::global_lock.release( );
+                helper::global_lock.release( );
 
                 // CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
 
@@ -173,7 +173,7 @@ private:
         }
 
         // the virtual deadline is too big, none of running tasks can be respaced.
-        // helper::global_lock.release( );
+        helper::global_lock.release( );
 
         return &schedule;
     }
@@ -183,6 +183,7 @@ private:
     }
     // 任务调度
     auto __schedule__( void ) -> std::expected< Schedule *, ErrorCode > {
+        helper::global_lock.acquire( );
         for ( auto cpu_id = Interrupt::cpu_id( ); auto &pcb : helper::running_queue ) {
             if ( cpu_id == pcb.schedule.cpu_id ) {
                 if ( pcb.schedule.jiffies ) {
@@ -191,14 +192,15 @@ private:
                         pcb.activate( );
                     }
                     pcb.schedule.jiffies--;
+                    helper::global_lock.release( );
                     return &pcb.schedule;
                 }
                 else {
                     // 时间片耗尽
                     auto result = this->__pick_next__( );
                     if ( result.has_value( ) ) {
-                        auto new_pcb = result.value( );
-                        helper::task_queue[ new_pcb->priority ].remove( new_pcb->general_task_node );
+                        auto replaced_pcb = result.value( );
+                        helper::task_queue[ replaced_pcb->priority ].remove( replaced_pcb->general_task_node );
                         helper::running_queue.remove( pcb.schedule.general_task_node );
                         helper::task_queue[ pcb.schedule.priority ].append( pcb.schedule.general_task_node );
                         helper::bitmap[ pcb.schedule.priority ] = true;
@@ -207,14 +209,17 @@ private:
                         // 重新计算VD，填充时间片
                         pcb.schedule.jiffies          = helper::make_jiffies( pcb.schedule.priority );
                         pcb.schedule.virtual_deadline = helper::make_virtual_deadline( pcb.schedule.priority, pcb.schedule.jiffies );
-                        new_pcb->state                = Schedule::State::RUNNING;
-                        new_pcb->cpu_id               = pcb.schedule.cpu_id;
-                        if ( helper::task_queue[ new_pcb->priority ].is_empty( ) ) {
-                            helper::bitmap[ new_pcb->priority ] = false;
+                        replaced_pcb->state           = Schedule::State::RUNNING;
+                        replaced_pcb->cpu_id          = pcb.schedule.cpu_id;
+
+                        if ( helper::task_queue[ replaced_pcb->priority ].is_empty( ) ) {
+                            helper::bitmap[ replaced_pcb->priority ] = false;
                         }
-                        helper::running_queue.append( new_pcb->general_task_node );
-                        new_pcb->general_task_node->activate( );
-                        return new_pcb;
+                        helper::running_queue.append( replaced_pcb->general_task_node );
+
+                        replaced_pcb->general_task_node->activate( );
+                        helper::global_lock.release( );
+                        return replaced_pcb;
                     }
                 }
             }
@@ -236,7 +241,7 @@ private:
                 // }
             }
         }
-        // helper::global_lock.release( );
+        helper::global_lock.release( );
         return std::unexpected { ErrorCode::NO_TASK_CAN_SCHEDULER };
     }
     // Task remove

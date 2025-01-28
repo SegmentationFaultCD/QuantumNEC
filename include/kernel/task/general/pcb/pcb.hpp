@@ -130,7 +130,10 @@ public:
         // this->fpu_frame->load( );
 
         // activate the page table
-        this->memory_manager.page_table.activate( );
+        // this->memory_manager.page_table.activate( );
+        if ( this->memory_manager.page_table.get_table( ) ) {
+            CPU::set_page_table( (uint64_t *)virtual_to_physical( this->memory_manager.page_table.get_table( ) ) );
+        }
         // CPU::wrmsr( x86_64::IA32_USER_GS_BASE, (uint64_t)physical_to_virtual( this->kernel_stack_base ) );
     }
     /**
