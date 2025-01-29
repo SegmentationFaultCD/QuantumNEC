@@ -4,7 +4,7 @@ using namespace QuantumNEC;
 using namespace QuantumNEC::Lib;
 using namespace std;
 namespace QuantumNEC::Modules {
-auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleFileType type ) -> std::expected< FileInformation, void > {
+auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleFileType type ) -> std::expected< FileInformation, ErrorCode > {
     using enum ModuleFileType;
     switch ( type ) {
     case ELF: {
@@ -20,7 +20,7 @@ auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleF
             std::println< std::print_level::ERROR >( "File {} doesn't conform to elf formatted, cannot load.", file->path );
             break;
         }
-        return { };
+        return std::unexpected { ErrorCode::FORMAT_ERROR };
     }
     case BIN: {
         // Entire binary file
@@ -33,14 +33,14 @@ auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleF
         };
     }
     case PE: {
-        return { };
+        return std::unexpected { ErrorCode::FORMAT_ERROR };
     }
     default:
         break;
     }
-    return { };
+    return std::unexpected { ErrorCode::FORMAT_DOESNT_SUPPORT };
 }
-auto Modules::ModuleLoader::ModuleLoader::load( IN void *, IN ModuleFileType ) -> std::expected< FileInformation, void > {
+auto Modules::ModuleLoader::ModuleLoader::load( IN void *, IN ModuleFileType ) -> std::expected< FileInformation, ErrorCode > {
     // TODO :
     // 动态挂载
     return { };

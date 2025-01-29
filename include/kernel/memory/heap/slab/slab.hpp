@@ -1,7 +1,7 @@
 #pragma once
+#include <expected>
 #include <lib/Uefi.hpp>
 #include <lib/list.hpp>
-#include <libcxx/expected.hpp>
 namespace QuantumNEC::Kernel {
 struct Slab {
     Lib::ListTable< Slab >::ListNode list;

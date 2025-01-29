@@ -1,19 +1,27 @@
 #pragma once
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
 #include <lib/rbtree.hpp>
-
 namespace QuantumNEC::Kernel {
-
-class InterprocessCommunication {
+template < typename PCB >
+class InterprocessCommunicationMessages {
 public:
-    class message {
-    public:
-        explicit message( void ) noexcept;
+    explicit InterprocessCommunicationMessages( void ) noexcept;
+    ~InterprocessCommunicationMessages( void ) noexcept {
+    }
+    using result = uint64_t;
 
-    private:
-        //  Lib::RedBlackTree< message, uint64_t >::RedBlackTreeNode node;
-    };
+public:
+    auto send( std::copy_constructible auto &&...datas ) -> result {
+    }
 
 private:
-    // inline static Lib::RedBlackTree< message, uint64_t > task_tree;
+    // 作为user时使用
+    Lib::RedBlackTree< InterprocessCommunicationMessages, uint64_t >::RedBlackTreeNode message_node;
+
+    // 作为servicer时使用
+    Lib::RedBlackTree< InterprocessCommunicationMessages, uint64_t > messages_tree;
+
+    PCB *pcb;
 };
+
 }     // namespace QuantumNEC::Kernel

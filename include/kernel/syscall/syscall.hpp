@@ -1,14 +1,28 @@
 #pragma once
 #include <kernel/interrupt/interrupt.hpp>
+#include <kernel/task/process/process.hpp>
 #include <lib/Uefi.hpp>
 namespace QuantumNEC::Kernel {
-constexpr auto NR_SYS_CALL { 20 };
+constexpr auto NR_SERVICERS { 20 };
 class Syscall {
 public:
-    enum class Function : uint64_t {
-        SYSCALL_MESSAGE_SEND,
-        SYSCALL_MESSAGE_RECEIVE,
-        SYSCALL_MESSAGE_SEND_RECEIVE
+    enum class Servicer : uint64_t {
+        RESTART_SYSCALL,
+        EXIT,
+        FORK,
+
+        // FILE SYSTEM SERVICER
+        READ,
+        WRITE,
+        OPEN,
+        CLOSE,
+        // TASK SERVICER
+        WAITPID,
+        CREAT,
+        LINK,
+        UNLINK,
+        EXECVE,
+        CHDIR
     };
     enum class Status : uint64_t {
         ERROR,
@@ -26,7 +40,7 @@ public:
      * 前三个是属于消息处理的
      * 后面可以接着加上
      * 顺序就是枚举类SyscallFunction里的枚举类型顺序
-     * 调用约定：RAX->返回值，RAX->功能号（SyscallFunction），RDI、RSI、RDX、RCX、R8、R9（和linux差不多）
+     * 调用约定：RAX->返回值，RAX->功能号，RDI、RSI、RDX、RCX、R8、R9（和linux差不多）
      */
 
     using SyscallEntry = FuncPtr< Interrupt::InterruptFrame *, Interrupt::InterruptFrame * >;
@@ -39,7 +53,11 @@ public:
     static auto initializate( void ) noexcept -> void;
 
 public:
-    static auto set_syscall_table( IN uint64_t index, IN SyscallEntry entry ) -> void;
-    static auto get_syscall_table( void ) -> SyscallEntry *;
+    static auto load_servicer( std::uint64_t index, Process &&servicer ) -> void {
+        servicers[ index ] = std::move( servicer );
+    }
+
+private:
+    inline static Process servicers[ NR_SERVICERS ] { };
 };
 }     // namespace QuantumNEC::Kernel

@@ -1,6 +1,19 @@
 #pragma once
 #include <libcxx/cstring.hpp>
+#include <libcxx/memory.hpp>
+namespace std {
+template < class CharT >
+class char_traits;
+template <>
+class char_traits< char > {
+};
 
+template < typename _CharT,
+           typename _Traits = char_traits< _CharT >,
+           typename _Alloc  = allocator< _CharT > >
+class basic_string {
+};
+}     // namespace std
 // PUBLIC namespace QuantumNEC::Lib {
 //     template < typename _CharT,
 //                typename _Traits = char_t,

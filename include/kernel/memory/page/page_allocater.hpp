@@ -20,9 +20,16 @@ public:
     using size_type                              = size_t;
     using difference_type                        = std::ptrdiff_t;
     using propagate_on_container_move_assignment = std::true_type;
-    using self                                   = PageAllocator< __type__ >;
+    using value_type                             = void;
     using type                                   = void;
-    constexpr static MemoryPageType page_type    = __type__;
+    using pointer                                = void *;
+    using const_pointer                          = const void *;
+    template < class U >
+    struct rebind {
+        typedef PageAllocator< __type__ > other;
+    };
+    using self                                = PageAllocator< __type__ >;
+    constexpr static MemoryPageType page_type = __type__;
 
 public:
     constexpr static auto __page_size__ = ( [] consteval {

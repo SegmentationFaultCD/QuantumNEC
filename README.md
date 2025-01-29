@@ -27,10 +27,12 @@ First, Clone submodules by git. (There are many submodules, for instance, bootlo
 ```bash
 git submodule update --init
 ```
+
 Second，write a ___[limine.conf](./source/boot/limine.conf)___, enter __QuantumNEC__ directory and execute the order like this:<br>
 ```bash
 xmake -P .
 ```
+___Notice: Qemu will be launched right away after all source code files have been compiled and linked.___<br>
 After all of files are compiled completely，you will get a __vm__ directory under QuantumNEC directory.<br>
 - EFI
   - boot
@@ -46,7 +48,7 @@ After all of files are compiled completely，you will get a __vm__ directory und
  - You must install qemu before the step.
  - After installing qemu, you can execute the order to start.
 ```bash
-xmake run # 运行
+xmake -b run
 ```
 ## Running on the Physical machine
  - Format your U disk or Hard disk by fat32.

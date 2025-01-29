@@ -2,16 +2,18 @@
 #include <algorithm>
 #include <bit>
 #include <cstdint>
+#include <expected>
 #include <libcxx/cstring.hpp>
-#include <libcxx/expected.hpp>
 #include <utility>
 namespace std {
-enum class bitset_error_code {
-    ScopeStackoverflow,
-    NotFound
-};
+
 template < std::size_t N >
 class bitset {
+    enum class error_code {
+        ScopeStackoverflow,
+        NotFound
+    };
+
 public:
     class reference {
         friend bitset< N >;
@@ -210,7 +212,7 @@ public:
     }
 
     template < bool value >
-    auto find( std::size_t size = 1 ) -> std::expected< uint64_t, bitset_error_code > {
+    auto find( std::size_t size = 1 ) -> std::expected< uint64_t, error_code > {
         for ( uint64_t i = 0; i < this->length; ++i ) {
             for ( uint64_t j = 0; j < 64; ++j ) {
                 if ( !( this->bitmap[ i ] & ( 1ul << j ) ) ) {
@@ -247,7 +249,7 @@ public:
                 }
             }
         }
-        return std::unexpected { bitset_error_code::NotFound };
+        return std::unexpected { error_code::NotFound };
     }
     template < bool value >
     auto find_from_high( void ) -> uint64_t {
@@ -272,37 +274,6 @@ public:
             }
         }
 
-        // auto old_needed_length = needed_length;
-        // auto segment_count     = needed_length / 64;
-        // needed_length %= 64;
-        // if ( segment_count > 1 ) {
-        //     for ( auto i = this->length - 1; i > this->length - 1 - segment_count; --i ) {
-        //         if constexpr ( value ) {
-        //             if ( this->bitmap[ i ] != ~0ul ) {
-        //                 return std::unexpected { bitset_error_code::NotFound };
-        //             }
-        //         }
-        //         else {
-        //             if ( this->bitmap[ i ] != 0ul ) {
-        //                 return std::unexpected { bitset_error_code::NotFound };
-        //             }
-        //         }
-        //     }
-        // }
-        // if constexpr ( value ) {
-        //     if ( std::countl_one( this->bitmap[ this->length - 1 - segment_count ] ) >= needed_length ) {
-        //         uint64_t i = 63;
-        //         for ( ; --needed_length != 0; --i );
-        //         return ( this->length - 1 - segment_count ) * 64 + i;
-        //     }
-        // }
-        // else {
-        //     if ( std::countl_zero( this->bitmap[ this->length - 1 - segment_count ] ) >= needed_length ) {
-        //         uint64_t i = 63;
-        //         for ( ; --needed_length != 0; --i );
-        //         return ( this->length - 1 - segment_count ) * 64 + i;
-        //     }
-        // }
         return 0ul;
     }
     template < bool value >

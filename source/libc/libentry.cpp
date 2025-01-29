@@ -5,4 +5,7 @@ extern "C" auto _start( void ) -> void {
 }
 extern "C" auto __libc_start_main( void ) -> void {
     _start( );
+    // 后续处理
+    while ( true ) {
+    }
 }

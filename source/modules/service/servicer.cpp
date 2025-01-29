@@ -1,8 +1,6 @@
+#include "../include/lib/quantumnec.h"
 auto main( void ) -> int {
-    while ( true ) {
-        __asm__( "movq $0, %rax" );
-        __asm__( "movq $0x0b, %rdi" );
-        __asm__( "syscall" );
-    }
+    syscall( servicer::RESTART_SYSCALL, 0, 0, 0, 0, 0, 0 );
+
     return 0;
 }

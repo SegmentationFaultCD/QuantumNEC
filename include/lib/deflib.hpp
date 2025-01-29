@@ -1,5 +1,5 @@
 #pragma once
-#define attribute( x, ... ) __attribute__( ( x, ##__VA_ARGS__ ) )
+
 /**
  * @brief 强制变量在本地分配
  */

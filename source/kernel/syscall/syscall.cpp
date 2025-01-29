@@ -3,7 +3,6 @@
 #include <kernel/syscall/syscall.hpp>
 #include <libcxx/string.hpp>
 
-QuantumNEC::Kernel::Syscall::SyscallEntry syscall_table[ QuantumNEC::Kernel::NR_SYS_CALL ] { };
 namespace QuantumNEC::Kernel {
 using namespace Kernel;
 using namespace std;
@@ -27,10 +26,5 @@ auto Syscall::initializate( void ) noexcept -> void {
     CPU::wrmsr( x86_64::IA32_FMASK, x86_64::RFLAGS_IF_1 );
 #endif
 }
-auto Syscall::get_syscall_table( void ) -> SyscallEntry * {
-    return syscall_table;
-}
-auto Syscall::set_syscall_table( IN uint64_t index, SyscallEntry entry ) -> void {
-    syscall_table[ index ] = entry;
-}
+
 }     // namespace QuantumNEC::Kernel

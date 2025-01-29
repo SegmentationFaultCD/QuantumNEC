@@ -1,7 +1,6 @@
 #pragma once
 #include <lib/Uefi.hpp>
 #include <libcxx/bitset.hpp>
-#include <libcxx/expected.hpp>
 namespace QuantumNEC::Kernel {
 constexpr auto PID_COUNT { 1024ul };
 class PidPool {

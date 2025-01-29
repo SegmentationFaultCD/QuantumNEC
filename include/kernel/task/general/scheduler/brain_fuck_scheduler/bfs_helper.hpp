@@ -11,7 +11,7 @@ template < typename PCB >
 class BrainFuckSchedulerHelper {
     friend BrainFuckScheduler< PCB >;
 
-public:
+private:
     /**
      * 这个是CPU分配给每个任务的时间片，一个常数
      * 该值以毫秒为单位，默认值为 6ms。有效值为 1 至 1000。减小该值将减少延迟，但代价是降低吞吐量；增大
@@ -22,8 +22,6 @@ public:
      * 吞吐量，但超过这个间隔后，来自其他地方的调度噪声会阻碍吞吐量的进一步提高。
      */
     constexpr static auto rr_interval = 6;
-
-private:
     // 总优先级数量
     constexpr static auto total_priority = 103;
     // 每个优先级对应的prio_ratios

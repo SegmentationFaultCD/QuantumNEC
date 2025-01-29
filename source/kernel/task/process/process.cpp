@@ -63,13 +63,24 @@ Process::Process( Process &&process ) noexcept {
     this->pcb   = process.pcb;
     process.pcb = NULL;
 }
+auto Process::operator=( Process &&process ) noexcept -> Process & {
+    this->pcb   = process.pcb;
+    process.pcb = NULL;
+    return *this;
+}
+auto Process::detach( void ) noexcept -> void {
+    Scheduler scheduler;
+    auto      pcb_view = scheduler | this->pcb->schedule;
+    this->join( );
+    pcb_view | scheduler_wakeuper { brain_fuck_scheduler_wake_up };
+}
 auto Process::join( void ) noexcept -> void {
     Scheduler scheduler;
     auto      pcb_view = scheduler | this->pcb->schedule;
+
     if ( !this->has_inserted ) {
         pcb_view | scheduler_inserter { brain_fuck_scheduler_insert };
         this->has_inserted = true;
     }
-    pcb_view | scheduler_wakeuper { brain_fuck_scheduler_wake_up };
 }
 }     // namespace QuantumNEC::Kernel

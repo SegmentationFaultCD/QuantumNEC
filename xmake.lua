@@ -89,7 +89,7 @@ target("os-terminal")
         os.exec("rustup component add rust-src")
         os.exec("cargo build --release")
         os.exec("mv target/x86_64-unknown-none/release/libos_terminal.a libos_terminal-x86_64.a")
-        -- os.exec("cbindgen --output os_terminal.h")
+        os.exec("cbindgen --output os_terminal.h")
         os.cd("../..")
         end)
     after_build(function (target)
@@ -166,17 +166,17 @@ target("micro_kernel")
             "-mno-red-zone", -- 禁用红色区域
             "-fno-stack-check", -- 不要栈检查
             "-Wall", 
-            "-mno-mmx",
-            "-mno-sse",
-            "-mno-sse2",
-            "-mno-80387",
+            -- "-mno-mmx",
+            -- "-mno-sse",
+            -- "-mno-sse2",
+            -- "-mno-80387",
             "-Wextra",
-            -- "-Werror",
+            "-Werror",
             "-D APIC",
             "-fPIE",
             "-Wpointer-arith",
             "-Wno-missing-field-initializers",
-            "-Wwrite-strings",
+            "-Wwrite-strings", 
             -- "-Wcast-align",
             -- "-Wmissing-prototypes",
             -- "-Wmissing-declarations",
@@ -231,6 +231,7 @@ target("run")
     set_default(true)
     on_build(function (target)
         local qemu_flags =  "-enable-kvm \
+                            -cpu qemu64,+x2apic \
                              -drive if=pflash,format=raw,readonly=on,file=scripts/bios/x86_64efi.bios \
                              -drive file=fat:rw:vm,index=0,format=vvfat \
                              -m 4G \

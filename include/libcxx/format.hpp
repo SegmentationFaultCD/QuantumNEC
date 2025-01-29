@@ -1,6 +1,7 @@
 #pragma once
 #include <concepts>
 #include <libcxx/cstring.hpp>
+
 namespace std {
 inline int16_t number_format { };
 inline char    fmt_buffer[ 1024 * 64 ] { };

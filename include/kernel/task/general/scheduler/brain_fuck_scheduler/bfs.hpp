@@ -73,12 +73,12 @@ public:
 
 private:
     auto __insert__( Schedule &schedule ) -> Schedule * {
-        // helper::global_lock.acquire( );
+        helper::global_lock.acquire( );
         // 根据优先级插入任务等待队列队尾
         helper::task_queue[ schedule.priority ].append( schedule.general_task_node );
         helper::bitmap[ schedule.priority ] = true;
         schedule.state                      = Schedule::State::READY;
-        // helper::global_lock.release( );
+        helper::global_lock.release( );
         return &schedule;
     }
 
@@ -166,7 +166,7 @@ private:
                 schedule.state  = Schedule::State::RUNNING;
                 helper::global_lock.release( );
 
-                // CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
+                CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
 
                 return &schedule;
             }
@@ -197,8 +197,7 @@ private:
                 }
                 else {
                     // 时间片耗尽
-                    auto result = this->__pick_next__( );
-                    if ( result.has_value( ) ) {
+                    if ( auto result = this->__pick_next__( ); result.has_value( ) ) {
                         auto replaced_pcb = result.value( );
                         helper::task_queue[ replaced_pcb->priority ].remove( replaced_pcb->general_task_node );
                         helper::running_queue.remove( pcb.schedule.general_task_node );
@@ -223,23 +222,6 @@ private:
                     }
                 }
             }
-            else {
-                // The task has been removed.
-                // auto result = this->__pick_next__( );
-                // if ( result.has_value( ) ) {
-                //     auto replaced_pcb = result.value( );
-                //     helper::task_queue[ replaced_pcb->priority ].remove( replaced_pcb->general_task_node );
-                //     replaced_pcb->state  = Schedule::State::RUNNING;
-                //     replaced_pcb->cpu_id = pcb.schedule.cpu_id;
-                //     if ( helper::task_queue[ replaced_pcb->priority ].is_empty( ) ) {
-                //         helper::bitmap[ replaced_pcb->priority ] = false;
-                //     }
-                //     helper::running_queue.append( replaced_pcb->general_task_node );
-                //     replaced_pcb->general_task_node.container->activate( );
-                //     helper::global_lock.release( );
-                //     return replaced_pcb;
-                // }
-            }
         }
         helper::global_lock.release( );
         return std::unexpected { ErrorCode::NO_TASK_CAN_SCHEDULER };
@@ -247,13 +229,32 @@ private:
     // Task remove
     auto __remove__( Schedule &schedule ) -> void {
         if ( schedule.state == Schedule::State::RUNNING ) {
+            // remove the task from the running tas queue
             schedule.jiffies = 0;
+            helper::global_lock.acquire( );
             helper::running_queue.remove( schedule.general_task_node );
+            // pick up the suitable task
+            if ( auto result = this->__pick_next__( ); result.has_value( ) ) {
+                auto replaced_pcb = result.value( );
+                helper::task_queue[ replaced_pcb->priority ].remove( replaced_pcb->general_task_node );
+                replaced_pcb->state  = Schedule::State::RUNNING;
+                replaced_pcb->cpu_id = schedule.cpu_id;
+                helper::running_queue.append( replaced_pcb->general_task_node );
+                if ( helper::task_queue[ replaced_pcb->priority ].is_empty( ) ) {
+                    helper::bitmap[ replaced_pcb->priority ] = false;
+                }
+            }
+            helper::global_lock.release( );
             return;
         }
         else {
+            helper::global_lock.acquire( );
             // The task isn't running, we are sure that is is in task queue.
             helper::task_queue[ schedule.priority ].remove( schedule.general_task_node );
+            if ( helper::task_queue[ schedule.priority ].is_empty( ) ) {
+                helper::bitmap[ schedule.priority ] = false;
+            }
+            helper::global_lock.release( );
             return;
         }
     }

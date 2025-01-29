@@ -1,7 +1,7 @@
 #pragma once
 #include <concepts>
+#include <expected>
 #include <lib/Uefi.hpp>
-#include <libcxx/expected.hpp>
 namespace QuantumNEC::Kernel {
 class SchedulerInterface;
 

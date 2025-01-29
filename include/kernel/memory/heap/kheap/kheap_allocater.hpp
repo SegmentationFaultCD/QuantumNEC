@@ -19,7 +19,10 @@ public:
 
 public:
     auto allocate( size_type size ) -> T * {
-        size *= sizeof( T );
+        if constexpr ( !std::is_void_v< T > ) {
+            size *= sizeof( T );
+        }
+
         if ( size > 1_MB ) /* 允许的最大分配数是1MB */ {
             return NULL;
         }
