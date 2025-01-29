@@ -10,10 +10,6 @@ public:
     }
     using result = uint64_t;
 
-public:
-    auto send( std::copy_constructible auto &&...datas ) -> result {
-    }
-
 private:
     // 作为user时使用
     Lib::RedBlackTree< InterprocessCommunicationMessages, uint64_t >::RedBlackTreeNode message_node;

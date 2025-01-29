@@ -198,7 +198,8 @@ private:
         uint32_t shadow_stack : 1;
         uint32_t : 8;
         uint32_t software_guard_extensions : 1;
-        uint32_t : 16;
+        uint32_t : 15;
+        uint32_t RMP : 1;
         PFErrorCode( uint64_t error_code ) {
             *reinterpret_cast< uint64_t * >( this ) = error_code;
         }
@@ -278,8 +279,7 @@ private:
     }
 
 private:
-    struct CPErrorCode {
-    };
+    using CPErrorCode = uint64_t;
 };
 
 // 0x16-0x1B Reserved

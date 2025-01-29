@@ -55,6 +55,7 @@ public:
 public:
     static auto load_servicer( std::uint64_t index, Process &&servicer ) -> void {
         servicers[ index ] = std::move( servicer );
+        servicers[ index ].detach( );
     }
 
 private:

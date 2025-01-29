@@ -31,7 +31,7 @@ auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< FileInformation
     // allocate memory for relocating
     auto relocate_base { (uint64_t)physical_to_virtual( std::allocator_traits< decltype( allocater ) >::allocate( allocater, page_count ) ) };
     auto relocate_offset = relocate_base - low_address;
-    auto zero_start      = reinterpret_cast< uint64_t      *>( relocate_base );
+    auto zero_start      = reinterpret_cast< uint64_t * >( relocate_base );
     for ( uint64_t i { }; i < ( page_count << 9 ); i++ ) {
         *zero_start = 0x000000000000;
         zero_start++;

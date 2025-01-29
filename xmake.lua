@@ -31,7 +31,7 @@ target("c")
             "-fPIC", {force = true}
     )
     set_kind("static")
-    add_files("source/libc/*.cpp")
+    add_files("source/libc/*.cpp", "source/libc/*.S")
     before_build(function (target) 
         print("开始编译静态库<libc>")
         end)

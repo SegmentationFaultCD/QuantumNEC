@@ -206,6 +206,11 @@ auto PageFault::error_code( uint64_t error_code ) noexcept -> void {
     if ( perror_code.software_guard_extensions ) {
         std::println< print_level::ERROR >( "Page fault was due to an SGX violation" );
     }
+    if ( perror_code.RMP ) {
+        std::println< print_level::ERROR >( "Page fault was caused by an RMP violation." );
+    }
+    else {
+    }
 }
 auto PageFault::handler( Frame *frame ) noexcept -> Frame * {
     this->registers( frame );
@@ -276,6 +281,21 @@ auto ControlProtectionException::name( void ) noexcept -> void {
     std::println< print_level::ERROR >( "IRQ->0x15: #CP Control Protection Exception" );
 }
 auto ControlProtectionException::error_code( [[maybe_unused]] uint64_t error_code ) noexcept -> void {
+    CPErrorCode cerror_code = error_code;
+    switch ( cerror_code ) {
+    case 1:     // NERE-RET
+        std::println< print_level::ERROR >( "A RET (near) instruction encountered a return mismatch." );
+        break;
+    case 2:     // FAR-RET / IREQ
+        std::println< print_level::ERROR >( "A RET (far) or IRET instruction encountered a return mismatch." );
+        break;
+    case 3:     // RSTORSSP
+        std::println< print_level::ERROR >( "An RSTORSSP instruction encountered an invalid shadow stack restore token." );
+        break;
+    case 4:     // SETSSBSY
+        std::println< print_level::ERROR >( "An SETSSBSY instruction encountered an invalid supervisor shadow stack restore token." );
+        break;
+    }
 }
 auto ControlProtectionException::handler( Frame *frame ) noexcept -> Frame * {
     this->registers( frame );
