@@ -13,34 +13,34 @@ GlobalSegmentDescriptorTable::GlobalSegmentDescriptorTable( void ) noexcept {
     for ( auto &task_state_segment : this->gdt->tss ) {
         task_state_segment.set_io_map_base_address( static_cast< uint16_t >( sizeof( TaskStateSegmentDescriptor ) << 16 ) );
     }
-    for ( auto i = 0ul; auto &descriptor_groub : this->gdt->descriptor_table ) {
-        std::memset( descriptor_groub, 0, sizeof *descriptor_groub );
+    for ( auto i = 0ul; auto &descriptor_group : this->gdt->descriptor_table ) {
+        std::memset( descriptor_group, 0, sizeof *descriptor_group );
         /*0 NULL descriptor             0x00*/
-        descriptor_groub[ 0 ].make( 0, 0, 0 );
+        descriptor_group[ 0 ].make( 0, 0, 0 );
         /*1 KERNEL	Code 64-bit	Segment 0x08*/
-        descriptor_groub[ 1 ].make( 0, 0, AR_CODE64 );
+        descriptor_group[ 1 ].make( 0, 0, AR_CODE64 );
         /*2 KERNEL	Data 64-bit	Segment 0x10*/
-        descriptor_groub[ 2 ].make( 0, 0, AR_DATA64 );
+        descriptor_group[ 2 ].make( 0, 0, AR_DATA64 );
         /*3 USER	Code 32-bit	Segment 0x18*/
-        descriptor_groub[ 3 ].make( 0, 0xfffff, AR_CODE32_DPL3 );
+        descriptor_group[ 3 ].make( 0, 0xfffff, AR_CODE32_DPL3 );
         /*4 USER	Data 32-bit	Segment 0x20*/
-        descriptor_groub[ 4 ].make( 0, 0xfffff, AR_DATA32_DPL3 );
+        descriptor_group[ 4 ].make( 0, 0xfffff, AR_DATA32_DPL3 );
         /*5 USER	Data 64-bit	Segment 0x28*/
-        descriptor_groub[ 5 ].make( 0, 0, AR_DATA64_DPL3 );
+        descriptor_group[ 5 ].make( 0, 0, AR_DATA64_DPL3 );
         /*6 USER	Code 64-bit	Segment 0x30*/
-        descriptor_groub[ 6 ].make( 0, 0, AR_CODE64_DPL3 );
+        descriptor_group[ 6 ].make( 0, 0, AR_CODE64_DPL3 );
         /*7 KERNEL	Code 32-bit	Segment	0x38*/
-        descriptor_groub[ 7 ].make( 0, 0xfffff, AR_CODE32 );
+        descriptor_group[ 7 ].make( 0, 0xfffff, AR_CODE32 );
         /*8 KERNEL	Data 32-bit	Segment	0x40*/
-        descriptor_groub[ 8 ].make( 0, 0xfffff, AR_DATA32 );
+        descriptor_group[ 8 ].make( 0, 0xfffff, AR_DATA32 );
         /*9 NULL descriptor 0x48*/
-        descriptor_groub[ 9 ].make( 0, 0, 0 );
+        descriptor_group[ 9 ].make( 0, 0, 0 );
 
         auto tss_base_low  = ( reinterpret_cast< uint64_t >( &this->gdt->tss[ i ] ) ) & 0xffffffff;
         auto tss_base_high = ( reinterpret_cast< uint64_t >( &this->gdt->tss[ i++ ] ) >> 32 ) & 0xffffffff;
         /*10 ~ 11   TSS (10->low 11->high, jmp one segment <9>)                 64-bit          0x50*/
-        descriptor_groub[ 10 ].make( tss_base_low & 0xffffffff, sizeof( TaskStateSegmentDescriptor ) - 1, AR_TSS64 );
-        std::memcpy( &descriptor_groub[ 11 ], &tss_base_high, 8 );
+        descriptor_group[ 10 ].make( tss_base_low & 0xffffffff, sizeof( TaskStateSegmentDescriptor ) - 1, AR_TSS64 );
+        std::memcpy( &descriptor_group[ 11 ], &tss_base_high, 8 );
     }
 
     // 加载GDT
@@ -63,11 +63,8 @@ auto GlobalSegmentDescriptorTable::_GDT::load( IN uint64_t processor_id ) const 
         "LEAQ .next(%%RIP),%%RAX \n\t"
         "PUSHQ %%RAX \n\t"
         "LRETQ \n\r"
-        ".next: \n\t"
-        :
-        : [SELECTOR_CODE64] "i"( SELECTOR_CODE64_KERNEL ),
-          [SELECTOR_DATA64] "a"( SELECTOR_DATA64_KERNEL )
-        : );
+        ".next: \n\t" : : [SELECTOR_CODE64] "i"( SELECTOR_CODE64_KERNEL ),
+        [SELECTOR_DATA64] "a"( SELECTOR_DATA64_KERNEL ) : );
     return;
 }
 auto GlobalSegmentDescriptorTable::_GDT::read( IN uint64_t processor_id ) const -> GlobalSegmentDescriptor * {

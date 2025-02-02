@@ -26,10 +26,11 @@ auto Modules::ModuleLoader::ModuleLoader::load( IN limine_file *file, IN ModuleF
         // Entire binary file
         // The start address is the main function entry.
         return FileInformation {
-            .module_name      = file->path,
-            .size             = file->size,
-            .executable_start = (uint64_t)file->address,
-            .executable_end   = (uint64_t)file->address + file->size
+            .module_name       = file->path,
+            .size              = file->size,
+            .loadsegment_start = (uint64_t)file->address,
+            .loadsegment_end   = (uint64_t)file->address + file->size,
+            .entry_offset      = (uint64_t)0,
         };
     }
     case PE: {

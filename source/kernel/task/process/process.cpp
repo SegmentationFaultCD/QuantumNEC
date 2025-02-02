@@ -35,7 +35,7 @@ Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t p
                                                                            file.module_name,
                                                                            priority,
                                                                            flags,
-                                                                           physical_to_virtual( file.executable_start ),
+                                                                           physical_to_virtual( file.loadsegment_start + file.entry_offset ),
                                                                            0ul );
         }
         else {
@@ -44,14 +44,14 @@ Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t p
                                                                            file.module_name,
                                                                            priority,
                                                                            flags,
-                                                                           (void *)this->__user_process_text_segment_start__,
+                                                                           (void *)( this->__user_process_text_segment_start__ + file.entry_offset ),
                                                                            0ul );
 
             auto &upage_table = this->pcb->memory_manager.page_table;
             upage_table.map(
-                file.executable_start,
+                file.loadsegment_start,
                 this->__user_process_text_segment_start__,
-                Lib::DIV_ROUND_UP( file.executable_end - file.executable_start, PageAllocator< MemoryPageType::PAGE_4K >::__page_size__ ),
+                Lib::DIV_ROUND_UP( file.loadsegment_end - file.loadsegment_start, PageAllocator< MemoryPageType::PAGE_4K >::__page_size__ ),
                 upage_table.PAGE_PRESENT | upage_table.PAGE_RW_W | upage_table.PAGE_US_U,
                 MemoryPageType::PAGE_4K );
         }

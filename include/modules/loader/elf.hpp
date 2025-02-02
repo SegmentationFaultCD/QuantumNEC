@@ -181,8 +181,9 @@ public:
     struct FileInformation {
         const char *module_name;
         uint64_t    size;
-        uint64_t    executable_start;
-        uint64_t    executable_end;
+        uint64_t    loadsegment_start;
+        uint64_t    loadsegment_end;
+        uint64_t    entry_offset;     // entry = loadsegment_start + entry_offset
     };
 
 public:

@@ -119,9 +119,9 @@ return_from_isr:
     POP RAX
     MOV ES, RAX
     POP RAX
-    // MOV FS, RAX
+    MOV FS, RAX
     POP RAX
-    // MOV GS, RAX
+    MOV GS, RAX
     // ignore FS, GS
 
     POP RAX

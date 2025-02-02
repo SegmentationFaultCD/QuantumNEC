@@ -31,26 +31,22 @@ auto Elf::load_elf_file( IN uint64_t address ) -> std::expected< FileInformation
     // allocate memory for relocating
     auto relocate_base { (uint64_t)physical_to_virtual( std::allocator_traits< decltype( allocater ) >::allocate( allocater, page_count ) ) };
     auto relocate_offset = relocate_base - low_address;
-    auto zero_start      = reinterpret_cast< uint64_t * >( relocate_base );
+
+    auto zero_start = reinterpret_cast< uint64_t * >( relocate_base );
     for ( uint64_t i { }; i < ( page_count << 9 ); i++ ) {
         *zero_start = 0x000000000000;
         zero_start++;
     }
-    auto load_segment_size = 0ul;
     for ( uint64_t i { }; i < elf_header->e_PHeadCount; i++ ) {
         if ( P_header[ i ].p_type == ELF_PT_LOAD ) {
-            auto source_start { reinterpret_cast< uint8_t * >( address + P_header[ i ].p_offset ) };
-            auto dest_start { reinterpret_cast< uint8_t * >( P_header[ i ].p_vaddr + relocate_offset ) };
-            load_segment_size += P_header[ i ].p_filesz;
-            for ( uint64_t j { }; j < P_header[ i ].p_filesz; j++ ) {
-                *dest_start = *source_start;
-                ++source_start;
-                ++dest_start;
-            }
+            std::memcpy( (void *)( P_header[ i ].p_vaddr + relocate_offset ), (void *)( address + P_header[ i ].p_offset ), P_header[ i ].p_filesz );
         }
     }
-    file.executable_start = (uint64_t)virtual_to_physical( elf_header->e_Entry + relocate_offset );
-    file.executable_end   = file.executable_start + load_segment_size;
+
+    file.loadsegment_end   = (uint64_t)virtual_to_physical( high_address + relocate_offset );
+    file.loadsegment_start = (uint64_t)virtual_to_physical( low_address + relocate_offset );
+    file.entry_offset      = (uint64_t)virtual_to_physical( elf_header->e_Entry + relocate_offset - file.loadsegment_start );
+
     return file;
 }
 auto Elf::check_elf_magic( IN void *Ehdr ) -> bool {

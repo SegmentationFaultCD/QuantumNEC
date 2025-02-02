@@ -19,7 +19,7 @@ typedef enum {
     CHDIR
 } servicer;
 
-inline uint64_t syscall( servicer servicer_index, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6 ) {
+static inline uint64_t syscall_entry( servicer servicer_index, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6 ) {
     uint64_t state = 0;
     __asm__ __volatile__(
         "MOVQ %0, %%RAX\n\t"

@@ -138,7 +138,7 @@ target("servicer.elf")
         for key,val in pairs(target:objectfiles()) do 
             ldfiles = ldfiles..val.." "
         end
-        local ldflags = "-L./library -e __libc_start_main"
+        local ldflags = "-L./library -T ./source/libc/libclinker.lds"
         local libs = "-lcxx -lc"
         os.exec("ld "..ldflags.." -o "..run_dir.."/servicer.elf "..ldfiles.." "..libs)
         os.cp(run_dir.."/servicer.elf", "vm/QuantumNEC/SYSTEM64/")
