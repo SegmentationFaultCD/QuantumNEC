@@ -19,6 +19,8 @@ class BrainFuckSchedulerHelper;
 template < typename TaskControlBlock >
 class BrainFuckScheduler : public SchedulerInterface {
     friend BrainFuckSchedulerHelper< TaskControlBlock >;
+
+private:
     using helper = BrainFuckSchedulerHelper< TaskControlBlock >;
     using self   = BrainFuckScheduler< TaskControlBlock >;
 
@@ -43,21 +45,18 @@ public:
         } state;     // 任务状态
     };
 
-public:
     enum class ErrorCode {
         ALL_QUEUE_ARE_EMPTY,
         CAN_NOT_INSERT_TASK,
         NO_TASK_CAN_SCHEDULER
     };
 
-public:
     using view = std::pair< self &, Schedule & >;
 
     auto operator|( Schedule &schedule ) -> view {
         return { *this, schedule };
     }
 
-public:
     enum Priority {
         // 0 ~ 99 为实时任务
         ISO          = 100,     // 等时任务
