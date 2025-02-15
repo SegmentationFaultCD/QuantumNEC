@@ -3,8 +3,10 @@
 #include <kernel/task/process/process.hpp>
 #include <lib/Uefi.hpp>
 namespace QuantumNEC::Kernel {
-constexpr auto NR_SERVICERS { 20 };
+
 class Syscall {
+    constexpr static auto NR_SERVICERS { 20 };
+
 public:
     enum class Servicer : uint64_t {
         RESTART_SYSCALL,
@@ -53,9 +55,11 @@ public:
     static auto initializate( void ) noexcept -> void;
 
 public:
-    static auto load_servicer( std::uint64_t index, Process &&servicer ) -> void {
-        servicers[ index ] = std::move( servicer );
-        servicers[ index ].detach( );
+    static auto save_servicer( Servicer index, Process &&servicer ) -> void {
+        ( servicers[ std::to_underlying( index ) ] = std::move( servicer ) ).detach( );
+    }
+    static auto get_servicer( Servicer index ) -> const Process & {
+        return servicers[ std::to_underlying( index ) ];
     }
 
 private:

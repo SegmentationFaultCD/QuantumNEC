@@ -7,7 +7,7 @@ namespace QuantumNEC::Kernel {
 inline PageAllocator< MemoryPageType::PAGE_4K >   kernel_stack_allocator;
 inline PageAllocator< MemoryPageType::PAGE_2M >   user_stack_allocator;
 inline KHeapAllocator< FloatPointUnit::FpuFrame > fpu_frame_allocator;
-PCB::PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept :
+ProcessControlBlock::ProcessControlBlock( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept :
     memory_manager { } {     // 内核栈处理
 
     this->kernel_stack_base = (uint64_t)std::allocator_traits< decltype( kernel_stack_allocator ) >::allocate( kernel_stack_allocator, 1 );
@@ -78,7 +78,7 @@ PCB::PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_e
     // 魔术字节
     this->stack_magic = PCB_STACK_MAGIC;
 }
-auto PCB::__context__::__process__::make( IN void *_entry, IN uint64_t stack_top, IN __flags__::__type__ type ) -> bool {
+auto ProcessControlBlock::__context__::__process__::make( IN void *_entry, IN uint64_t stack_top, IN __flags__::__type__ type ) -> bool {
     this->rip = _entry;
     this->rsp = stack_top;
     if ( type == __flags__::__type__::KERNEL_PROCESS ) {
@@ -114,12 +114,12 @@ auto PCB::__context__::__process__::make( IN void *_entry, IN uint64_t stack_top
 
     return false;
 }
-PCB::~PCB( void ) noexcept {
+ProcessControlBlock::~ProcessControlBlock( void ) noexcept {
     std::allocator_traits< decltype( kernel_stack_allocator ) >::deallocate( kernel_stack_allocator, (void *)this->kernel_stack_base, 1 );
     std::allocator_traits< decltype( user_stack_allocator ) >::deallocate( user_stack_allocator, (void *)this->user_stack_base, TASK_USER_STACK_SIZE / PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ );
     std::allocator_traits< decltype( fpu_frame_allocator ) >::deallocate( fpu_frame_allocator, this->fpu_frame, 1 );
 }
-auto PCB::__context__::__thread__::make( void *, IN uint64_t ) -> bool {
+auto ProcessControlBlock::__context__::__thread__::make( void *, IN uint64_t ) -> bool {
     return true;
 }
 }     // namespace QuantumNEC::Kernel

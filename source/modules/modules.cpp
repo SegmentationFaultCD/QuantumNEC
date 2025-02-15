@@ -17,7 +17,7 @@ Modules::Module::Module( void ) noexcept {
         if ( file_entry.has_value( ) ) {
             println< print_level::SYSTEM >( "Service {} ready!", Kernel::__config.modules.modules[ i ]->path );
 
-            Kernel::Syscall::load_servicer( i, Kernel::Process { file_entry.value( ), 0 /*servicer的优先级都为最高*/, Kernel::PCB::__flags__::__type__::USER_PROCESS } );
+            Kernel::Syscall::save_servicer( Kernel::Syscall::Servicer( i ), Kernel::Process { file_entry.value( ), 0 /*servicer的优先级都为最高*/, Kernel::ProcessControlBlock::__flags__::__type__::USER_PROCESS } );
         }
         else {
             // TODO fault handler

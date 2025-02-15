@@ -50,7 +50,7 @@ auto pmlxt::map( IN uint64_t physics_address, IN uint64_t virtual_address, IN ui
 
         // Second, if level satisfy our needs
         // Enter handler.
-        if ( level == static_cast< uint64_t >( mode ) ) {
+        if ( level == std::to_underlying( mode ) ) {
             if ( mode != PAGE_4K ) {
                 // User need to map huge page
                 auto check_next_table_under_the_old = [ get_table ]( this auto &self, uint64_t level, uint64_t index, pmlxt &pmlx_t ) -> void {
@@ -129,7 +129,7 @@ auto pmlxt::unmap( IN uint64_t virtual_address, IN size_t size, IN MemoryPageTyp
             virtual_address += get_table( level ).check_page_size( mode );
             return;
         }
-        else if ( level == static_cast< uint64_t >( mode ) ) {
+        else if ( level == std::to_underlying( mode ) ) {
             // To unmap a page, we only should set the P bit is in the corresponding entry.
             pmlx_t.set_p( index, 0 );
             if ( mode != PAGE_4K ) {
@@ -188,7 +188,7 @@ auto pmlxt::find_physcial_address( IN void *virtual_address, IN MemoryPageType m
         return *page_table[ level - 1 ];
     };
 
-    auto offset { uint64_t( mode ) - 1 };
+    auto offset { std::to_underlying( mode ) - 1 };
     auto level       = Paging::support_5level_paging ? 5 : 4;
     auto find_helper = [ &get_table, &offset, &mode ]( this auto &self, IN void *virtual_address, IN uint64_t level, IN pmlxt &pmlx_t ) -> uint64_t * {
         auto index { pmlx_t.get_address_index_in( virtual_address ) };

@@ -2,6 +2,7 @@
 
 #include <kernel/global/x86_64/global.hpp>
 #include <lib/Uefi.hpp>
+#include <utility>
 namespace QuantumNEC::Kernel::x86_64 {
 /**
  * @brief CPU utils
@@ -87,7 +88,8 @@ public:
             this->rcx = _c;
             this->rdx = _d;
         }
-        CpuidStatus( CpuidStatus &&status ) noexcept {
+
+        explicit CpuidStatus( std::same_as< CpuidStatus > auto &&status ) noexcept {
             this->mop = status.mop;
             this->sop = status.sop;
             this->rax = status.rax;

@@ -27,6 +27,15 @@ public:
     auto wake_up( this auto &&self, auto &schedule ) noexcept {
         return self.__wake_up__( schedule );
     }
+    auto remove( this auto &&self, auto &schedule ) {
+        self.__remove__( schedule );
+    }
+    auto search( this auto &&self, uint64_t priority, uint64_t ID ) {
+        return self.__search__( priority, ID );
+    }
+    auto search( this auto &&self, uint64_t ID ) {
+        return self.__search__( ID );
+    }
 
 private:
     auto pick_next( this auto &&self ) {
@@ -38,9 +47,6 @@ public:
     // You shouldn't use the function in any place except in ISR
     auto schedule( this auto &&self ) {
         return self.__schedule__( );
-    }
-    auto remove( this auto &&self, auto &schedule ) {
-        self.__remove__( schedule );
     }
 };
 
@@ -129,4 +135,5 @@ public:
 private:
     BindFunction inserter;
 };
+
 }     // namespace QuantumNEC::Kernel

@@ -8,7 +8,8 @@ class ListTable {
 public:
     struct ListNode {
         friend ListTable;
-public:
+
+    public:
         ListNode *prev { }; /* 上一个节点 */
         ListNode *next { }; /* 下一个节点 */
     private:
@@ -21,31 +22,31 @@ public:
          * @brief 判断上一节点十分为空
          * @param node 要判断的节点
          */
-        auto is_empty_prev( IN ListNode *node ) -> ListNode * {
+        auto *is_empty_prev( IN ListNode *node ) {
             return node->prev ? node->prev : NULL;
         }
         /**
          * @brief 判断下一节点十分为空
          * @param node 要判断的节点
          */
-        auto is_empty_next( IN ListNode *node ) -> ListNode * {
+        auto *is_empty_next( IN ListNode *node ) {
             return node->next ? node->next : NULL;
         }
-        auto operator=( ListNode &node ) -> ListNode & {
+        auto &operator=( ListNode &node ) {
             this->container = node.container;
             this->next      = node.next;
             this->prev      = node.prev;
             return *this;
         }
-        auto operator=( T &data ) -> ListNode & {
+        auto &operator=( T &data ) {
             this->container = &data;
             return *this;
         }
 
-        auto operator*( ) -> T & {
+        auto &operator*( ) {
             return *this->container;
         }
-        auto operator->( ) -> T * {
+        auto *operator->( ) {
             return this->container;
         }
     };
@@ -68,7 +69,7 @@ public:
     }
 
     ~ListTable( void ) noexcept = default;
-    auto operator=( ListTable &lt ) -> ListTable & {
+    auto &operator=( ListTable &lt ) {
         this->_head = lt._head;
         this->_end  = lt._end;
         return *this;
@@ -117,7 +118,7 @@ public:
         }
         Node *_pnode;
     };
-    using iterator       = ListIterator< T, T &, T       *>;
+    using iterator       = ListIterator< T, T &, T * >;
     using const_iterator = const ListIterator< T, T &, T * >;
     auto end( ) {
         return iterator { &_end };
@@ -196,7 +197,7 @@ public:
         }
         return length;
     }
-    auto insert( IN OUT Node *node, IN OUT Node *in_before ) -> void {
+    auto insert( IN OUT Node *node, IN OUT Node *in_before ) {
         in_before->prev->next = node;
         node->prev            = in_before->prev;
         node->next            = in_before;

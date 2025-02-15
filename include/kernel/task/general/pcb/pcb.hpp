@@ -4,6 +4,7 @@
 #include <kernel/memory/memory.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/print.hpp>
+#include <kernel/syscall/ipc/ipc.hpp>
 #include <kernel/task/general/pcb/pid.hpp>
 #include <kernel/task/general/scheduler/scheduler.hpp>
 #include <lib/Uefi.hpp>
@@ -17,7 +18,7 @@ constexpr auto TASK_USER_STACK_SIZE { 8_MB };       // 8MB
 constexpr auto PCB_STACK_MAGIC { 0x1145141919810ULL };
 constexpr auto TASK_NAME_SIZE { 64 };
 
-struct PCB {
+struct ProcessControlBlock {
     struct __flags__ {
         enum class __fpu_state__ : uint64_t {
             ENABLE  = 1,
@@ -106,15 +107,18 @@ public:
     FloatPointUnit::FpuFrame *fpu_frame;
 
     uint64_t stack_magic;     // 用于检测栈的溢出
-    explicit PCB( void ) noexcept {
-    }
-    explicit PCB( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept;
 
-    ~PCB( void ) noexcept;
+    mutable InterprocessCommunication< ProcessControlBlock > *ipc;
+
+    explicit ProcessControlBlock( void ) noexcept {
+    }
+    explicit ProcessControlBlock( const char_t *_name_, uint64_t _priority_, __flags__ _flags_, void *_entry_, IN uint64_t _arg_ ) noexcept;
+
+    ~ProcessControlBlock( void ) noexcept;
 
     /**
      * @brief 激活任务
-     * @param pcb 要激活的任务PCB
+     * @param pcb 要激活的Process的control blcok
      */
 
     auto activate( void ) {
@@ -145,7 +149,7 @@ public:
     static auto get_running_task( void ) {
         // 得到正在运行的任务
         auto kstack = CPU::get_rsp( ) & ~( TASK_KERNEL_STACK_SIZE - 1 );
-        return (PCB *)( *( (uint64_t *)kstack ) );
+        return (ProcessControlBlock *)( *( (uint64_t *)kstack ) );
     }
 };
 }     // namespace QuantumNEC::Kernel

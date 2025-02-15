@@ -17,10 +17,10 @@ I wish my operating system could run as fast as the Quantum Matrix. For the reas
 
 #### Compile tools
 - GCC or Clang
+- rustup cbindgen
 #### Other tools
-- Qemu
-- Git
-- Xmake
+- qemu
+- xmake
 #### How to compile source code
  
 First, Clone submodules by git. (There are many submodules, for instance, bootloader: [limine](https://github.com/limine-bootloader/limine))

@@ -4,8 +4,8 @@
 #include <kernel/task/process/process_manager.hpp>
 #include <kernel/task/task.hpp>
 namespace QuantumNEC::Kernel {
-auto ProcessManager::main_process_install( uint64_t core ) -> PCB * {
-    KHeapAllocator< PCB > pcb_allocator;
+auto ProcessManager::main_process_install( uint64_t core ) -> ProcessControlBlock * {
+    KHeapAllocator< ProcessControlBlock > pcb_allocator;
 
     auto pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
 
@@ -28,10 +28,10 @@ auto ProcessManager::main_process_install( uint64_t core ) -> PCB * {
     // 时间片越多优先级越高
     pcb->schedule.priority = Scheduler::Priority::IDLEPRIO;
     // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
-    pcb->flags.fpu_enable = PCB::__flags__::__fpu_state__::ENABLE;
-    pcb->flags.fpu_used   = PCB::__flags__::__fpu_state__::USED;
+    pcb->flags.fpu_enable = ProcessControlBlock::__flags__::__fpu_state__::ENABLE;
+    pcb->flags.fpu_used   = ProcessControlBlock::__flags__::__fpu_state__::USED;
     pcb->schedule.state   = Scheduler::Schedule::State::RUNNING;
-    pcb->flags.task_type  = PCB::__flags__::__type__::KERNEL_PROCESS;
+    pcb->flags.task_type  = ProcessControlBlock::__flags__::__type__::KERNEL_PROCESS;
 
     // 魔术字节
     pcb->stack_magic                = PCB_STACK_MAGIC;
@@ -47,7 +47,7 @@ auto ProcessManager::main_process_install( uint64_t core ) -> PCB * {
     KHeapAllocator< FloatPointUnit::FpuFrame > fpu_frame_allocater;
 
     pcb->fpu_frame = std::allocator_traits< decltype( fpu_frame_allocater ) >::allocate( fpu_frame_allocater, 1 );
-    SchedulerHelper::running_queue.append( pcb->schedule.general_task_node );
+    SchedulerHelper::running_queue.insert( pcb->schedule.general_task_node );
 
     return pcb;
 }

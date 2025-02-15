@@ -71,7 +71,11 @@ auto InterruptEntry::error_code( uint64_t error_code ) noexcept -> void {
 _C_LINK _asmcall auto do_IRQ( IN InterruptDescriptorTable::InterruptFrame *frame ) -> IN InterruptDescriptorTable::InterruptFrame * {
     if ( auto entry = InterruptEntryRegister::entry[ frame->vector ]; entry ) {
         return entry->do_IRQ( frame );
-    };
+    }
+    else {
+        std::println< print_level::ERROR >( "Kernel doesn't have handler for the interrupt/exception." );
+        while ( true ) ASM( "HLT\n\t" );
+    }
     return frame;
 }
 }     // namespace QuantumNEC::Kernel::x86_64

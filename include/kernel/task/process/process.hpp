@@ -14,12 +14,12 @@ public:
     };
 
 public:
-    explicit Process( const char_t *name, uint64_t priority, void *entry, PCB::__flags__::__type__ type ) noexcept;
+    explicit Process( const char_t *name, uint64_t priority, void *entry, ProcessControlBlock::__flags__::__type__ type ) noexcept;
     explicit Process( Process &&process ) noexcept;
     Process( void ) noexcept :
         pcb { }, has_inserted { false } {
     }
-    explicit Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, PCB::__flags__::__type__ type ) noexcept;
+    explicit Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, ProcessControlBlock::__flags__::__type__ type ) noexcept;
 
     Process( const Process &process ) noexcept                     = delete;
     auto operator=( const Process &process ) noexcept -> Process & = delete;
@@ -29,9 +29,12 @@ public:
 public:
     auto detach( void ) noexcept -> void;
     auto join( void ) noexcept -> void;
+    auto raw_control_block( ) const -> const ProcessControlBlock * {
+        return this->pcb;
+    }
 
 private:
-    PCB *pcb;
-    bool has_inserted;
+    ProcessControlBlock *pcb;
+    bool                 has_inserted;
 };
 }     // namespace QuantumNEC::Kernel

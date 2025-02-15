@@ -2,14 +2,14 @@
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/task/process/process.hpp>
 namespace QuantumNEC::Kernel {
-Process::Process( const char_t *name, uint64_t priority, void *entry, PCB::__flags__::__type__ type ) noexcept {
-    if ( type != PCB::__flags__::__type__::THREAD ) {
-        PCB::__flags__ flags {
-            .fpu_enable = PCB::__flags__::__fpu_state__::ENABLE,
-            .fpu_used   = PCB::__flags__::__fpu_state__::USED,
+Process::Process( const char_t *name, uint64_t priority, void *entry, ProcessControlBlock::__flags__::__type__ type ) noexcept {
+    if ( type != ProcessControlBlock::__flags__::__type__::THREAD ) {
+        ProcessControlBlock::__flags__ flags {
+            .fpu_enable = ProcessControlBlock::__flags__::__fpu_state__::ENABLE,
+            .fpu_used   = ProcessControlBlock::__flags__::__fpu_state__::USED,
             .task_type  = type,
         };
-        KHeapAllocator< PCB > pcb_allocator;
+        KHeapAllocator< ProcessControlBlock > pcb_allocator;
         this->pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
         std::allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
                                                                        name,
@@ -20,16 +20,16 @@ Process::Process( const char_t *name, uint64_t priority, void *entry, PCB::__fla
         this->has_inserted = false;
     }
 }
-Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, PCB::__flags__::__type__ type ) noexcept {
-    if ( type != PCB::__flags__::__type__::THREAD ) {
-        PCB::__flags__ flags {
-            .fpu_enable = PCB::__flags__::__fpu_state__::ENABLE,
-            .fpu_used   = PCB::__flags__::__fpu_state__::USED,
+Process::Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, ProcessControlBlock::__flags__::__type__ type ) noexcept {
+    if ( type != ProcessControlBlock::__flags__::__type__::THREAD ) {
+        ProcessControlBlock::__flags__ flags {
+            .fpu_enable = ProcessControlBlock::__flags__::__fpu_state__::ENABLE,
+            .fpu_used   = ProcessControlBlock::__flags__::__fpu_state__::USED,
             .task_type  = type,
         };
-        KHeapAllocator< PCB > pcb_allocator;
+        KHeapAllocator< ProcessControlBlock > pcb_allocator;
 
-        if ( type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
+        if ( type == ProcessControlBlock::__flags__::__type__::KERNEL_PROCESS ) {
             this->pcb = std::allocator_traits< decltype( pcb_allocator ) >::allocate( pcb_allocator, 1 );
             std::allocator_traits< decltype( pcb_allocator ) >::construct( pcb_allocator, this->pcb,
                                                                            file.module_name,

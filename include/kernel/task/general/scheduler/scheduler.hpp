@@ -3,9 +3,9 @@
 #include <kernel/task/general/scheduler/brain_fuck_scheduler/bfs_helper.hpp>
 
 namespace QuantumNEC::Kernel {
-struct PCB;
-using Scheduler       = BrainFuckScheduler< PCB >;
-using SchedulerHelper = BrainFuckSchedulerHelper< PCB >;
+struct ProcessControlBlock;
+using Scheduler       = BrainFuckScheduler< ProcessControlBlock >;
+using SchedulerHelper = BrainFuckSchedulerHelper< ProcessControlBlock >;
 
 // inline auto scheduler_wake_up( Scheduler::block block ) -> Scheduler::block {
 //     return block;
@@ -25,10 +25,10 @@ auto operator|( View block, Function func ) {
     return func( block );
 }
 
-scheduler_inserter( BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) ) -> scheduler_inserter< Scheduler, BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) >;
-scheduler_wakeuper( BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) ) -> scheduler_wakeuper< Scheduler, BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) >;
-scheduler_hanger( BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) ) -> scheduler_hanger< Scheduler, BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) >;
-scheduler_remover( BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) ) -> scheduler_remover< Scheduler, BrainFuckScheduler< PCB >::view ( * )( BrainFuckScheduler< PCB >::view ) >;
+scheduler_inserter( BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) ) -> scheduler_inserter< Scheduler, BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) >;
+scheduler_wakeuper( BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) ) -> scheduler_wakeuper< Scheduler, BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) >;
+scheduler_hanger( BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) ) -> scheduler_hanger< Scheduler, BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) >;
+scheduler_remover( BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) ) -> scheduler_remover< Scheduler, BrainFuckScheduler< ProcessControlBlock >::view ( * )( BrainFuckScheduler< ProcessControlBlock >::view ) >;
 
 }     // namespace QuantumNEC::Kernel
 #include <kernel/task/general/scheduler/brain_fuck_scheduler/bfs_interface.hpp>

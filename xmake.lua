@@ -74,22 +74,22 @@ target("cxx")
         print("静态库<libcxx>编译完成，在"..run_dir)
     end)
 
-target("os-terminal")
+target("os-terminal") 
     set_kind("phony")
-    -- add_toolchains("rustup", "cbindgen")
     before_build(function (target) 
         print("开始编译静态库<libos-terminal>")
         print("注意：此静态库为外部提供")
         end)
     on_build(function (target)
         os.cd("source/libos-terminal")
+        os.exec("rustup default nightly")
         os.exec("rm -rf libos_terminal-x86_64.a")
         os.exec("rustup target add x86_64-unknown-none")
         os.exec("cargo install cbindgen")
         os.exec("rustup component add rust-src")
-        os.exec("cargo build --release")
+        os.exec("cargo build --release --target x86_64-unknown-none")
         os.exec("mv target/x86_64-unknown-none/release/libos_terminal.a libos_terminal-x86_64.a")
-        os.exec("cbindgen --output os_terminal.h")
+        os.exec("cbindgen --only-target-dependencies --output os_terminal.h")
         os.cd("../..")
         end)
     after_build(function (target)
@@ -230,8 +230,7 @@ target("run")
     set_kind("phony")
     set_default(true)
     on_build(function (target)
-        local qemu_flags =  "-enable-kvm \
-                            -cpu qemu64,+x2apic \
+        local qemu_flags =  "-cpu qemu64,+x2apic \
                              -drive if=pflash,format=raw,readonly=on,file=scripts/bios/x86_64efi.bios \
                              -drive file=fat:rw:vm,index=0,format=vvfat \
                              -m 4G \
@@ -244,12 +243,11 @@ target("run")
                              -nic user,model=virtio-net-pci \
                              -device virtio-mouse-pci \
                              -device virtio-keyboard-pci \
-                             -serial chardev:com1 -chardev stdio,mux=on,id=com1 \
                              -name QuantumNEC \
                              -boot order=dc \
                              -net none \
-                             -rtc base=localtime "
-                      -- -nographic"-- -d in_asm"    --   
+                             -rtc base=localtime -nographic"
+                      -- -nographic"-- -d in_asm"   -serial chardev:com1 -chardev stdio,mux=on,id=com1 \ --   
         os.exec("qemu-system-x86_64 "..qemu_flags)
     end)
 

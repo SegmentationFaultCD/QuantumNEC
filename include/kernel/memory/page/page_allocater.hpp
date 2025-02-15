@@ -69,7 +69,7 @@ public:
 
             using __node_key__   = uint64_t;
             using __group_type__ = Lib::RedBlackTree< __page_information__, __node_key__ >;
-            using __node_type__  = __group_type__::RedBlackTreeNode;
+            using __node_type__  = __group_type__::Node;
             struct _aligned( page_information_block_size ) __page_information__ {
                 __node_type__ group_node;     // 连接每个页头
                 struct __page_flags__ {
@@ -193,8 +193,8 @@ public:
                         this->zone[ i ].base_address           = base_address_ + __helper__::page_descriptor_count * self::__page_size__ * i;
                         this->zone[ i ].header_count           = 0;
                         // 插入红黑树中
-                        this->zone[ i ].group_node._key  = __helper__::get_keys( this->zone[ i ].base_address );
-                        this->zone[ i ].group_node._data = &this->zone[ i ];
+                        this->zone[ i ].group_node.key( __helper__::get_keys( this->zone[ i ].base_address ) );
+                        this->zone[ i ].group_node.data( &this->zone[ i ] );
                         group.value( ).insert( this->zone[ i ].group_node );
                     }
                 } );
@@ -441,7 +441,7 @@ public:
         group.visit( [ &, this ]( const Lib::shared_spinlock< typename PH::__helper__::__group_type__ > &group ) {
             auto node = group.value( ).search( PH::__helper__::get_keys( __physical_address__ ) );
             if ( node ) {
-                auto zone = node->_data;
+                auto zone = node->data( );
                 if ( zone->owner ) {
                     zone = zone->owner;
                 }

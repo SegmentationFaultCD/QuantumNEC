@@ -17,9 +17,9 @@ auto SymmetricMultiprocessingSwitchCPUEntry::handler( Frame *frame ) noexcept ->
     Lib::spinlock lock;
     Apic::eoi( frame->vector );
 
-    if ( PCB::get_running_task( )->flags.task_type == PCB::__flags__::__type__::KERNEL_PROCESS ) {
+    if ( ProcessControlBlock::get_running_task( )->flags.task_type == ProcessControlBlock::__flags__::__type__::KERNEL_PROCESS ) {
         lock.acquire( );
-        PCB::get_running_task( )->context.pcontext = (PCB::__context__::__process__ *)frame;
+        ProcessControlBlock::get_running_task( )->context.pcontext = (ProcessControlBlock::__context__::__process__ *)frame;
         lock.release( );
     }
     if ( auto result = Scheduler { }.schedule( ); result.has_value( ) ) {
