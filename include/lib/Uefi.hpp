@@ -118,4 +118,5 @@ struct BootConfig {
     limine_module_response      modules;
 };
 
+
 }     // namespace QuantumNEC

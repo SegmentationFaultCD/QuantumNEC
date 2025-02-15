@@ -3,9 +3,10 @@
 #include <type_traits>
 #include <utility>
 namespace QuantumNEC::Lib {
-
 template < typename T, typename Keyofvalue >
-    requires std::is_copy_assignable_v< Keyofvalue > || std::is_move_assignable_v< Keyofvalue >
+    requires std::is_copy_assignable_v< Keyofvalue >
+             || std::is_move_assignable_v< Keyofvalue >
+             || std::totally_ordered< Keyofvalue >
 class RedBlackTree {
 public:
     // 红黑树节点的定义
