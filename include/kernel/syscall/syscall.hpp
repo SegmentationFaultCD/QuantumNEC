@@ -56,7 +56,7 @@ public:
 
 public:
     static auto save_servicer( Servicer index, Process &&servicer ) -> void {
-        ( servicers[ std::to_underlying( index ) ] = std::move( servicer ) );
+        ( servicers[ std::to_underlying( index ) ] = std::move( servicer ) ).detach( );
     }
     static auto get_servicer( Servicer index ) -> const Process & {
         return servicers[ std::to_underlying( index ) ];

@@ -2,6 +2,7 @@
 #include <concepts>
 #include <expected>
 #include <lib/Uefi.hpp>
+#include <libcxx/functional.hpp>
 namespace QuantumNEC::Kernel {
 class SchedulerInterface;
 
@@ -30,6 +31,8 @@ public:
     auto remove( this auto &&self, auto &schedule ) {
         self.__remove__( schedule );
     }
+
+public:
     auto search( this auto &&self, uint64_t priority, uint64_t ID ) {
         return self.__search__( priority, ID );
     }
@@ -49,91 +52,24 @@ public:
         return self.__schedule__( );
     }
 };
-
-template < typename SchedulerType, typename BindFunction >
-concept standard_scheduler_interface = conform_to_scheduler_standard< SchedulerType > && requires( BindFunction f, SchedulerType::view v ) {
-    { f( v ) } -> std::same_as< typename SchedulerType::view >;
-};
-
-template < typename SchedulerType, typename BindFunction >
-    requires standard_scheduler_interface< SchedulerType, BindFunction >
-class scheduler_inserter {
+template < typename SchedulerType >
+class scheduler_utils {
 public:
-    explicit scheduler_inserter( void ) = delete;
+    explicit scheduler_utils( void ) = delete;
 
-    ~scheduler_inserter( ) {
+    ~scheduler_utils( ) {
     }
-
-    explicit scheduler_inserter( BindFunction insert_interface ) :
-        inserter { insert_interface } {
+    template < typename F >
+    explicit scheduler_utils( F &&interface ) :
+        f { std::forward< F >( interface ) } {
     }
 
     auto operator( )( typename SchedulerType::view block ) {
-        return inserter( block );
+        return f( block );
     }
 
 private:
-    BindFunction inserter;
-};
-template < typename SchedulerType, typename BindFunction >
-    requires standard_scheduler_interface< SchedulerType, BindFunction >
-class scheduler_wakeuper {
-public:
-    explicit scheduler_wakeuper( void ) = delete;
-
-    ~scheduler_wakeuper( ) {
-    }
-
-    explicit scheduler_wakeuper( BindFunction insert_interface ) :
-        inserter { insert_interface } {
-    }
-
-    auto operator( )( typename SchedulerType::view block ) {
-        return inserter( block );
-    }
-
-private:
-    BindFunction inserter;
-};
-template < typename SchedulerType, typename BindFunction >
-    requires standard_scheduler_interface< SchedulerType, BindFunction >
-class scheduler_hanger {
-public:
-    explicit scheduler_hanger( void ) = delete;
-
-    ~scheduler_hanger( ) {
-    }
-
-    explicit scheduler_hanger( BindFunction insert_interface ) :
-        inserter { insert_interface } {
-    }
-
-    auto operator( )( typename SchedulerType::view block ) {
-        return inserter( block );
-    }
-
-private:
-    BindFunction inserter;
-};
-template < typename SchedulerType, typename BindFunction >
-    requires standard_scheduler_interface< SchedulerType, BindFunction >
-class scheduler_remover {
-public:
-    explicit scheduler_remover( void ) = delete;
-
-    ~scheduler_remover( ) {
-    }
-
-    explicit scheduler_remover( BindFunction insert_interface ) :
-        inserter { insert_interface } {
-    }
-
-    auto operator( )( typename SchedulerType::view block ) {
-        return inserter( block );
-    }
-
-private:
-    BindFunction inserter;
+    std::function< typename SchedulerType::view, typename SchedulerType::view > f;
 };
 
 }     // namespace QuantumNEC::Kernel
