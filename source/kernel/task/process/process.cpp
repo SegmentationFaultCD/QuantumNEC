@@ -72,14 +72,15 @@ auto Process::detach( void ) noexcept -> void {
     Scheduler scheduler;
     auto      pcb_view = scheduler | this->pcb->schedule;
     this->join( );
-    pcb_view | scheduler_utils { brain_fuck_scheduler_wake_up };
+    auto wake_up = scheduler_utils { brain_fuck_scheduler_wake_up };
+    pcb_view | wake_up;
 }
 auto Process::join( void ) noexcept -> void {
     Scheduler scheduler;
     auto      pcb_view = scheduler | this->pcb->schedule;
-
+    auto      insert   = scheduler_utils { brain_fuck_scheduler_insert };
     if ( !this->has_inserted ) {
-        pcb_view | scheduler_utils { brain_fuck_scheduler_insert };
+        pcb_view | insert;
         this->has_inserted = true;
     }
 }

@@ -11,6 +11,7 @@
 #include <lib/list.hpp>
 #include <lib/spinlock.hpp>
 #include <libcxx/cstring.hpp>
+
 namespace QuantumNEC::Kernel {
 
 constexpr auto TASK_KERNEL_STACK_SIZE { 4_KB };     // 4KB
@@ -108,7 +109,7 @@ public:
 
     uint64_t stack_magic;     // 用于检测栈的溢出
 
-    mutable InterprocessCommunication< ProcessControlBlock > *ipc;
+    mutable InterprocessCommunication< ProcessControlBlock >::message messages;
 
     explicit ProcessControlBlock( void ) noexcept {
     }

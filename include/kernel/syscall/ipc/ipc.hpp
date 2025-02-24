@@ -61,27 +61,9 @@ public:
     virtual auto execute_order( uint64_t servicer_index, const message &messages ) -> result = 0;
 
 public:
-    struct s {
+    struct _ {
         // 作为user时使用
-        class __sender__ {
-            friend InterprocessCommunication;
-
-        public:
-            __sender__( ) {
-            }
-
-        private:
-            Lib::RedBlackTree< message, uint64_t /* PID */ >::Node node;
-            std::pair< uint64_t,      // PID
-                       uint64_t >     // priority
-                send_to;
-
-        public:
-            auto set_receiver( const TaskControlBlock *tcb, const message &messages ) {
-                this->node    = { const_cast< message * >( &messages ), tcb->PID };
-                this->send_to = { tcb->PID, tcb->schedule.priority };
-            }
-        } sender;
+ 
 
         class __receiver__ {
             friend InterprocessCommunication;
@@ -158,8 +140,6 @@ protected:
         }
         return false;
     }
-
-    message messages;
 };
 
 }     // namespace QuantumNEC::Kernel

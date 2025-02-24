@@ -4,6 +4,8 @@
 #include <kernel/interrupt/x86_64/entry/idt.hpp>
 #include <kernel/interrupt/x86_64/pic/pic.hpp>
 #include <kernel/print.hpp>
+#include <kernel/syscall/ipc/receive.hpp>
+#include <kernel/syscall/ipc/send.hpp>
 #include <kernel/syscall/syscall.hpp>
 using namespace QuantumNEC;
 namespace QuantumNEC::Kernel::x86_64 {
@@ -14,7 +16,20 @@ auto SystemcallEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexcep
 }
 auto SystemcallEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
-    std::println( "{} {}", (uint64_t)frame->regs.rdi, Apic::cpu_id( ) );
+    if ( auto &servicer = Syscall::get_servicer( Syscall::Servicer( frame->regs.rax ) ); servicer.raw_control_block( ) ) {
+        MessageSender sender;
+
+        ProcessControlBlock::get_running_task( )->messages.change_message( 0, frame->regs.rdi );
+        ProcessControlBlock::get_running_task( )->messages.change_message( 1, frame->regs.rsi );
+        ProcessControlBlock::get_running_task( )->messages.change_message( 2, frame->regs.rdx );
+        ProcessControlBlock::get_running_task( )->messages.change_message( 3, frame->regs.rcx );
+        ProcessControlBlock::get_running_task( )->messages.change_message( 4, frame->regs.r8 );
+        ProcessControlBlock::get_running_task( )->messages.change_message( 5, frame->regs.r9 );
+
+        sender.role.sender.set_receiver( ProcessControlBlock::get_running_task( ), ProcessControlBlock::get_running_task( )->messages );
+
+        sender.execute_order(uint64_t servicer_index, const message &messages)
+    }
     return frame;
 }
 auto SystemcallEntry::do_register( void ) -> void {
