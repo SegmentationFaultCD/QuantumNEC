@@ -36,9 +36,10 @@ auto ProcessManager::main_process_install( uint64_t core ) -> ProcessControlBloc
     // 魔术字节
     pcb->stack_magic                = PCB_STACK_MAGIC;
     pcb->schedule.general_task_node = *pcb;
-    pcb->schedule.jiffies           = SchedulerHelper::make_jiffies( pcb->schedule.priority );
-    pcb->schedule.virtual_deadline  = SchedulerHelper::make_virtual_deadline( pcb->schedule.priority, pcb->schedule.jiffies );
-    pcb->schedule.cpu_id            = core;
+    pcb->schedule.general_task_node.set_key( pcb->PID );
+    pcb->schedule.jiffies          = SchedulerHelper::make_jiffies( pcb->schedule.priority );
+    pcb->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( pcb->schedule.priority, pcb->schedule.jiffies );
+    pcb->schedule.cpu_id           = core;
     // 暂时没啥用
     pcb->schedule.signal = 0;
     pcb->PPID            = 0;

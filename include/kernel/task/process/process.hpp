@@ -23,7 +23,6 @@ public:
 
     Process( const Process &process ) noexcept                     = delete;
     auto operator=( const Process &process ) noexcept -> Process & = delete;
-
     auto operator=( Process &&process ) noexcept -> Process &;
 
 public:

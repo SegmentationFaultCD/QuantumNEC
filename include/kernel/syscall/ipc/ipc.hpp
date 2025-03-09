@@ -1,17 +1,20 @@
 #pragma once
+#include <compare>
 #include <kernel/memory/heap/kheap/kheap_allocater.hpp>
 #include <kernel/task/general/scheduler/scheduler.hpp>
 #include <lib/rbtree.hpp>
 #include <tuple>
 namespace QuantumNEC::Kernel {
+
+// 首先， 调用系统调用
+
 template < typename TaskControlBlock >
 class InterprocessCommunication {
 public:
     enum class result : uint64_t {
         DEADLOCK,
         SUCCESS,
-        SERVICER_NOT_AVAILABLE,
-        HAVE_NO_SENDER,
+
     };
     constexpr static auto RECEIVE_FROM_ANY { ~0ull };
     constexpr static auto RECEIVE_FROM_INTERRUPT { ~0ull - 1 };
@@ -33,15 +36,17 @@ public:
         }
 
         // for rbtree.
-        auto operator<( const message &other ) -> bool {
-            return this->source < other.source;
-        }
-        auto operator>( const message &other ) -> bool {
-            return this->source > other.source;
-        }
+
         auto operator=( const message &other ) -> message & {
             this->source = other.source;
             std::memcpy( this->messages, const_cast< uint64_t * >( other.messages ), sizeof( uint64_t ) * 6 );
+        }
+        auto operator<=>( const message &rhs ) {
+            if ( this->source < rhs.source || ( this->source == rhs.source && this->source < rhs.source ) )
+                return std::strong_ordering::less;
+            if ( this->source > rhs.source || ( this->source == rhs.source && this->source > rhs.source ) )
+                return std::strong_ordering::greater;
+            return std::strong_ordering::equivalent;
         }
         auto get_PID( void ) {
             return source;
@@ -63,7 +68,6 @@ public:
 public:
     struct _ {
         // 作为user时使用
- 
 
         class __receiver__ {
             friend InterprocessCommunication;

@@ -148,6 +148,53 @@ target("servicer.elf")
         print("模块文件servicer.elf编译完成，在"..run_dir)
     end)
 
+target("servicer2.elf")
+    add_toolchains("gcc")
+    add_deps("c", "cxx")
+    add_cxxflags(
+            "-fno-builtin", -- 不要内建函数
+            "-mcmodel=large", -- 大内存模式
+            "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
+            "-fno-stack-protector", -- 不要栈保护
+            "-nostdlib", -- 不要标准库
+            "-nostartfiles", -- 不要默认启动文件
+            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+            "-fno-common", -- 共享全局变量
+            "-fno-rtti", -- 不要运行时类型信息鉴别
+            "-fno-exceptions", -- 不需要异常
+            "-mno-red-zone", -- 禁用红色区域
+            "-fno-stack-check", -- 不要栈检查
+            "-Wall", 
+            "-Wextra",
+            "-Werror",
+            "-static",
+            "-fPIE", {force = true}
+    )
+    set_kind("binary") 
+    add_files("source/modules/service/servicer2.cpp")
+    add_linkdirs("library")
+    add_links("c", "cxx")
+    add_ldflags("-ffreestanding")
+    before_build(function (target) 
+        print("开始编译模块文件servicer2.elf")
+        end)
+    on_link(function (target)
+        local object_dir = target:objectdir()
+        local run_dir = target:rundir()
+        local ldfiles = ""
+        for key,val in pairs(target:objectfiles()) do 
+            ldfiles = ldfiles..val.." "
+        end
+        local ldflags = "-L./library -T ./source/libc/libclinker.lds"
+        local libs = "-lcxx -lc"
+        os.exec("ld "..ldflags.." -o "..run_dir.."/servicer2.elf "..ldfiles.." "..libs)
+        os.cp(run_dir.."/servicer2.elf", "vm/QuantumNEC/SYSTEM64/")
+    end)
+    after_build(function (target) 
+        run_dir = target:rundir()
+        print("模块文件servicer2.elf编译完成，在"..run_dir)
+    end)
+
 target("micro_kernel")
     add_toolchains("gcc")
     add_deps("c", "cxx", "servicer.elf", "os-terminal") 

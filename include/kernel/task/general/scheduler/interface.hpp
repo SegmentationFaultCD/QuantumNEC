@@ -1,4 +1,5 @@
 #pragma once
+#include <compare>
 #include <concepts>
 #include <expected>
 #include <lib/Uefi.hpp>

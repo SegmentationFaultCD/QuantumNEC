@@ -11,7 +11,6 @@
 #include <lib/list.hpp>
 #include <lib/spinlock.hpp>
 #include <libcxx/cstring.hpp>
-
 namespace QuantumNEC::Kernel {
 
 constexpr auto TASK_KERNEL_STACK_SIZE { 4_KB };     // 4KB

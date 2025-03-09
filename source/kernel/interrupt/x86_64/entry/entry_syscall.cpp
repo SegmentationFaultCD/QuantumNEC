@@ -16,20 +16,8 @@ auto SystemcallEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexcep
 }
 auto SystemcallEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
-    if ( auto &servicer = Syscall::get_servicer( Syscall::Servicer( frame->regs.rax ) ); servicer.raw_control_block( ) ) {
-        MessageSender sender;
+    std::println( "{} {} {:x}", Apic::cpu_id( ), (long)ProcessControlBlock::get_running_task( )->PID, (long)frame->regs.rdi );
 
-        ProcessControlBlock::get_running_task( )->messages.change_message( 0, frame->regs.rdi );
-        ProcessControlBlock::get_running_task( )->messages.change_message( 1, frame->regs.rsi );
-        ProcessControlBlock::get_running_task( )->messages.change_message( 2, frame->regs.rdx );
-        ProcessControlBlock::get_running_task( )->messages.change_message( 3, frame->regs.rcx );
-        ProcessControlBlock::get_running_task( )->messages.change_message( 4, frame->regs.r8 );
-        ProcessControlBlock::get_running_task( )->messages.change_message( 5, frame->regs.r9 );
-
-        sender.role.sender.set_receiver( ProcessControlBlock::get_running_task( ), ProcessControlBlock::get_running_task( )->messages );
-
-        sender.execute_order(uint64_t servicer_index, const message &messages)
-    }
     return frame;
 }
 auto SystemcallEntry::do_register( void ) -> void {

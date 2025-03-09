@@ -182,7 +182,6 @@ public:
             this->all_memory_header_count = header_count;
             this->zone                    = header_start_address.template get_address< __address__::HEADER_START_ADDRESS >( this->all_memory_header_count );
             auto base_address_            = base_address.template get_address< __address__::BASE_ADDRESS >( this->all_memory_header_count );
-
             group.visit(
                 [ &, this ]( const Lib::shared_spinlock< typename __helper__::__group_type__ > &group ) {
                     for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
@@ -228,6 +227,14 @@ public:
     private:
         __helper__::__page_information__ *zone;
     };
+    using PH  = __page_header__< ( [] consteval -> MemoryPageType {
+        if constexpr ( __type__ == PAGE_1G )
+            return NONE;
+        else
+            return MemoryPageType( __type__ + 1 );
+    } )( ) >;
+    using PHI = PH::__helper__::__page_information__;
+
     friend PageManager;
 
 public:
@@ -242,13 +249,6 @@ public:
     }
 
     auto allocate( size_type __size__ ) -> void * {
-        using PH  = __page_header__< ( [ & ] consteval {
-            if constexpr ( __type__ == PAGE_1G )
-                return NONE;
-            else
-                return MemoryPageType( __type__ + 1 );
-        } )( ) >;
-        using PHI = PH::__helper__::__page_information__;
         auto &group { PH::__helper__::get_group( ) };
 
         auto index                   = 0ul;
@@ -262,12 +262,12 @@ public:
 
             if ( __size__ < PH::__helper__::page_descriptor_count ) {
                 if ( !group.value( ).empty( ) ) {
-                    group.value( ).traverse( [ & ]( PHI &zone ) {
+                    group.value( ).traverse( [ & ]( const auto &zone ) {
                         if ( zone.owner ) {
                             return false;
                         }
                         // zone.owner is null, that means it is the head of the zone.
-                        auto header  = &zone;
+                        auto header  = const_cast< PHI * >( &zone );
                         auto success = false;
                         for ( auto i = 0ul; i < zone.header_count; ++i ) {
                             // If the header's state is ALL_FULL, that means there is no need to search the header's bitmap.
@@ -278,7 +278,7 @@ public:
                                 if ( auto result = header[ i ].bitmap.template find< false >( __size__ ); result.has_value( ) ) {
                                     index                   = i;
                                     bitmap_index            = result.value( );
-                                    node                    = &zone;
+                                    node                    = const_cast< PHI * >( &zone );
                                     success                 = true;
                                     first_header_bits_count = __size__;
                                     // Find the suitable zone to allocate, jump.
@@ -299,7 +299,7 @@ public:
             }
             else {
                 if ( !group.value( ).empty( ) ) {
-                    group.value( ).traverse( [ & ]( PHI &zone ) {
+                    group.value( ).traverse( [ & ]( const auto &zone ) {
                         if ( zone.owner ) {
                             return false;
                         }
@@ -309,7 +309,7 @@ public:
                         }
                         // Pass, it means the number of headers in the zone satisfies needed headers.
                         // Then, translate the zone so that searching suitable and uninterrupted headers group.
-                        auto header  = &zone;
+                        auto header  = const_cast< PHI * >( &zone );
                         auto success = true;
                         auto i       = 0ul;
                         for ( ; i < zone.header_count; ++i ) {
@@ -361,7 +361,7 @@ public:
                             return false;
                         }
                         // Successfully find suitable headers group.
-                        node         = &zone;
+                        node         = const_cast< PHI * >( &zone );
                         index        = i;
                         bitmap_index = header[ i ].bitmap.template find_from_high< false >( );
                         return true;
@@ -429,19 +429,13 @@ public:
         if ( !__size__ || !__physical_address__ ) {
             return;
         }
-        using PH    = PageAllocator::__page_header__< __type__, ( [ & ] consteval {
-                                                       if constexpr ( __type__ == PAGE_1G )
-                                                           return NONE;
-                                                       else
-                                                           return MemoryPageType( __type__ + 1 );
-                                                   } )( ) >;
-        using PHI   = PH::__helper__::__page_information__;
+
         auto &group = PH::__helper__::get_group( );
 
         group.visit( [ &, this ]( const Lib::shared_spinlock< typename PH::__helper__::__group_type__ > &group ) {
             auto node = group.value( ).search( PH::__helper__::get_keys( __physical_address__ ) );
-            if ( node ) {
-                auto zone = node->data( );
+            if ( !node.is_empty( ) ) {
+                auto zone = &( *node );
                 if ( zone->owner ) {
                     zone = zone->owner;
                 }
@@ -496,6 +490,13 @@ public:
                         end_header.flags.state = PHI::__page_flags__::__page_state__::ALL_FREE;
                     }
                     end_header.bitmap.template set< false >( 0, end_remainder );
+                    if ( base_index == 0 && index == 0 && __size__ == PH::__helper__::page_descriptor_count * zone->header_count ) {
+                        for ( auto i = 0ul; i < header.header_count; ++i ) {
+                            group.value( ).remove( page_headers[ base_index + i ].group_node );
+                        }
+                        PageAllocator< MemoryPageType::PAGE_1G > { }.deallocate( (void *)zone->base_address, zone->header_count );
+                        ___kheap_deallocate__( zone, zone->header_count * PH::__helper__::header_size );
+                    }
                 }
             }
         } );

@@ -43,6 +43,7 @@ public:
             HANGING   = 6,
             DIED      = 7,
         } state;     // 任务状态
+        auto operator=( Schedule &&r ) -> Schedule & = default;
     };
 
     enum class ErrorCode {
@@ -101,39 +102,27 @@ private:
             return &( *helper::task_queue[ index ].begin( ) ).schedule;
         }
         else {
-            auto head = &helper::task_queue[ index ].begin( )->schedule.general_task_node;
-
             // EEVDF算法在剩余三个队列中整理并查找
-            typename Lib::Skiplist< TaskControlBlock >::Node *p, *q, *tail;
-            auto                                              count = helper::task_queue[ index ].length( );
+            auto *min = &helper::task_queue[ index ].begin( )->schedule.general_task_node;
 
-            for ( auto i = 0ul; i < count - 1; i++ ) {
-                auto num = count - i - 1;
-                q        = head->forwards[ 0 ];
-                p        = q->forwards[ 0 ];
-
-                tail = head;
-                while ( num-- ) {
-                    if ( ( *q )->schedule.virtual_deadline < Interrupt::global_jiffies ) {
-                        // deadline小于当前进程则直接弹出这个
-
-                        return &( *q )->schedule;
+            auto result = helper::task_queue[ index ].traverse(
+                [ &min ]( const auto &current ) {
+                    if ( current.schedule.virtual_deadline < Interrupt::global_jiffies ) {
+                        return true;
                     }
-                    if ( ( *q )->schedule.virtual_deadline > ( *p )->schedule.virtual_deadline )     // 如果该结点的值大于后一个结点，则交换
-                    {
-                        q->forwards[ 0 ]    = p->forwards[ 0 ];
-                        p->forwards[ 0 ]    = q;
-                        tail->forwards[ 0 ] = p;
+                    if ( ( *min )->schedule.virtual_deadline >= current.schedule.virtual_deadline ) {
+                        min = const_cast< decltype( min ) >( &current.schedule.general_task_node );
                     }
-                    // 进行指针的移动
-                    tail = tail->forwards[ 0 ];
-                    q    = tail->forwards[ 0 ];
-                    p    = q->forwards[ 0 ];
-                }
+                    return false;
+                } );
+
+            if ( result.is_empty( ) ) {
+                // 全部整理一遍后，弹出头
+                return &( *min )->schedule;
             }
-
-            // 全部整理一遍后，弹出头
-            return &( *head )->schedule;
+            else {
+                return &result->schedule;
+            }
         }
         // 查找失败
 
@@ -168,7 +157,7 @@ private:
                 schedule.state  = Schedule::State::RUNNING;
                 helper::global_lock.release( );
 
-                CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
+                //  CPU::switch_cpu( );     // 切换CPU，在切换后进行换值
 
                 return &schedule;
             }
@@ -274,7 +263,7 @@ private:
     }
     auto __search__( uint64_t ID ) -> TaskControlBlock * {
         for ( auto &queue : helper::task_queue ) {
-            return &( *( *queue.search( ID ) ) );
+            return &( *queue.search( ID ) );
         }
         return NULL;
     }

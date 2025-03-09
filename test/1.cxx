@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
-#include <kernel/print.hpp>
-#include <lib/Uefi.hpp>
+#include <cstdlib>
 #include <numeric>
 #include <type_traits>
 #include <utility>
@@ -19,7 +18,7 @@ public:
         template < class _T, class Ref, class Ptr >
         friend struct SkiplistIterator;
 
-    private:
+    public:
         int64_t key;
         T      *data;
 
@@ -167,12 +166,12 @@ public:
         return iterator { nullptr };
     }
     template < typename OP >
-        requires std::invocable< OP, const T & >
+        requires std::invocable< OP, Node * >
     auto traverse( OP &&operation ) {
         for ( auto i = this->level - 1; i >= 0; --i ) {
             auto q = this->head_.forwards[ i ];
             while ( q ) {
-                if ( q->data && operation( *q->data ) ) {
+                if ( q->data && operation( q ) ) {
                     return iterator { q };
                 }
                 q = q->forwards[ i ];
@@ -244,7 +243,7 @@ private:
     int64_t  level;
     auto     get_insert_level( ) {
         auto        upcount = 0l;
-        static auto i       = 114514;
+        static auto i       = std::rand( );
         // 获取系统时间 jiffies
         //
         for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
@@ -258,3 +257,18 @@ private:
     }
 };
 }     // namespace QuantumNEC::Lib
+#include <print>
+#include <ranges>
+auto main( void ) -> int {
+    QuantumNEC::Lib::Skiplist< int > sl;
+    for ( auto i : std::ranges::views::iota( 0, 3 ) ) {
+        sl.insert( *new QuantumNEC::Lib::Skiplist< int >::Node { new int { i }, i } );
+    }
+
+    auto result = sl.traverse(
+        []( auto *current ) {
+            std::println( "{}", *( *current ).data );
+            return false;
+        } );
+    return 0;
+}

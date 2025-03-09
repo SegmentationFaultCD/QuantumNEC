@@ -135,26 +135,32 @@ public:
                 _pnode = parent;
             }
         }
+        auto is_empty( ) {
+            return !this->_pnode;
+        }
+        operator bool( ) {
+            return !this->_pnode;
+        }
 
     private:
         Node *_pnode;
     };
 
 public:
-    using Iterator      = RedBlackTreeIterator< T, T &, T * >;
-    using ConstIterator = const RedBlackTreeIterator< T, T &, T * >;
+    using iterator       = RedBlackTreeIterator< T, T &, T * >;
+    using const_iterator = const RedBlackTreeIterator< T, T &, T * >;
 
     auto end( ) {
-        return Iterator { };
+        return iterator { };
     }
     auto begin( ) {
-        return Iterator { this->left_most( ) };
+        return iterator { this->left_most( ) };
     }
     auto end( ) const {
-        return ConstIterator { };
+        return const_iterator { };
     }
     auto begin( ) const {
-        return ConstIterator { this->left_most( ) };
+        return const_iterator { this->left_most( ) };
     }
 
 private:
@@ -178,23 +184,29 @@ public:
         auto *y = this->_nil;
         auto *x = this->_root;
         while ( x != this->_nil ) {
-            y = x;
-            if ( z->_key < x->_key )
+            y            = x;
+            auto compare = z->_key <=> x->_key;
+            if ( compare == std::strong_ordering::less ) {
                 x = x->_left;
-            else if ( z->_key > x->_key )
+            }
+            else if ( compare == std::strong_ordering::greater ) {
                 x = x->_right;
+            }
             else
                 return;
         }
 
         z->_parent = y;
-        if ( y == this->_nil )
+        if ( y == this->_nil ) {
             this->_root = z;
+        }
         else {
-            if ( y->_key > z->_key )
-                y->_left = z;
-            else
+            if ( auto compare = y->_key <=> z->_key; compare == std::strong_ordering::less ) {
                 y->_right = z;
+            }
+            else {
+                y->_left = z;
+            }
         }
 
         z->_left = z->_right = this->_nil;
@@ -245,22 +257,23 @@ public:
     }
 
     // 查找方法
-    auto *search( Keyofvalue key ) {
+    auto search( Keyofvalue key ) {
         auto *node = this->_root;
 
         while ( node != this->_nil ) {
-            if ( key < node->_key ) {
+            auto compare = key <=> node->_key;
+            if ( compare == std::strong_ordering::less ) {
                 node = node->_left;
             }
-            else if ( key > node->_key ) {
+            else if ( compare == std::strong_ordering::greater ) {
                 node = node->_right;
             }
             else {
-                return node;
+                return iterator { node };
             }
         }
 
-        return this->_nil;
+        return iterator { this->_nil };
     }
     auto swap( RedBlackTree< T, Keyofvalue > &_t ) {
         std::swap( _root, _t._root );
@@ -274,15 +287,14 @@ public:
     }
 
     // // 中序遍历：
-    auto traverse( auto func )
-        requires std::invocable< decltype( func ), T & >
-    {
-        auto _helper_ = [ &func ]( this auto &self, Node *root ) -> bool {
+    template < typename OP >
+        requires std::invocable< OP, const T & >
+    auto traverse( OP &&operation ) {
+        ( [ &operation ]( this auto &&self, Node *root ) -> bool {
             if ( root ) {
-                if ( func( *root->_data ) ) {
+                if ( root->_data && operation( *root->_data ) ) {
                     return false;
                 }
-
                 if ( self( root->_left ) ) {
                     return false;
                 }
@@ -291,9 +303,7 @@ public:
                 }
             }
             return true;
-        };
-
-        _helper_( this->_root );
+        } )( this->_root );
         return;
     }
     auto &left( ) {

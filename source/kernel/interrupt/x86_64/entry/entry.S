@@ -721,7 +721,6 @@ system_call:
     LEA RAX, [get_current_kernel_stack_top_in_user_mode + RIP]
     CALL RAX
     MOV RSP, RAX
-
     
     PUSH [RBP + 0x50]
     PUSH [RBP + 0x58]
@@ -738,8 +737,8 @@ system_call:
     PUSH 0
     PUSH 0
     PUSH [RBP + 0x10]
-    PUSH [RBP + 0x8]
-    PUSH [RBP]
+    PUSH [RBP + 0x08]
+    PUSH [RBP + 0x00]
     PUSH [RBP + 0x28]
     PUSH [RBP + 0x20]
     PUSH [RBP + 0x60]

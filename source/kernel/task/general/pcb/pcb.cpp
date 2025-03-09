@@ -64,17 +64,19 @@ ProcessControlBlock::ProcessControlBlock( const char_t *_name_, uint64_t _priori
     this->PID = pid_pool.allocate( );
     // 设置进程名
     std::strncpy( this->name, _name_, TASK_NAME_SIZE );
-
-    // 时间片越多优先级越高
-    this->schedule.priority          = _priority_;
-    this->schedule.general_task_node = *this;
     // 标注，例如进程还是线程，内核级别还是用户级别，FPU的情况等
-    this->flags                     = _flags_;
-    this->schedule.jiffies          = SchedulerHelper::make_jiffies( this->schedule.priority );
-    this->schedule.virtual_deadline = SchedulerHelper::make_virtual_deadline( this->schedule.priority, this->schedule.jiffies );
+    this->flags = _flags_;
 
-    // 当前cpu的id
-    this->schedule.cpu_id = Interrupt::cpu_id( );
+    this->schedule = {
+        .jiffies           = (uint64_t)SchedulerHelper::make_jiffies( this->schedule.priority ),
+        .priority          = _priority_,
+        .virtual_deadline  = SchedulerHelper::make_virtual_deadline( this->schedule.priority, this->schedule.jiffies ),
+        .cpu_id            = Interrupt::cpu_id( ),
+        .general_task_node = { this, (int64_t)this->PID },     // 当前cpu的id
+        .signal            = 0,
+        .state             = Scheduler::Schedule::State::READY
+    };
+
     // 魔术字节
     this->stack_magic = PCB_STACK_MAGIC;
 }

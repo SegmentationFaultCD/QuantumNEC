@@ -1,6 +1,21 @@
 [
 {
   "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fPIC", "-DNDEBUG", "-o", "build/.objs/cxx/linux/x86-64/release/source/libcxx/abi.cpp.o", "source/libcxx/abi.cpp"],
+  "file": "source/libcxx/abi.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fPIC", "-DNDEBUG", "-o", "build/.objs/cxx/linux/x86-64/release/source/libcxx/format.cpp.o", "source/libcxx/format.cpp"],
+  "file": "source/libcxx/format.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-static", "-fPIE", "-DNDEBUG", "-o", "build/.objs/servicer.elf/linux/x86-64/release/source/modules/service/servicer.cpp.o", "source/modules/service/servicer.cpp"],
+  "file": "source/modules/service/servicer.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fPIC", "-DNDEBUG", "-o", "build/.objs/c/linux/x86-64/release/source/libc/math.cpp.o", "source/libc/math.cpp"],
   "file": "source/libc/math.cpp"
 },
@@ -18,21 +33,6 @@
   "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-O0", "-std=c23", "-Iinclude", "-Isource/boot/limine", "-o", "build/.objs/c/linux/x86-64/release/source/libc/start_file.S.o", "source/libc/start_file.S"],
   "file": "source/libc/start_file.S"
-},
-{
-  "directory": "/home/archlinux/QuantumNEC",
-  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-static", "-fPIE", "-DNDEBUG", "-o", "build/.objs/servicer.elf/linux/x86-64/release/source/modules/service/servicer.cpp.o", "source/modules/service/servicer.cpp"],
-  "file": "source/modules/service/servicer.cpp"
-},
-{
-  "directory": "/home/archlinux/QuantumNEC",
-  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fPIC", "-DNDEBUG", "-o", "build/.objs/cxx/linux/x86-64/release/source/libcxx/abi.cpp.o", "source/libcxx/abi.cpp"],
-  "file": "source/libcxx/abi.cpp"
-},
-{
-  "directory": "/home/archlinux/QuantumNEC",
-  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-fPIC", "-DNDEBUG", "-o", "build/.objs/cxx/linux/x86-64/release/source/libcxx/format.cpp.o", "source/libcxx/format.cpp"],
-  "file": "source/libcxx/format.cpp"
 },
 {
   "directory": "/home/archlinux/QuantumNEC",
@@ -306,8 +306,13 @@
 },
 {
   "directory": "/home/archlinux/QuantumNEC",
-  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-D", "APIC", "-fPIE", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-Wno-reorder", "-DNDEBUG", "-o", "build/.objs/micro_kernel/linux/x86-64/release/source/kernel/syscall/ipc.cpp.o", "source/kernel/syscall/ipc.cpp"],
-  "file": "source/kernel/syscall/ipc.cpp"
+  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-D", "APIC", "-fPIE", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-Wno-reorder", "-DNDEBUG", "-o", "build/.objs/micro_kernel/linux/x86-64/release/source/kernel/syscall/ipc/receive.cpp.o", "source/kernel/syscall/ipc/receive.cpp"],
+  "file": "source/kernel/syscall/ipc/receive.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-D", "APIC", "-fPIE", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-Wno-reorder", "-DNDEBUG", "-o", "build/.objs/micro_kernel/linux/x86-64/release/source/kernel/syscall/ipc/send.cpp.o", "source/kernel/syscall/ipc/send.cpp"],
+  "file": "source/kernel/syscall/ipc/send.cpp"
 },
 {
   "directory": "/home/archlinux/QuantumNEC",
@@ -358,4 +363,9 @@
   "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-O0", "-std=c23", "-Iinclude", "-Isource/boot/limine", "-o", "build/.objs/micro_kernel/linux/x86-64/release/source/kernel/interrupt/x86_64/entry/entry.S.o", "source/kernel/interrupt/x86_64/entry/entry.S"],
   "file": "source/kernel/interrupt/x86_64/entry/entry.S"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/gcc", "-c", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O0", "-std=c++26", "-Iinclude", "-Isource/boot/limine", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-Werror", "-static", "-fPIE", "-DNDEBUG", "-o", "build/.objs/servicer2.elf/linux/x86-64/release/source/modules/service/servicer2.cpp.o", "source/modules/service/servicer2.cpp"],
+  "file": "source/modules/service/servicer2.cpp"
 }]

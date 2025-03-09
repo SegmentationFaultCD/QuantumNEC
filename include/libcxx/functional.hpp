@@ -13,10 +13,12 @@ public:
     }
     function( std::nullptr_t ) noexcept {
     }
-    function( const function &other ) {
+    function( const function &other ) noexcept {
         this->f.f = other.f.f;
     }
-    function( function &&other ) {
+    function( function &&other ) noexcept {
+        this->f.f = other.f.f;
+        other.f.f = nullptr;
     }
 
     template < class F >
@@ -38,6 +40,9 @@ private:
     template < typename Function >
     struct _callable_ {
     public:
+        _callable_( ) :
+            f { } {
+        }
         _callable_( Function &&fu ) :
             f { fu } {
         }
