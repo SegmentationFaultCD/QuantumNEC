@@ -63,6 +63,7 @@ public:
     // 红黑树迭代器：
     template < typename _T, typename Ref, typename Ptr >
     struct RedBlackTreeIterator {
+        friend RedBlackTree;
         using self = RedBlackTreeIterator< T, Ref, Ptr >;
         // 构造函数就将红黑树的节点指针传入进来：
         RedBlackTreeIterator( Node *node = NULL ) :
@@ -213,6 +214,9 @@ public:
         z->_color            = Node::Color::RED;
         _size++;
         this->insert_fixup( z );
+    }
+    auto remove( iterator node ) {
+        this->remove( *( node._pnode ) );
     }
 
     auto remove( Node &node ) {

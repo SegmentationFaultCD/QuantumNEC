@@ -4,7 +4,7 @@
 #include <kernel/memory/memory.hpp>
 #include <kernel/memory/page/page_allocater.hpp>
 #include <kernel/print.hpp>
-#include <kernel/syscall/ipc/ipc.hpp>
+#include <kernel/syscall/ipc/services.hpp>
 #include <kernel/task/general/pcb/pid.hpp>
 #include <kernel/task/general/scheduler/scheduler.hpp>
 #include <lib/Uefi.hpp>
@@ -106,9 +106,9 @@ public:
 
     FloatPointUnit::FpuFrame *fpu_frame;
 
-    uint64_t stack_magic;     // 用于检测栈的溢出
+    mutable Service services;
 
-    mutable InterprocessCommunication< ProcessControlBlock >::message messages;
+    uint64_t stack_magic;     // 用于检测栈的溢出
 
     explicit ProcessControlBlock( void ) noexcept {
     }

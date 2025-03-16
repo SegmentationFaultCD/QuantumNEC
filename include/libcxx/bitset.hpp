@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <expected>
 #include <libcxx/cstring.hpp>
+#include <numeric>
 #include <utility>
 namespace std {
 
@@ -64,7 +65,7 @@ public:
         std::ranges::copy_n( this->bitmap, this->length, _bitmap );
     }
     auto all( ) {
-        constexpr auto mask = ~0ull;
+        constexpr auto mask = std::numeric_limits< uint64_t >::max( );
         for ( auto &i : this->bitmap ) {
             if ( i != mask ) {
                 return false;
