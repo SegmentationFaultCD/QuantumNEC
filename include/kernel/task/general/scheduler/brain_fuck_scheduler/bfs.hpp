@@ -12,8 +12,11 @@
 #include <utility>
 namespace QuantumNEC::Kernel {
 
-// 该调度器思想由Con Kolivas发明
+// 该调度器由Con Kolivas发明
 // 面向桌面端设备，适用与较少的CPU
+// 事实上，在结合跳表后，他应该叫做MuQSS，但是为保证原汁原味，我还是叫他bfs
+// 详见http://ck.kolivas.org/patches/muqss/sched-MuQSS.txt
+
 template < typename TaskControlBlock >
 class BrainFuckSchedulerHelper;
 template < typename TaskControlBlock >

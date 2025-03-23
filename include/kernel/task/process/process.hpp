@@ -6,6 +6,7 @@ namespace QuantumNEC::Kernel {
 class Process {
 public:
     constexpr static auto __user_process_text_segment_start__ { 0x400000ul };
+    constexpr static auto __user_process_shared_memory_space_start__ { 0x1000000ul };
 
 public:
     enum class ErrorCode {
@@ -21,8 +22,8 @@ public:
     }
     explicit Process( const Modules::ModuleLoader::FileInformation &file, uint64_t priority, ProcessControlBlock::__flags__::__type__ type ) noexcept;
 
-    Process( const Process &process ) noexcept                     = delete;
-    auto operator=( const Process &process ) noexcept -> Process & = delete;
+    Process( const Process &process ) noexcept = delete;
+    auto operator=( const Process &process ) noexcept -> Process &;
     auto operator=( Process &&process ) noexcept -> Process &;
 
 public:
