@@ -15,6 +15,6 @@ class Time :
 {
 public:
     explicit Time( void ) noexcept = default;
-    virtual ~Time( void ) noexcept = default;
+    ~Time( void ) noexcept         = default;
 };
 }     // namespace QuantumNEC::Kernel

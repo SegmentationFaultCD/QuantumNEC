@@ -32,11 +32,11 @@ public:
         PageAllocator< MemoryPageType::PAGE_2M > page_allocator { };
         if ( result.has_value( ) ) {
             auto &slab_cache = *result.value( );
-            return slab_cache.visit( [ &, this ]( const Lib::shared_spinlock< SlabCache > &slab_cache ) -> T * {
-                auto slab = slab_cache.value( ).cache_pool;
+            return slab_cache.visit( [ &, this ]( SlabCache &slab_cache ) -> T * {
+                auto slab = slab_cache.cache_pool;
 
-                if ( slab_cache.value( ).total_free ) {
-                    for ( auto &it : slab_cache.value( ).pool_list ) {
+                if ( slab_cache.total_free ) {
+                    for ( auto &it : slab_cache.pool_list ) {
                         if ( it.free_count ) {
                             slab = &it;
                             break;
@@ -51,17 +51,17 @@ public:
                                  return NULL;
                              }
                              Slab *slab { };
-                             switch ( slab_cache.value( ).size ) {
+                             switch ( slab_cache.size ) {
                              case 32:
                              case 64:
                              case 128:
                              case 256:
                              case 512: {
                                  auto virtual_address  = (uint64_t)physical_to_virtual( page );
-                                 auto struct_size      = sizeof( Slab ) + PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ / slab_cache.value( ).size / 8;
+                                 auto struct_size      = sizeof( Slab ) + PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ / slab_cache.size / 8;
                                  slab                  = (Slab *)( virtual_address + PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ - struct_size );
                                  slab->color_map       = (uint64_t *)slab + sizeof( Slab ) / sizeof( uint64_t );
-                                 slab->free_count      = ( PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ - ( PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ / slab_cache.value( ).size / 8 ) - sizeof( Slab ) / slab_cache.value( ).size );
+                                 slab->free_count      = ( PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ - ( PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ / slab_cache.size / 8 ) - sizeof( Slab ) / slab_cache.size );
                                  slab->using_count     = 0;
                                  slab->color_count     = slab->free_count;
                                  slab->virtual_address = (void *)virtual_address;
@@ -80,7 +80,7 @@ public:
                              case 524288:
                              case 1048576: {
                                  slab                  = (Slab *)this->allocate( sizeof( Slab ) );
-                                 slab->free_count      = PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ / slab_cache.value( ).size;
+                                 slab->free_count      = PageAllocator< MemoryPageType::PAGE_2M >::__page_size__ / slab_cache.size;
                                  slab->using_count     = 0;
                                  slab->color_count     = slab->free_count;
                                  slab->color_length    = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
@@ -102,22 +102,26 @@ public:
                          !slab ) {
                         return NULL;
                     }
-                    slab_cache.value( ).total_free += slab->color_count;
-                    slab_cache.value( ).pool_list.insert( &slab->list, &slab_cache.value( ).cache_pool->list );
+                    slab_cache.total_free += slab->color_count;
+                    slab_cache.pool_list.insert( &slab->list, &slab_cache.cache_pool->list );
                 }
+
                 for ( auto i = 0ul; i < slab->color_count; ++i ) {
                     if ( *( slab->color_map + ( i >> 6 ) ) == ~0ul ) {
                         i += 63;
                         continue;
                     }
+
                     if ( !( *( slab->color_map + ( i >> 6 ) ) & ( 1ul << ( i % 64 ) ) ) ) {
                         *( slab->color_map + ( i >> 6 ) ) |= 1ul << ( i % 64 );
                         slab->using_count++;
                         slab->free_count--;
-                        slab_cache.value( ).total_free--;
-                        slab_cache.value( ).total_using++;
-                        auto virtual_address = (T *)( (uint64_t)slab->virtual_address + slab_cache.value( ).size * i );
+                        slab_cache.total_free--;
+                        slab_cache.total_using++;
+                        auto virtual_address = (T *)( (uint64_t)slab->virtual_address + slab_cache.size * i );
+
                         std::memset( virtual_address, 0, size );
+
                         return virtual_address;
                     }
                 }
@@ -142,17 +146,17 @@ public:
             if ( !slab ) {
                 return;
             }
-            slab_cache->visit( [ & ]( const Lib::shared_spinlock< SlabCache > &slab_cache ) {
-                auto index = ( (uint64_t)address - (uint64_t)slab->virtual_address ) / slab_cache.value( ).size;
+            slab_cache->visit( [ & ]( SlabCache &slab_cache ) {
+                auto index = ( (uint64_t)address - (uint64_t)slab->virtual_address ) / slab_cache.size;
                 *( slab->color_map + ( index >> 6 ) ) ^= 1ul << index % 64;     // 取消填充
                 slab->free_count++;
                 slab->using_count--;
-                slab_cache.value( ).total_free++;
-                slab_cache.value( ).total_using--;
-                if ( !slab->using_count && ( slab_cache.value( ).total_free >= slab->color_count * 3 / 2 ) && ( slab_cache.value( ).cache_pool != slab ) ) {
-                    slab_cache.value( ).pool_list.remove( slab->list );
-                    slab_cache.value( ).total_free -= slab->color_count;
-                    switch ( slab_cache.value( ).size ) {
+                slab_cache.total_free++;
+                slab_cache.total_using--;
+                if ( !slab->using_count && ( slab_cache.total_free >= slab->color_count * 3 / 2 ) && ( slab_cache.cache_pool != slab ) ) {
+                    slab_cache.pool_list.remove( slab->list );
+                    slab_cache.total_free -= slab->color_count;
+                    switch ( slab_cache.size ) {
                     case 32:
                     case 64:
                     case 128:

@@ -103,7 +103,7 @@ public:
 
 public:
     explicit CPUUtils( void ) noexcept = default;
-    virtual ~CPUUtils( void ) noexcept = default;
+    ~CPUUtils( void ) noexcept         = default;
 
 public:
     static auto cpuid( IN CpuidStatus &status ) -> CpuidStatus &;

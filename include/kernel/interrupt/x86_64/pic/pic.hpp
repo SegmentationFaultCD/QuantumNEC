@@ -12,6 +12,6 @@ class PIC :
 {
 public:
     explicit PIC( void ) noexcept;
-    virtual ~PIC( void ) noexcept = default;
+    ~PIC( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel::x86_64

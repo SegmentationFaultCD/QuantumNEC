@@ -5,7 +5,7 @@ namespace QuantumNEC::Kernel {
 class Screen {
 public:
     explicit Screen( void ) noexcept;
-    virtual ~Screen( void ) noexcept;
+    ~Screen( void ) noexcept;
 
 private:
     /**

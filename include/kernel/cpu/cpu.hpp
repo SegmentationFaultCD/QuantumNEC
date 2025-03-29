@@ -19,6 +19,6 @@ class CPU :
     public SymmetricMultiprocessing {
 public:
     explicit CPU( void ) noexcept;
-    virtual ~CPU( void ) noexcept = default;
+    ~CPU( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel

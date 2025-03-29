@@ -44,7 +44,7 @@ public:
     public:
         explicit Time( void ) noexcept {
         }
-        virtual ~Time( void ) noexcept {
+        ~Time( void ) noexcept {
         }
 
     public:

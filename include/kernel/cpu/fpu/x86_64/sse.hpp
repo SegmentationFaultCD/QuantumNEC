@@ -28,6 +28,6 @@ public:
 
 public:
     explicit Sse( void ) noexcept;
-    virtual ~Sse( void ) noexcept = default;
+    ~Sse( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel::x86_64

@@ -14,7 +14,7 @@ private:
 
 public:
     explicit SerialPort( void ) noexcept;
-    virtual ~SerialPort( void ) noexcept = default;
+    ~SerialPort( void ) noexcept = default;
 
 public:
     static auto read( void ) -> char_t;

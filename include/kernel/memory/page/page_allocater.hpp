@@ -4,7 +4,7 @@
 #include <kernel/memory/page/page_manager.hpp>
 #include <lib/Uefi.hpp>
 #include <lib/rbtree.hpp>
-#include <lib/shared_spinlock.hpp>
+#include <lib/smart_spinlock.hpp>
 #include <libcxx/bitset.hpp>
 #include <libcxx/memory.hpp>
 namespace QuantumNEC::Kernel {
@@ -116,7 +116,7 @@ public:
             };
 
         public:
-            static auto get_group( void ) -> Lib::shared_spinlock< __group_type__ > & {
+            static auto get_group( void ) -> Lib::smart_spinlock< __group_type__ > & {
                 return page_header_group[ __allocator_to_bind__ ];
             }
             static auto get_keys( IN auto base_address ) {
@@ -124,7 +124,7 @@ public:
             }
 
         private:
-            inline static Lib::shared_spinlock< __group_type__ > page_header_group[ 4 ];
+            inline static Lib::smart_spinlock< __group_type__ > page_header_group[ 4 ];
             // 辅助
         };
 
@@ -182,8 +182,9 @@ public:
             this->all_memory_header_count = header_count;
             this->zone                    = header_start_address.template get_address< __address__::HEADER_START_ADDRESS >( this->all_memory_header_count );
             auto base_address_            = base_address.template get_address< __address__::BASE_ADDRESS >( this->all_memory_header_count );
+
             group.visit(
-                [ &, this ]( const Lib::shared_spinlock< typename __helper__::__group_type__ > &group ) {
+                [ &, this ]( typename __helper__::__group_type__ &group ) {
                     for ( auto i = 0ul; i < this->all_memory_header_count; ++i ) {
                         this->zone[ i ].owner                  = &this->zone[ 0 ];
                         this->zone[ i ].flags.state            = __page_state__::ALL_FREE;
@@ -194,9 +195,10 @@ public:
                         // 插入红黑树中
                         this->zone[ i ].group_node.key( __helper__::get_keys( this->zone[ i ].base_address ) );
                         this->zone[ i ].group_node.data( &this->zone[ i ] );
-                        group.value( ).insert( this->zone[ i ].group_node );
+                        group.insert( this->zone[ i ].group_node );
                     }
                 } );
+
             this->zone[ 0 ].header_count = this->all_memory_header_count;
             this->zone[ 0 ].owner        = NULL;
         }
@@ -257,12 +259,12 @@ public:
         // The variable is not always used.
         // If size is less than page descriptor count of a header, the variable will not be used.
         auto needed_header_count = Lib::DIV_ROUND_UP( __size__, PH::__helper__::page_descriptor_count );
-        return group.visit( [ &, this ]( const Lib::shared_spinlock< typename PH::__helper__::__group_type__ > &group ) -> void * {
+        return group.visit( [ &, this ]( typename PH::__helper__::__group_type__ &group ) -> void * {
             PHI *node { };
 
             if ( __size__ < PH::__helper__::page_descriptor_count ) {
-                if ( !group.value( ).empty( ) ) {
-                    group.value( ).traverse( [ & ]( const auto &zone ) {
+                if ( !group.empty( ) ) {
+                    group.traverse( [ & ]( const auto &zone ) {
                         if ( zone.owner ) {
                             return false;
                         }
@@ -298,8 +300,8 @@ public:
                 }
             }
             else {
-                if ( !group.value( ).empty( ) ) {
-                    group.value( ).traverse( [ & ]( const auto &zone ) {
+                if ( !group.empty( ) ) {
+                    group.traverse( [ & ]( const auto &zone ) {
                         if ( zone.owner ) {
                             return false;
                         }
@@ -432,8 +434,8 @@ public:
 
         auto &group = PH::__helper__::get_group( );
 
-        group.visit( [ &, this ]( const Lib::shared_spinlock< typename PH::__helper__::__group_type__ > &group ) {
-            auto node = group.value( ).search( PH::__helper__::get_keys( __physical_address__ ) );
+        group.visit( [ &, this ]( typename PH::__helper__::__group_type__ &group ) {
+            auto node = group.search( PH::__helper__::get_keys( __physical_address__ ) );
             if ( !node.is_empty( ) ) {
                 auto zone = &( *node );
                 if ( zone->owner ) {
@@ -491,8 +493,9 @@ public:
                     }
                     end_header.bitmap.template set< false >( 0, end_remainder );
                     if ( base_index == 0 && index == 0 && __size__ == PH::__helper__::page_descriptor_count * zone->header_count ) {
+                        // 回收
                         for ( auto i = 0ul; i < header.header_count; ++i ) {
-                            group.value( ).remove( page_headers[ base_index + i ].group_node );
+                            group.remove( page_headers[ base_index + i ].group_node );
                         }
                         PageAllocator< MemoryPageType::PAGE_1G > { }.deallocate( (void *)zone->base_address, zone->header_count );
                         ___kheap_deallocate__( zone, zone->header_count * PH::__helper__::header_size );

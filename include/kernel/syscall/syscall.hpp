@@ -49,7 +49,7 @@ public:
 
 public:
     explicit Syscall( void ) noexcept;
-    virtual ~Syscall( void ) noexcept = default;
+    ~Syscall( void ) noexcept = default;
 
 public:
     static auto initializate( void ) noexcept -> void;

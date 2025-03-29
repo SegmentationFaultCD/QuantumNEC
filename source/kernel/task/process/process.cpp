@@ -63,7 +63,7 @@ Process::Process( Process &&process ) noexcept {
     this->pcb   = process.pcb;
     process.pcb = NULL;
 }
-auto Process::operator=( const Process &process ) noexcept -> Process & {
+auto Process::operator=( const Process & ) noexcept -> Process & {
     return *this;
 }
 auto Process::operator=( Process &&process ) noexcept -> Process & {

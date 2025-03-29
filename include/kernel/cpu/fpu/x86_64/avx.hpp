@@ -4,6 +4,6 @@ namespace QuantumNEC::Kernel::x86_64 {
 class Avx {
 public:
     explicit Avx( void ) noexcept;
-    virtual ~Avx( void ) noexcept = default;
+    ~Avx( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel::x86_64

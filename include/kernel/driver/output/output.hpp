@@ -19,6 +19,6 @@ class Output :
 {
 public:
     explicit Output( void ) noexcept = default;
-    virtual ~Output( void ) noexcept = default;
+    ~Output( void ) noexcept         = default;
 };
 }     // namespace QuantumNEC::Kernel

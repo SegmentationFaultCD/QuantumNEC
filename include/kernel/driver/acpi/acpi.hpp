@@ -17,6 +17,6 @@ public:
     explicit Acpi( void ) noexcept :
         x86_64::Acpi { } {
     }
-    virtual ~Acpi( void ) noexcept = default;
+    ~Acpi( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel

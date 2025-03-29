@@ -19,7 +19,7 @@ public:
     explicit PIT( void ) noexcept;
 
 public:
-    virtual ~PIT( void ) noexcept;
+    ~PIT( void ) noexcept;
 
 private:
 };

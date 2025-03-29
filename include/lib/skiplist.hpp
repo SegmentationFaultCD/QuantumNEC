@@ -8,7 +8,7 @@
 namespace QuantumNEC::Lib {
 template < typename T >
 class Skiplist {
-    static constexpr auto MAXLEVEL = 12;
+    static constexpr auto MAXLEVEL = 8;
 
 public:
     template < class _T, class Ref, class Ptr >
@@ -215,6 +215,8 @@ public:
             head_.forwards[ i ]                = &first_;
             head_.forwards[ i ]->forwards[ i ] = &end_;
         }
+    }
+    ~Skiplist( ) {
     }
     auto init( ) {
         this->head_.data  = nullptr;

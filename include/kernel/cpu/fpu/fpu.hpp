@@ -15,8 +15,10 @@ class FloatPointUnit :
 #endif
 {
 public:
-    explicit FloatPointUnit( void ) noexcept = default;
-    virtual ~FloatPointUnit( void ) noexcept = default;
-    using FpuFrame                           = SSE;
+    explicit FloatPointUnit( void ) noexcept :
+        Sse { }, Avx { } {
+    }
+    ~FloatPointUnit( void ) noexcept = default;
+    using FpuFrame                   = SSE;
 };
 }     // namespace QuantumNEC::Kernel

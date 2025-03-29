@@ -4,7 +4,6 @@
 #include <kernel/memory/x86_64/paging/paging.hpp>
 #include <kernel/memory/x86_64/paging/ptv.hpp>
 #include <kernel/print.hpp>
-#include <lib/shared_spinlock.hpp>
 namespace QuantumNEC::Kernel::x86_64 {
 pml5t pml5_t_buffer;
 pml4t pml4_t_buffer;

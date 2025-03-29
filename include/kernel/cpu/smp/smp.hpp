@@ -16,6 +16,6 @@ public:
     explicit SymmetricMultiprocessing( void ) noexcept :
         x86_64::SymmetricMultiprocessing { } {
     }
-    virtual ~SymmetricMultiprocessing( void ) noexcept = default;
+    ~SymmetricMultiprocessing( void ) noexcept = default;
 };
 }     // namespace QuantumNEC::Kernel

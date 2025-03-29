@@ -9,7 +9,7 @@ public:
     explicit PIC8259A( void ) noexcept;
 
 public:
-    virtual ~PIC8259A( void ) noexcept;
+    ~PIC8259A( void ) noexcept;
 
 public:
     static auto eoi( IN const irq_t irq ) -> void;

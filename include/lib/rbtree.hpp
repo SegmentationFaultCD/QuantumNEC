@@ -169,7 +169,7 @@ private:
 
 public:
     explicit RedBlackTree( void ) noexcept = default;
-
+    ~RedBlackTree( void ) noexcept         = default;
     auto insert( Node &_node )     // 插入节点
     {
         auto z = &_node;
@@ -256,8 +256,6 @@ public:
     auto clear( ) {
         this->remove( *this->_root );
         this->_size = 0;
-    }
-    ~RedBlackTree( ) {
     }
 
     // 查找方法

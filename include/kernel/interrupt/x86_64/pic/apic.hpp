@@ -152,7 +152,7 @@ public:
 
 public:
     explicit Apic( void ) noexcept;
-    virtual ~Apic( void ) noexcept;
+    ~Apic( void ) noexcept;
 
 public:
     static auto write_apic( IN uint16_t index, IN uint64_t value, IN ApicType type ) -> void;

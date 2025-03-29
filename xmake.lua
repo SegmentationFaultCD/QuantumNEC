@@ -213,10 +213,10 @@ target("micro_kernel")
             "-mno-red-zone", -- 禁用红色区域
             "-fno-stack-check", -- 不要栈检查
             "-Wall", 
-            -- "-mno-mmx",
-            -- "-mno-sse",
-            -- "-mno-sse2",
-            -- "-mno-80387",
+            "-mno-mmx",
+            "-mno-sse",
+            "-mno-sse2",
+            "-mno-80387",
             "-Wextra",
             "-Werror",
             "-D APIC",

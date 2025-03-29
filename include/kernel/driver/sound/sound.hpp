@@ -15,6 +15,6 @@ class Sound :
 {
 public:
     explicit Sound( void ) noexcept = default;
-    virtual ~Sound( void ) noexcept = default;
+    ~Sound( void ) noexcept         = default;
 };
 }     // namespace QuantumNEC::Kernel

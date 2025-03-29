@@ -14,44 +14,44 @@ auto SystemcallEntry::error_code( [[maybe_unused]] uint64_t error_code ) noexcep
 }
 auto SystemcallEntry::handler( Frame *frame ) noexcept -> Frame * {
     Apic::eoi( frame->vector );
+    std::println( "{} {}", Apic::cpu_id( ), (uint64_t)frame->regs.rdi );
+    // constexpr auto shared_pages_size = 1;
 
-    constexpr auto shared_pages_size = 1;
+    // auto current  = ProcessControlBlock::get_running_task( );
+    // auto servicer = const_cast< ProcessControlBlock * >( Syscall::get_servicer( Syscall::Servicer( frame->regs.rax ) ).raw_control_block( ) );
 
-    auto current  = ProcessControlBlock::get_running_task( );
-    auto servicer = const_cast< ProcessControlBlock * >( Syscall::get_servicer( Syscall::Servicer( frame->regs.rax ) ).raw_control_block( ) );
+    // KHeapAllocator< Service::Order > order_allocater;
+    // auto                             order = std::allocator_traits< KHeapAllocator< Service::Order > >::allocate( order_allocater, 1 );
 
-    KHeapAllocator< Service::Order > order_allocater;
-    auto                             order = std::allocator_traits< KHeapAllocator< Service::Order > >::allocate( order_allocater, 1 );
+    // if ( servicer->schedule.state == Scheduler::Schedule::State::RECEIVING ) {
+    //     // 还未有任何请求的时候
+    //     PageAllocator< MemoryPageType::PAGE_2M > allocater { };
+    //     auto                                     shared_space = std::allocator_traits< PageAllocator< MemoryPageType::PAGE_2M > >::allocate( allocater, shared_pages_size );
 
-    if ( servicer->schedule.state == Scheduler::Schedule::State::RECEIVING ) {
-        // 还未有任何请求的时候
-        PageAllocator< MemoryPageType::PAGE_2M > allocater { };
-        auto                                     shared_space = std::allocator_traits< PageAllocator< MemoryPageType::PAGE_2M > >::allocate( allocater, shared_pages_size );
+    //     std::allocator_traits< KHeapAllocator< Service::Order > >::construct(
+    //         order_allocater,
+    //         order,
+    //         shared_space,
+    //         current->PID );
 
-        std::allocator_traits< KHeapAllocator< Service::Order > >::construct(
-            order_allocater,
-            order,
-            shared_space,
-            current->PID );
+    //     current->services.send( order, &servicer->services );
 
-        current->services.send( order, &servicer->services );
+    //     // 映射共享内存到固定的地方
+    //     auto map_shared_memory = [ &shared_space, &shared_pages_size ]( ProcessControlBlock *pcb ) {
+    //         pcb->memory_manager.page_table.map(
+    //             (uint64_t)shared_space,
+    //             Process::__user_process_shared_memory_space_start__,
+    //             shared_pages_size,
+    //             pcb->memory_manager.page_table.PAGE_PRESENT | pcb->memory_manager.page_table.PAGE_RW_W | pcb->memory_manager.page_table.PAGE_US_U,
+    //             MemoryPageType::PAGE_2M );
+    //     };
 
-        // 映射共享内存到固定的地方
-        auto map_shared_memory = [ &shared_space, &shared_pages_size ]( ProcessControlBlock *pcb ) {
-            pcb->memory_manager.page_table.map(
-                (uint64_t)shared_space,
-                Process::__user_process_shared_memory_space_start__,
-                shared_pages_size,
-                pcb->memory_manager.page_table.PAGE_PRESENT | pcb->memory_manager.page_table.PAGE_RW_W | pcb->memory_manager.page_table.PAGE_US_U,
-                MemoryPageType::PAGE_2M );
-        };
-
-        map_shared_memory( current );
-        map_shared_memory( servicer );
-    }
-    else {
-        // 阻塞当前进程, 加入等候队列
-    }
+    //     map_shared_memory( current );
+    //     map_shared_memory( servicer );
+    // }
+    // else {
+    //     // 阻塞当前进程, 加入等候队列
+    // }
     return frame;
 }
 auto SystemcallEntry::do_register( void ) -> void {

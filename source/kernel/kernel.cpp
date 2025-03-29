@@ -43,7 +43,8 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void {
     //       .address = (uint32_t *)config.graphics_data.address
     // };
     Kernel::Task task { };
-    Kernel::CPU  cpu { };
+
+    Kernel::CPU cpu { };
 
     // auto result = terminal_init( &display, 10.0f, m, f, nullptr );
     // std::println( "{}", (int)result );

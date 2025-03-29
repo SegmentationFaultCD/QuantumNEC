@@ -5,7 +5,7 @@ namespace QuantumNEC::Kernel {
 class SlabDestroyer {
 public:
     explicit SlabDestroyer( void ) noexcept = default;
-    virtual ~SlabDestroyer( void ) noexcept = default;
+    ~SlabDestroyer( void ) noexcept         = default;
 
 public:
     auto destory( IN SlabCache *slab_cache ) -> void;

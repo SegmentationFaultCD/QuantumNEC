@@ -5,7 +5,7 @@ namespace QuantumNEC::Kernel::x86_64 {
 class SymmetricMultiprocessing {
 public:
     explicit SymmetricMultiprocessing( void ) noexcept;
-    virtual ~SymmetricMultiprocessing( void ) noexcept = default;
+    ~SymmetricMultiprocessing( void ) noexcept = default;
 
 public:
     static auto send_IPI( IN Apic::InterruptCommandRegister icr ) -> void;

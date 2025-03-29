@@ -54,7 +54,7 @@ public:
      */
     explicit Hpet( void ) noexcept;
 
-    virtual ~Hpet( void ) noexcept;
+    ~Hpet( void ) noexcept;
 
 public:
     static auto sleep( uint64_t ns ) -> void;

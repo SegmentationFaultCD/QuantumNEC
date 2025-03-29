@@ -9,6 +9,6 @@ public:
      */
     explicit P8254( void ) noexcept;
 
-    virtual ~P8254( void ) noexcept;
+    ~P8254( void ) noexcept;
 };
 }     // namespace QuantumNEC::Kernel::x86_64
