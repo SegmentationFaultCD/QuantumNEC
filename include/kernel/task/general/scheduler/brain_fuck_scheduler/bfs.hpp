@@ -55,12 +55,6 @@ public:
         NO_TASK_CAN_SCHEDULER
     };
 
-    using view = std::pair< self &, Schedule & >;
-
-    auto operator|( Schedule &schedule ) -> view {
-        return { *this, schedule };
-    }
-
     enum Priority {
         // 0 ~ 99 为实时任务
         ISO          = 100,     // 等时任务

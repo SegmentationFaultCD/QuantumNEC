@@ -259,7 +259,7 @@ public:
         // The variable is not always used.
         // If size is less than page descriptor count of a header, the variable will not be used.
         auto needed_header_count = Lib::DIV_ROUND_UP( __size__, PH::__helper__::page_descriptor_count );
-        return group.visit( [ &, this ]( typename PH::__helper__::__group_type__ &group ) -> void * {
+        return group.visit( [ & ]( typename PH::__helper__::__group_type__ &group ) -> void * {
             PHI *node { };
 
             if ( __size__ < PH::__helper__::page_descriptor_count ) {
@@ -434,7 +434,7 @@ public:
 
         auto &group = PH::__helper__::get_group( );
 
-        group.visit( [ &, this ]( typename PH::__helper__::__group_type__ &group ) {
+        group.visit( [ & ]( typename PH::__helper__::__group_type__ &group ) {
             auto node = group.search( PH::__helper__::get_keys( __physical_address__ ) );
             if ( !node.is_empty( ) ) {
                 auto zone = &( *node );

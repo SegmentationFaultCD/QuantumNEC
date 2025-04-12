@@ -53,24 +53,5 @@ public:
         return self.__schedule__( );
     }
 };
-template < typename SchedulerType >
-class scheduler_utils {
-public:
-    explicit scheduler_utils( void ) = delete;
-
-    ~scheduler_utils( ) {
-    }
-    template < typename F >
-    explicit scheduler_utils( F &&interface ) :
-        f { std::forward< F >( interface ) } {
-    }
-
-    auto operator( )( typename SchedulerType::view block ) {
-        return f( block );
-    }
-
-private:
-    std::function< typename SchedulerType::view, typename SchedulerType::view > f;
-};
 
 }     // namespace QuantumNEC::Kernel

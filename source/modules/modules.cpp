@@ -15,7 +15,7 @@ Modules::Module::Module( void ) noexcept {
     for ( auto i { 0ul }; i < Kernel::__config.modules.module_count; ++i ) {
         println< print_level::SYSTEM >( "111" );
         auto file_entry = loader.load( Kernel::__config.modules.modules[ i ], ModuleLoader::ModuleFileType::ELF );
-        std::println( "{}", (void *)1 );
+
         if ( file_entry.has_value( ) ) {
             println< print_level::SYSTEM >( "Service {} ready!", Kernel::__config.modules.modules[ i ]->path );
 

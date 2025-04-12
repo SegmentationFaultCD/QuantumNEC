@@ -8,7 +8,7 @@ public:
     explicit InterruptEntryRegister( void ) noexcept;
 
 public:
-    inline static std::atomic_uint64_t global_jiffies { };
+    inline static std::atomic< uint64_t > global_jiffies { };
 
 public:
     inline static InterruptEntry *entry[ INTERRUPT_ENTRY_COUNT ];

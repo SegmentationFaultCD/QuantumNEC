@@ -1,3 +1,4 @@
+#include <kernel/memory/heap/kheap/kheap_allocater.hpp>
 #include <kernel/memory/heap/kheap/kheap_manager.hpp>
 #include <kernel/memory/heap/slab/slab.hpp>
 #include <kernel/memory/memory.hpp>
@@ -38,3 +39,16 @@ KHeapManager::KHeapManager( ) noexcept {
     }
 }
 }     // namespace QuantumNEC::Kernel
+using namespace QuantumNEC::Kernel;
+auto operator new( size_t size ) -> void * {
+    return ___kheap_allocate__< char >( size );
+}
+auto operator delete( void *collection ) noexcept -> void {
+    ___kheap_deallocate__< char >( (char *)collection, 0 );
+}
+auto operator new[]( size_t size ) -> void * {
+    return operator new( size );
+}
+auto operator delete[]( void *collection ) noexcept -> void {
+    return operator delete( collection );
+}

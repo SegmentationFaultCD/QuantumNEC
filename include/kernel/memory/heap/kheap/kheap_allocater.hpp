@@ -120,7 +120,7 @@ public:
                         slab_cache.total_using++;
                         auto virtual_address = (T *)( (uint64_t)slab->virtual_address + slab_cache.size * i );
 
-                        std::memset( virtual_address, 0, size );
+                        std::memset( (void *)virtual_address, 0, size );
 
                         return virtual_address;
                     }

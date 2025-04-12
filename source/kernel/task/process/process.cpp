@@ -73,17 +73,13 @@ auto Process::operator=( Process &&process ) noexcept -> Process & {
 }
 auto Process::detach( void ) noexcept -> void {
     Scheduler scheduler;
-    auto      pcb_view = scheduler | this->pcb->schedule;
     this->join( );
-    auto wake_up = scheduler_utils { brain_fuck_scheduler_wake_up };
-    pcb_view | wake_up;
+    scheduler.wake_up( this->pcb->schedule );
 }
 auto Process::join( void ) noexcept -> void {
     Scheduler scheduler;
-    auto      pcb_view = scheduler | this->pcb->schedule;
-    auto      insert   = scheduler_utils { brain_fuck_scheduler_insert };
     if ( !this->has_inserted ) {
-        pcb_view | insert;
+        scheduler.insert( this->pcb->schedule );
         this->has_inserted = true;
     }
 }

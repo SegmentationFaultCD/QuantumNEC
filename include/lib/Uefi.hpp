@@ -103,19 +103,16 @@ using QWORD = unsigned long int;
 using WORD  = unsigned short int;
 
 using time_t = unsigned int;
-struct _packed FontConfig {
-    uint64_t length;
-    void    *frame;
-};
+ 
 struct BootConfig {
     limine_framebuffer          graphics_data;
     limine_memmap_response      memory_map;
-    limine_rsdp_response        acpi_table;
-    FontConfig                  font_frame;
+    limine_rsdp_response        acpi_table; 
     limine_hhdm_response        hhdm;
     limine_smp_response         smp;
     limine_paging_mode_response paging_mode;
     limine_module_response      modules;
+    BootConfig(void){}
 };
 
 

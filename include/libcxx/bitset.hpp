@@ -195,13 +195,13 @@ public:
         }
         return *this;
     }
-    auto operator&=( const bitset &other ) -> bitset & {
+    auto operator&=( const bitset & ) -> bitset & {
         return *this;
     }
-    auto operator|=( const bitset &other ) -> bitset & {
+    auto operator|=( const bitset & ) -> bitset & {
         return *this;
     }
-    auto operator^=( const bitset &other ) -> bitset & {
+    auto operator^=( const bitset & ) -> bitset & {
         return *this;
     }
     auto operator~( ) const -> bitset {

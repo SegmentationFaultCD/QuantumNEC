@@ -112,9 +112,9 @@
     "editor.formatOnType": true,
     "clang-format.executable": "/usr/bin/clang-format",
     "C_Cpp.errorSquiggles": "disable",
-    "clangd.path": "/usr/bin/clangd",
     "files.autoSave": "afterDelay",
     "editor.formatOnPaste": true,
+    "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
         "--background-index",
         "--compile-commands-dir=build",
@@ -139,21 +139,5 @@
     "clangd.onConfigChanged": "restart",
     "clangd.serverCompletionRanking": true,
     "clangd.detectExtensionConflicts": true,
-    "background.fullscreen": {
-        "useFront": true,
-        "images": [
-            "file:///home/Gzh/QuantumNEC/images/5120x2880.png"
-        ],
-        "opacity": 0.1,
-        "styles": [
-            {},
-            {},
-            {}
-        ],
-        "size": "cover",
-        "position": "center",
-        "interval": 0,
-        "random": false
-    },
     "background.enabled": true,
 }

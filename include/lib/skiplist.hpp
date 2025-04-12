@@ -246,16 +246,16 @@ private:
     int64_t  level;
     auto     get_insert_level( ) {
         auto        upcount = 0l;
-        static auto i       = 114514;
+        static auto _i      = 1145ul;
         // 获取系统时间 jiffies
         //
         for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
-            auto num = ( i * ( i - 1 ) ) % MAXLEVEL;
+            auto num = ( _i * ( _i - 1 ) ) % MAXLEVEL;
             if ( num < 5 ) {
                 upcount++;
             }
         }
-        i++;
+        _i++;
         return upcount;
     }
 };

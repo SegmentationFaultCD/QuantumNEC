@@ -40,12 +40,12 @@ public:
  */
 struct _packed TaskStateSegmentDescriptor64 {
 private:
-    uint32_t reserved1;
-    uint64_t rsp[ 3 ];
-    uint64_t reserved2;
-    uint64_t ist[ 7 ];
-    uint64_t reserved3;
-    uint32_t io_map_base_address;
+    [[maybe_unused]] uint32_t reserved1;
+    uint64_t                  rsp[ 3 ];
+    [[maybe_unused]] uint64_t reserved2;
+    [[maybe_unused]] uint64_t ist[ 7 ];
+    [[maybe_unused]] uint64_t reserved3;
+    uint32_t                  io_map_base_address;
 
 public:
     explicit TaskStateSegmentDescriptor64( void ) noexcept {
@@ -62,8 +62,7 @@ public:
         this->io_map_base_address = io_map_base_address;
     }
     auto load_tr( IN size_t segment ) noexcept {
-        ASM( "ltr %%ax" ::"a"( segment )
-             : "memory" );
+        ASM( "ltr %%ax" ::"a"( segment ) : "memory" );
     }
 };
 using TaskStateSegmentDescriptor = TaskStateSegmentDescriptor64;

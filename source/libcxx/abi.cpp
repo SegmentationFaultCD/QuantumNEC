@@ -3,10 +3,7 @@ auto operator delete( void *, unsigned long int ) noexcept -> void {
 }
 auto operator delete[]( void *, unsigned long int ) noexcept -> void {
 }
-auto operator delete( void * ) noexcept -> void {
-}
-auto operator delete[]( void * ) noexcept -> void {
-}
+
 auto operator new( long unsigned int, void *addr ) noexcept -> void * {
     return addr;
 }
@@ -29,7 +26,15 @@ int __cxa_atexit( void ( * )( void * ), void *, void * ) {
     hcf( );
     return 0;
 }
-
+extern "C" auto __cxa_guard_acquire( ) -> void {
+    hcf( );
+}
+extern "C" auto __cxa_guard_release( ) -> void {
+    hcf( );
+}
+extern "C" auto __cxa_pure_virtual( ) -> void {
+    hcf( );
+}
 void abort( void ) {
     hcf( );
 }

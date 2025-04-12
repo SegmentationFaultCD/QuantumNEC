@@ -288,12 +288,12 @@ public:
         return !this->_size;
     }
 
-    // // 中序遍历：
     template < typename OP >
         requires std::invocable< OP, const T & >
     auto traverse( OP &&operation ) {
         ( [ &operation ]( this auto &&self, Node *root ) -> bool {
             if ( root ) {
+                // 前序遍历
                 if ( root->_data && operation( *root->_data ) ) {
                     return false;
                 }

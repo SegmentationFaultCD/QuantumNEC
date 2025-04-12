@@ -3,8 +3,8 @@
 __libc_start_main:
     LEAQ _start(%RIP), %RAX
     CALL *%RAX
-.1:
-    JMP .1
+loop:
+    JMP loop
 
 _start:
     MOVQ $0, %RDI

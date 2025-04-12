@@ -18,7 +18,8 @@ constexpr auto TASK_USER_STACK_SIZE { 8_MB };       // 8MB
 constexpr auto PCB_STACK_MAGIC { 0x1145141919810ULL };
 constexpr auto TASK_NAME_SIZE { 64 };
 
-struct ProcessControlBlock {
+class ProcessControlBlock {
+public:
     struct __flags__ {
         enum class __fpu_state__ : uint64_t {
             ENABLE  = 1,
@@ -106,7 +107,7 @@ public:
 
     FloatPointUnit::FpuFrame *fpu_frame;
 
-    mutable Service services;
+    // mutable Service services;
 
     uint64_t stack_magic;     // 用于检测栈的溢出
 

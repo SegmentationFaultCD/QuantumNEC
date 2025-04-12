@@ -76,13 +76,17 @@ auto micro_kernel_entry( IN BootConfig &config ) -> void;
 
 _C_LINK auto loader_entry( void ) -> void {
     BootConfig config { };
+
     config.graphics_data = *framebuffer_request.response->framebuffers[ 0 ];
-    config.memory_map    = *memmap_request.response;
-    config.acpi_table    = *acpi_request.response;
-    config.hhdm          = *hhdm_request.response;
-    config.smp           = *smp_request.response;
-    config.paging_mode   = *paging_mode_request.response;
-    config.modules       = *modules_request.response;
+
+    config.memory_map = *memmap_request.response;
+
+    config.acpi_table  = *acpi_request.response;
+    config.hhdm        = *hhdm_request.response;
+    config.smp         = *smp_request.response;
+    config.paging_mode = *paging_mode_request.response;
+    config.modules     = *modules_request.response;
+
     micro_kernel_entry( config );
     while ( true );
 }

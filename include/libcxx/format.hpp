@@ -50,7 +50,7 @@ using format_string = basic_format_string< char, std::type_identity_t< Args >...
 
 template < class OutputIt, class CharT >
 class basic_format_context {
-    std::basic_format_arg< basic_format_context > arg( std::size_t id ) const {
+    std::basic_format_arg< basic_format_context > arg( std::size_t ) const {
     }
 };
 
