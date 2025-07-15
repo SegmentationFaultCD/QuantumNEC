@@ -1,13 +1,13 @@
 #pragma once
 #include <concepts>
-#include <lib/Uefi.hpp>
-namespace QuantumNEC::Lib {
+#include <cstdint>
+namespace Library {
 // 双向链表
 template < typename T >
-class ListTable {
+class List {
 public:
     struct ListNode {
-        friend ListTable;
+        friend List;
 
     public:
         ListNode *prev { }; /* 上一个节点 */
@@ -22,15 +22,15 @@ public:
          * @brief 判断上一节点十分为空
          * @param node 要判断的节点
          */
-        auto *is_empty_prev( IN ListNode *node ) {
-            return node->prev ? node->prev : NULL;
+        auto *is_empty_prev( ListNode *node ) {
+            return node->prev ? node->prev : nullptr;
         }
         /**
          * @brief 判断下一节点十分为空
          * @param node 要判断的节点
          */
-        auto *is_empty_next( IN ListNode *node ) {
-            return node->next ? node->next : NULL;
+        auto *is_empty_next( ListNode *node ) {
+            return node->next ? node->next : nullptr;
         }
         auto &operator=( ListNode &node ) {
             this->container = node.container;
@@ -59,17 +59,17 @@ private:
     ListNode _end { };  /* 链表尾 */
 public:
     auto init( void ) {
-        this->_head.prev = NULL;
+        this->_head.prev = nullptr;
         this->_head.next = &this->_end;
         this->_end.prev  = &this->_head;
-        this->_end.next  = NULL;
+        this->_end.next  = nullptr;
     }
-    ListTable( void ) noexcept {
+    List( void ) noexcept {
         this->init( );
     }
 
-    ~ListTable( void ) noexcept = default;
-    auto &operator=( ListTable &lt ) {
+    ~List( void ) noexcept = default;
+    auto &operator=( List &lt ) {
         this->_head = lt._head;
         this->_end  = lt._end;
         return *this;
@@ -138,7 +138,7 @@ public:
      * @brief 插入节点到链表末尾
      * @param New 要添加的元素的指针
      */
-    auto append( IN OUT Node &New ) {
+    auto append( Node &New ) {
         this->insert( &New, &this->_end );
     }
 
@@ -146,14 +146,14 @@ public:
      * @brief 插入节点到链表开头
      * @param New  要添加的元素的指针
      */
-    auto push( IN OUT Node &New ) {
+    auto push( Node &New ) {
         this->insert( &New, this->_head.next );
     }
     /**
      * @brief 删除节点
      * @param entry 要弹出的节点
      */
-    auto remove( IN OUT Node &entry ) {
+    auto remove( Node &entry ) {
         if ( entry.next && entry.prev ) {
             entry.next->prev = entry.prev;
             entry.prev->next = entry.next;
@@ -180,7 +180,7 @@ public:
      * @retval false 查找失败
      * @retval true  找到元素
      */
-    auto find( IN Node &objnode ) {
+    auto find( Node &objnode ) {
         auto node { this->_head.next };
         while ( node != &( this->_end ) ) {
             if ( node == &objnode )
@@ -191,13 +191,13 @@ public:
     }
 
     auto length( void ) {
-        uint64_t length { };
+        std::uint64_t length { };
         for ( auto node { this->_head.next }; node != &this->_end; ++length ) {
             node = node->next;
         }
         return length;
     }
-    auto insert( IN OUT Node *node, IN OUT Node *in_before ) {
+    auto insert( Node *node, Node *in_before ) {
         in_before->prev->next = node;
         node->prev            = in_before->prev;
         node->next            = in_before;
@@ -207,4 +207,4 @@ public:
         return this->_end.prev;
     }
 };
-}     // namespace QuantumNEC::Lib
+}     // namespace Library

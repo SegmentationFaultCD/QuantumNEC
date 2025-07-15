@@ -1,4 +1,3 @@
-#pragma once
 #include <cstdint>
 #include <numeric>
 #include <type_traits>
@@ -254,3 +253,7 @@ private:
     }
 };
 }     // namespace Library
+
+auto main( void ) -> int {
+    Library::Skiplist< int, 8 > s;
+}

@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "debug",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/vm/OS/micro_kernel.elf",
+            "args": [],
+            "stopOnEntry": true,
+            "cwd": "${fileDirname}",
+            "debugServer": 1234,
+        }
+    ]
+}
