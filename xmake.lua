@@ -119,18 +119,19 @@ target("micro_kernel.elf")
             "-Wextra",
             "-fuse-ld=ld",
             "-D APIC",
-            "-g",
             "-static",
             "-mno-mmx", "-mno-sse", "-mno-sse2", "-msoft-float",
             "-Wpointer-arith",
             "-Wno-missing-field-initializers",
             "-Wwrite-strings",
+            "-fno-threadsafe-statics", 
             "-ffreestanding",  -- 生成不依赖于任何操作系统或运行环境的代码
             "-Wno-reorder", {force = true} -- 构造函数的初始化顺序不固定
     )  
     add_ldflags("-nostdlib", {force = true}, "-target x86_64-freestanding", "-T scripts/linker/x86_64linker.lds") 
     add_files(
         "source/kernel/*/*.cpp",
+        "source/kernel/*/*.S",
         "source/kernel/*/*/*.cpp",
         "source/lib/*.cpp"
     )

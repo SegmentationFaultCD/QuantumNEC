@@ -1,5 +1,7 @@
 #include <kernel/display/print.hpp>
 #include <kernel/driver/serial_port/serial_port.hpp>
+#include <kernel/interrupt/idt.hpp>
+#include <kernel/memory/segment/gdt.hpp>
 #include <lib/bitset.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
@@ -73,6 +75,8 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 extern "C" auto loader_entry( void ) -> void {
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
     Driver::SerialPort::initialize( );
+    Interrupt::IDT::initialize( 0 );
+    Memory::GDT::initialize( 0 );
 
     while ( true );
 }

@@ -242,14 +242,14 @@ private:
     int64_t  level;
     auto     get_insert_level( ) {
         auto        upcount = 0l;
-        static auto _i      = 1145ul;
+        static auto _random = 1145ul;
         for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
-            auto num = ( _i * ( _i - 1 ) ) % MAXLEVEL;
+            auto num = ( _random * ( _random - 1 ) ) % MAXLEVEL;
             if ( num < 5 ) {
                 upcount++;
             }
         }
-        _i++;
+        _random++;
         return upcount;
     }
 };
