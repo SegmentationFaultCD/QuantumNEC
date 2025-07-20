@@ -1,4 +1,4 @@
 [submodule "source/kernel/boot/limine"]
 	path = source/kernel/boot/limine
 	url = git@github.com:limine-bootloader/limine.git
-	branch = =v9.5-binary
+	branch = =v9.x-binary
