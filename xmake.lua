@@ -120,6 +120,7 @@ target("micro_kernel.elf")
             "-fuse-ld=ld",
             "-D APIC",
             "-static",
+            "-fPIC",
             "-mno-mmx", "-mno-sse", "-mno-sse2", "-msoft-float",
             "-Wpointer-arith",
             "-Wno-missing-field-initializers",
@@ -132,7 +133,8 @@ target("micro_kernel.elf")
     add_files(
         "source/kernel/*/*.cpp",
         "source/kernel/*/*.S",
-        "source/kernel/*/*/*.cpp",
+        "source/kernel/*/*/*.cpp", 
+        
         "source/lib/*.cpp"
     )
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 namespace Library {
-
+extern "C" {
 /**
  * @brief 复制字符串
  * @param Dest 要修改的字符串
@@ -172,5 +172,5 @@ auto itoa( std::int64_t num, char *str, std::uint32_t base ) -> void;
  * @param base    进制,最高支持36进制
  */
 auto utoa( std::uint64_t num, char *str, std::uint32_t base ) -> void;
-
+}
 }     // namespace Library

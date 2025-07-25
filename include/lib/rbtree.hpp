@@ -233,18 +233,7 @@ public:
 
 public:
     RBTree( ) = default;
-    RBTree( const RBTree &root ) {
-        Node *parent = nullptr;
-        _root        = _copy( _root, root._root, parent );
-    }
-    RBTree &operator=( const RBTree &root ) {
-        if ( this != &root ) {
-            this->~RBTree( );
-            Node *parent = nullptr;
-            _root        = _copy( _root, root._root, parent );
-        }
-        return *this;
-    }
+
     ~RBTree( ) {
         _destroy( _root );
     }
@@ -264,10 +253,9 @@ public:
     }
     // TODO 转换为插入Node而非data
 
-    auto insert( Node &&node ) -> std::pair< iterator, bool > {
+    auto insert( Node &node ) -> std::pair< iterator, bool > {
         if ( _root == nullptr ) {
-            this->_root = &this->_root_;
-            std::construct_at( this->_root, node.key( ), node.data( ) );
+            this->_root = &node;
             _root->_col = BLACK;
             return { iterator { _root, _root }, true };
         }
@@ -282,7 +270,7 @@ public:
             else
                 return { iterator { cur, _root }, false };
         }
-        auto newnode     = new Node { node.key( ), node.data( ) };
+        auto newnode     = &node;
         newnode->_parent = parent;
         if ( parent->key( ) <=> node.key( ) == std::strong_ordering::less )
             parent->_right = newnode;
@@ -335,7 +323,6 @@ public:
                         _root = cur->_right;
                         if ( _root != nullptr )
                             _root->_col = BLACK;
-                        delete cur;
                         break;
                     }
                     if ( cur->_right != nullptr ) {
@@ -347,7 +334,6 @@ public:
                             parent->_left = cur->_right;
 
                         cur->_right->_col = BLACK;
-                        delete cur;
                     }
                     else {
                         if ( cur->_col == RED ) {
@@ -356,8 +342,6 @@ public:
                                 parent->_right = nullptr;
                             else
                                 parent->_left = nullptr;
-
-                            delete cur;
                         }
                         else {
                             DeleteFixUp( cur );
@@ -366,8 +350,6 @@ public:
                                 parent->_right = nullptr;
                             else
                                 parent->_left = nullptr;
-
-                            delete cur;
                         }
                     }
                     return;
@@ -377,7 +359,6 @@ public:
                         _root = cur->_left;
                         if ( _root != nullptr )
                             _root->_col = BLACK;
-                        delete cur;
                         break;
                     }
                     if ( cur->_left != nullptr ) {
@@ -388,7 +369,6 @@ public:
                         else
                             parent->_left = cur->_left;
                         cur->_left->_col = BLACK;
-                        delete cur;
                     }
                     else {
                         if ( cur->_col == RED ) {
@@ -397,7 +377,6 @@ public:
                                 parent->_right = nullptr;
                             else
                                 parent->_left = nullptr;
-                            delete cur;
                         }
                         else {
                             DeleteFixUp( cur );
@@ -406,8 +385,6 @@ public:
                                 parent->_right = nullptr;
                             else
                                 parent->_left = nullptr;
-
-                            delete cur;
                         }
                     }
                     return;
@@ -426,7 +403,6 @@ public:
                         else
                             parent->_left = rightMin->_left;
                         rightMin->_left->_col = BLACK;
-                        delete rightMin;
                     }
                     else {
                         if ( rightMin->_col == RED ) {
@@ -435,8 +411,6 @@ public:
                                 parent->_right = nullptr;
                             else
                                 parent->_left = nullptr;
-
-                            delete rightMin;
                         }
                         else {
                             DeleteFixUp( rightMin );
@@ -445,8 +419,6 @@ public:
                                 parent->_right = nullptr;
                             else
                                 parent->_left = nullptr;
-
-                            delete rightMin;
                         }
                     }
                     return;
@@ -600,18 +572,6 @@ private:
 
     // 递归子函数
 private:
-    auto _copy( Node *cur, Node *copy, Node *parent ) -> Node * {
-        if ( copy == nullptr )
-            return nullptr;
-        cur          = new Node { copy->key( ), copy->data( ) };
-        cur->_col    = copy->_col;
-        cur->_parent = parent;
-
-        cur->_left  = _copy( cur->_left, copy->_left, cur );
-        cur->_right = _copy( cur->_right, copy->_right, cur );
-
-        return cur;
-    }
     auto _destroy( Node *cur ) {
         if ( cur == nullptr )
             return;
@@ -622,17 +582,5 @@ private:
 
 private:
     Node *_root = nullptr;
-    Node  _root_;
 };
 }     // namespace Library
-#include <iostream>
-#include <ranges>
-int main( void ) {
-    Library::RBTree< int, int * > rb[ 3 ];
-    for ( auto i : std::ranges::views::iota( 1, 9 ) ) {
-        rb[ 0 ].insert( { i, new int( i * 2 ) } );
-    }
-    for ( auto i : rb[ 0 ] ) {
-        std::cout << *i << '\n';
-    }
-}

@@ -1,7 +1,6 @@
 #pragma once
 #include <bit>
 #include <cstdint>
-#include <expected>
 #include <numeric>
 namespace Library {
 template < std::size_t N >
@@ -205,13 +204,13 @@ public:
     }
 
     template < bool value >
-    auto find( std::size_t size = 1 ) -> std::expected< uint64_t, error_code > {
+    auto find( std::size_t size = 1 ) -> int64_t {
         for ( uint64_t i = 0; i < this->length; ++i ) {
             for ( uint64_t j = 0; j < 64; ++j ) {
                 if ( !( this->bitmap[ i ] & ( 1ul << j ) ) ) {
                     if ( 64 - j >= size ) {
                         if ( !( ( this->bitmap[ i ] >> j ) & ( ( 1ul << size ) - 1 ) ) ) {
-                            return { i * 64 + j };
+                            return i * 64 + j;
                         }
                         continue;
                     }
@@ -238,37 +237,13 @@ public:
                     if ( this->bitmap[ used_length + i ] & ( ( 1ul << ( ( size - ( 64 - j ) ) % 64 ) ) - 1 ) ) {
                         continue;
                     }
-                    return { i * 64 + j };
+                    return i * 64 + j;
                 }
             }
         }
-        return std::unexpected { error_code::NotFound };
+        return -1;
     }
-    template < bool value >
-    auto find_from_high( void ) -> uint64_t {
-        for ( int64_t i = this->length - 1; i >= 0; --i ) {
-            if constexpr ( value ) {
-                if ( this->bitmap[ i ] != ~0ul ) {
-                    for ( int64_t j = 63; j >= 0; --j ) {
-                        if ( this->bitmap[ i ] & ( 1ul << j ) ) {
-                            return i * 64 + j;
-                        }
-                    }
-                }
-            }
-            else {
-                if ( this->bitmap[ i ] != 0ul ) {
-                    for ( int64_t j = 63; j >= 0; --j ) {
-                        if ( this->bitmap[ i ] & ( 1ul << j ) ) {
-                            return i * 64ul + j;
-                        }
-                    }
-                }
-            }
-        }
 
-        return 0ul;
-    }
     template < bool value >
     auto count_from_high( ) -> uint64_t {
         auto number_of_bits = 0ul;

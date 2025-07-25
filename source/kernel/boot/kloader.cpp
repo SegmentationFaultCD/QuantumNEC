@@ -1,13 +1,14 @@
 #include <kernel/display/print.hpp>
 #include <kernel/driver/serial_port/serial_port.hpp>
 #include <kernel/interrupt/idt.hpp>
+#include <kernel/memory/allocator/page.hpp>
 #include <kernel/memory/segment/gdt.hpp>
 #include <lib/bitset.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
 namespace {
 
-__attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION( 2 );
+__attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION( 3 );
 }
 
 // The Limine requests can be placed anywhere, but it is important that
@@ -77,6 +78,23 @@ extern "C" auto loader_entry( void ) -> void {
     Driver::SerialPort::initialize( );
     Interrupt::IDT::initialize( 0 );
     Memory::GDT::initialize( 0 );
+    Memory::Page::page_memory_initialize( memmap_request.response );
+    using namespace Memory::Page;
+    Memory::Page::allocator< Type::P2Mib > a;
 
+    auto p2 = a.allocate( 11 );
+    auto p  = a.allocate( 1025 );
+    auto p3 = a.allocate( 2048 );
+
+    char buf[ 114 ];
+    Library::utoa( std::uint64_t( p ), buf, 16 );
+    Driver::SerialPort { }.print( buf );
+    Driver::SerialPort { }.print( "\n" );
+    Library::utoa( std::uint64_t( p2 ), buf, 16 );
+    Driver::SerialPort { }.print( buf );
+    Driver::SerialPort { }.print( "\n" );
+    Library::utoa( std::uint64_t( p3 ), buf, 16 );
+    Driver::SerialPort { }.print( buf );
+    Driver::SerialPort { }.print( "\n" );
     while ( true );
 }
