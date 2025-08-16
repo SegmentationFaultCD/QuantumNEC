@@ -74,6 +74,7 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 
 }     // namespace
 
+#include <kernel/display/print.hpp>
 #include <kernel/memory/allocator/kheap.hpp>
 #include <kernel/memory/paging/hhdm.hpp>
 #include <kernel/memory/paging/page_table.hpp>
@@ -189,6 +190,8 @@ extern "C" auto loader_entry( void ) -> void {
 
     Driver::SerialPort { }.print( Library::format( "{1:*>18x} {0:*>18x}", 1145ul, 19198ul ).c_str( ) );
     Driver::SerialPort { }.print( "\n" );
+
+    Display::println( "{}", 1114514 );
 
     while ( true );
 }

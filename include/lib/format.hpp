@@ -209,6 +209,20 @@ struct formatter< long long unsigned int > {
         return parse_format_spac( arg, ctx );
     }
 };
+template <>
+struct formatter< unsigned int > {
+    constexpr auto parse( std::string_view fmt ) { return fmt; }
+    auto           format( unsigned int &arg, std::string_view ctx ) -> cxxstring {
+        return parse_format_spac( arg, ctx );
+    }
+};
+template <>
+struct formatter< int > {
+    constexpr auto parse( std::string_view fmt ) { return fmt; }
+    auto           format( int &arg, std::string_view ctx ) -> cxxstring {
+        return parse_format_spac( arg, ctx );
+    }
+};
 
 template <>
 struct formatter< long long int > {
