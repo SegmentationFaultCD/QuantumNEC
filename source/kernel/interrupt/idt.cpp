@@ -1,4 +1,5 @@
 #include <kernel/driver/cpu/io.hpp>
+#include <kernel/interrupt/entry.hpp>
 #include <kernel/interrupt/idt.hpp>
 #include <kernel/memory/segment/gdt.hpp>
 #include <lib/string.hpp>
@@ -13,11 +14,23 @@
 #include <kernel/driver/serial_port/serial_port.hpp>
 #include <lib/string.hpp>
 namespace Interrupt {
+
+GeneralInterruptHandle       ghandler[ 256 ];
+PageFault                    ph;
+InvalidTSS                   th;
+SegmentNotPresent            sh;
+StackSegmentFault            ssh;
+GeneralProtectionFault       gh;
+ControlProtectionException   ch;
+HypervisorInjectionException hh;
+VMMCommunicationException    vh;
+SecurityException            seh;
+
 auto IDT::initialize( std::uint64_t core ) -> void {
     Driver::IO::cli( );
     if ( core == 0 ) {
         std::construct_at( &idtr, interrupt_descriptors );
-        Library::memset( interrupt_descriptors, 0, idtr.size( ) );
+        std::memset( interrupt_descriptors, 0, idtr.size( ) );
 
         uint64_t function { };
         SET_TRAP_HANDLER( 0x00, 0 );
@@ -279,5 +292,22 @@ auto IDT::initialize( std::uint64_t core ) -> void {
         // 啊呀，骇死我力
     }
     idtr.write( );
+
+    for ( auto i = 0; i < 256; ++i ) {
+        GeneralInterruptHandle::handlers[ i ] = &ghandler[ i ];
+    }
+    GeneralInterruptHandle::handlers[ 10 ] = &th;
+    GeneralInterruptHandle::handlers[ 11 ] = &sh;
+    GeneralInterruptHandle::handlers[ 12 ] = &ssh;
+    GeneralInterruptHandle::handlers[ 13 ] = &gh;
+    GeneralInterruptHandle::handlers[ 14 ] = &ph;
+    GeneralInterruptHandle::handlers[ 15 ] = &ph;
+    GeneralInterruptHandle::handlers[ 21 ] = &ch;
+    GeneralInterruptHandle::handlers[ 28 ] = &hh;
+    GeneralInterruptHandle::handlers[ 29 ] = &vh;
+    GeneralInterruptHandle::handlers[ 30 ] = &seh;
+
+    // 中断入口初始化
 }
+
 }     // namespace Interrupt

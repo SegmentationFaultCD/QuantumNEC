@@ -56,5 +56,6 @@ xmake -b run
 # Reference
 - Modern bootloader ___[[limine](https://github.com/limine-bootloader/limine)]___
 - Very good terminal ___[[os-terminal](https://github.com/plos-clan/libos-terminal)]___
+- format library ___[[fmt-lib](https://github.com/fmtlib/fmt)]___
 # Contribution
 If you want to make a contribute to this project, please read ___[contribution guidebook](scripts/CONTRIBUTING.md)___

@@ -5,11 +5,6 @@
 namespace Library {
 template < std::size_t N >
 class bitset {
-    enum class error_code {
-        ScopeStackoverflow,
-        NotFound
-    };
-
 public:
     class reference {
         friend bitset< N >;
@@ -123,41 +118,13 @@ public:
     }
     template < bool value = true >
     auto set( std::size_t pos, std::uint64_t size ) -> bitset & {
-        if ( !size ) {
-            return *this;
-        }
-        auto &&bitmap_index = pos / 64;
-        if constexpr ( value ) {
-            if ( 64 - pos % 64 >= size ) {
-                bitmap[ bitmap_index ] |= ( ( ( 1ul << ( size - 1 ) ) - 1 ) << pos % 64 ) | ( ( 1ul << ( size - 1 ) ) << pos % 64 );
-                return *this;
+        for ( auto i = pos; i < pos + size; i++ ) {
+            if constexpr ( value ) {
+                this->bitmap[ i / 64 ] |= ( 1ul << ( i % 64 ) );
             }
-        }
-        else {
-            if ( 64 - pos % 64 >= size ) {
-                bitmap[ bitmap_index ] &= ~( ( ( ( 1ul << ( size - 1 ) ) - 1 ) << pos % 64 ) | ( ( 1ul << ( size - 1 ) ) << pos % 64 ) );
-                return *this;
+            else {
+                this->bitmap[ i / 64 ] &= ~( 1ul << ( i % 64 ) );
             }
-        }
-        uint64_t used_length { };
-        if ( auto &&tmp = ( size - ( 64 - pos % 64 ) ); !( tmp % 64 ) ) {
-            used_length = tmp / 64;
-        }
-        else {
-            used_length = tmp / 64 + 1;
-        }
-        auto &&head_mask = ( ( ( 1ul << ( 63 - pos % 64 ) ) - 1 ) << pos % 64 ) | ( ( 1ul << ( 63 - pos % 64 ) ) << pos % 64 );
-        auto &&end_mask  = ( ( ( 1ul << ( ( size - ( 64 - pos % 64 ) - 1 ) % 64 ) ) - 1 ) | ( ( 1ul << ( ( size - ( 64 - pos % 64 ) - 1 ) % 64 ) ) ) );
-        if constexpr ( value ) {
-            bitmap[ bitmap_index ] |= head_mask;
-            this->bitmap[ bitmap_index + used_length ] |= end_mask;
-        }
-        else {
-            bitmap[ bitmap_index ] &= ~head_mask;
-            this->bitmap[ bitmap_index + used_length ] &= ~end_mask;
-        }
-        for ( auto _ { bitmap_index + 1 }; _ < bitmap_index + used_length; ++_ ) {
-            this->bitmap[ _ ] = ~( (uint64_t)value );
         }
         return *this;
     }
@@ -205,42 +172,32 @@ public:
 
     template < bool value >
     auto find( std::size_t size = 1 ) -> int64_t {
-        for ( uint64_t i = 0; i < this->length; ++i ) {
-            for ( uint64_t j = 0; j < 64; ++j ) {
-                if ( !( this->bitmap[ i ] & ( 1ul << j ) ) ) {
-                    if ( 64 - j >= size ) {
-                        if ( !( ( this->bitmap[ i ] >> j ) & ( ( 1ul << size ) - 1 ) ) ) {
-                            return i * 64 + j;
-                        }
-                        continue;
-                    }
-                    if ( this->bitmap[ i ] >> j ) {
-                        continue;
-                    }
-                    uint64_t used_length { };
-                    if ( auto tmp = ( size - ( 64 - j ) ); !( tmp % 64 ) ) {
-                        used_length = tmp / 64;
-                    }
-                    else {
-                        used_length = tmp / 64 + 1;
-                    }
-                    auto success { true };
-                    for ( auto &&_ { i + 1 }; _ < used_length + i; ++_ ) {
-                        if ( this->bitmap[ _ ] ) {
-                            success = false;
-                            break;
-                        }
-                    }
-                    if ( !success ) {
-                        continue;
-                    }
-                    if ( this->bitmap[ used_length + i ] & ( ( 1ul << ( ( size - ( 64 - j ) ) % 64 ) ) - 1 ) ) {
-                        continue;
-                    }
-                    return i * 64 + j;
+        std::size_t start = 0, val = 0;
+        for ( std::size_t i = 0; i < this->length; i++ ) {
+            if constexpr ( value ) {
+                if ( !this->bitmap[ i ] ) {
+                    continue;
                 }
             }
+            else {
+                if ( !~this->bitmap[ i ] ) {
+                    continue;
+                }
+            }
+
+            for ( std::size_t j = 0; j < 64; j++ ) {
+                if ( ( this->bitmap[ i ] & ( 1ul << j ) ) != value ) {
+                    val = 0;
+                    continue;
+                }
+                if ( val == 0 )
+                    start = i * 64 + j;
+                val++;
+                if ( val >= size )
+                    return start;
+            }
         }
+
         return -1;
     }
 
@@ -285,7 +242,6 @@ public:
         return number_of_bits;
     }
 
-private:
     constexpr static auto length = ( N % 64 == 0 ? N / 64 : N / 64 + 1 );
     uint64_t              bitmap[ length ] { };
 };

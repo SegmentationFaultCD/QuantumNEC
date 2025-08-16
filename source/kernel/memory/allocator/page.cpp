@@ -6,21 +6,20 @@ namespace Memory::Page {
 auto page_memory_initialize( limine_memmap_response *map ) -> void {
     static allocator< Type::P2Mib >::zone zones[ 128 ] { };
     for ( std::uint64_t base = 0; auto &zone : zones ) {
-        zone.owner      = &zones[ 0 ];
-        zone.base       = base;
-        zone.zone_count = 128;
-        base += allocator< Type::P2Mib >::__page_size__;
-        std::construct_at( &zone.node, zone.base + std::to_underlying( Type::P2Mib ), &zone );
+        std::construct_at( &zone, base, Library::RBTree< std::uint64_t, allocator< Type::P2Mib >::zone * >::Node { base, &zone } );
+        zone.owner = &zones[ 0 ];
+        base += allocator< Type::P2Mib >::__page_size__ * allocator< Type::P2Mib >::page_descriptor_count;
     }
-    zones[ 0 ].free_page = allocator< Type::P2Mib >::page_descriptor_count * 128;
-    zones[ 0 ].owner     = nullptr;
+    zones[ 0 ].free_page  = allocator< Type::P2Mib >::page_descriptor_count * 128;
+    zones[ 0 ].owner      = nullptr;
+    zones[ 0 ].zone_count = 128;
 
     allocator< Type::P1Gib >::global_memory_mark = 128 * allocator< Type::P2Mib >::__page_size__ * allocator< Type::P2Mib >::page_descriptor_count;
-    for ( auto &tree : allocator< Type::P2Mib >::zone_tree ) {
-        std::construct_at( &tree );
-    }
+
+    std::construct_at( &allocator< Type::P2Mib >::zone_tree );
+
     for ( auto &zone : zones ) {
-        allocator< Type::P2Mib >::zone_tree[ std::to_underlying( Type::P2Mib ) ].insert( zone.node );
+        allocator< Type::P2Mib >::zone_tree.insert( zone.node );
     }
 
     for ( auto i = 0ul; i < map->entry_count; ++i ) {
@@ -55,6 +54,23 @@ auto page_memory_initialize( limine_memmap_response *map ) -> void {
 
             // mark这部分
             zones[ base_index ].pages.set( index, end_index - start_index );
+            char buf[ 114 ];
+            Library::utoa( ( base_index ), buf, 10 );
+            Driver::SerialPort { }.print( buf );
+            Driver::SerialPort { }.print( "-" );
+            Library::utoa( ( index ), buf, 10 );
+            Driver::SerialPort { }.print( buf );
+            Driver::SerialPort { }.print( "-" );
+            Library::utoa( ( end_index - start_index ), buf, 16 );
+            Driver::SerialPort { }.print( buf );
+            Driver::SerialPort { }.print( "-" );
+            Library::utoa( ( entry->base ), buf, 16 );
+            Driver::SerialPort { }.print( buf );
+            Driver::SerialPort { }.print( "-" );
+            Library::utoa( ( entry->base + entry->length ), buf, 16 );
+            Driver::SerialPort { }.print( buf );
+            Driver::SerialPort { }.print( "\n" );
+
             break;
         }
     }

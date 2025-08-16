@@ -3,13 +3,13 @@ set_project("QuantumNEC")
 add_rules("mode.debug")
 
 -- limine的和自己的头文件路径
-add_includedirs("./include", "source/kernel/boot/limine")
+add_includedirs("./include", "source/kernel/boot/limine", "source/lib/libfmt/include/")
 -- 架构自选
 set_arch("x86-64")
 -- 不优化
 set_optimize("none")
 
-set_languages("c23", "c++23") 
+set_languages("c23", "c++26") 
 
 -- target("c")
 --     add_toolchains("clang")
@@ -117,24 +117,23 @@ target("micro_kernel.elf")
             "-fno-stack-check", -- 不要栈检查
             "-Wall", 
             "-Wextra",
+            "-mno-mmx", "-mno-sse", "-mno-sse2", "-msoft-float",
             "-fuse-ld=ld",
             "-D APIC",
             "-static",
             "-fPIC",
-            "-mno-mmx", "-mno-sse", "-mno-sse2", "-msoft-float",
             "-Wpointer-arith",
             "-Wno-missing-field-initializers",
             "-Wwrite-strings",
             "-fno-threadsafe-statics", 
-            "-ffreestanding",  -- 生成不依赖于任何操作系统或运行环境的代码
+            -- "-ffreestanding",  -- 生成不依赖于任何操作系统或运行环境的代码
             "-Wno-reorder", {force = true} -- 构造函数的初始化顺序不固定
-    )  
+    )   
     add_ldflags("-nostdlib", {force = true}, "-target x86_64-freestanding", "-T scripts/linker/x86_64linker.lds") 
     add_files(
         "source/kernel/*/*.cpp",
         "source/kernel/*/*.S",
         "source/kernel/*/*/*.cpp", 
-        
         "source/lib/*.cpp"
     )
 

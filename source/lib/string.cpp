@@ -1,5 +1,5 @@
-#include <lib/string.hpp>
-namespace Library {
+#include <stdint.h>
+namespace std {
 extern "C" {
 /**
  * @brief 复制字符串
@@ -342,7 +342,10 @@ auto memset( void    *dest,
 
     return (void *)dest;
 }
-
+auto __isoc23_strtol( const char *str ) -> uint64_t {
+ 
+    while ( true );
+}
 /**
  * @brief 转换数字为字符串（数字有符号）
  * @param num       要转换的数字(有符号)
@@ -419,4 +422,4 @@ auto utoa( uint64_t num, char *str, uint32_t base ) -> void {
     return;
 }
 }
-}     // namespace Library
+}     // namespace std

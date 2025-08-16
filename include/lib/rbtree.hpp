@@ -7,7 +7,7 @@ namespace Library {
 template < typename K, typename T >
     requires std::move_constructible< T > && std::default_initializable< T > && std::totally_ordered< K >
 class RBTree {
-    enum Color {
+    enum Color : uint64_t {
         RED,
         BLACK
     };
@@ -98,6 +98,9 @@ public:
         }
         bool operator==( const self &it ) {
             return _cur == it._cur;
+        }
+        auto empty( ) {
+            return this->_cur == nullptr;
         }
 
     private:
@@ -239,17 +242,17 @@ public:
     }
 
 public:
-    auto find( const K &key ) const {
+    auto find( const K &key ) -> T & {
         auto cur = _root;
         while ( cur != nullptr ) {
-            if ( KeyofT( cur->_data ) < key )
+            auto result = cur->key( ) <=> key;
+            if ( result == std::strong_ordering::less )
                 cur = cur->_right;
-            else if ( key < KeyofT( cur->_data ) )
+            else if ( result == std::strong_ordering::greater )
                 cur = cur->_left;
             else
-                return iterator { cur, _root };
+                return cur->_data;
         }
-        return iterator { nullptr, _root };
     }
     // TODO 转换为插入Node而非data
 

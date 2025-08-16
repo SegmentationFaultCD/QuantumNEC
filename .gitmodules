@@ -2,3 +2,6 @@
 	path = source/kernel/boot/limine
 	url = git@github.com:limine-bootloader/limine.git
 	branch = =v9.x-binary
+[submodule "source/lib/libfmt"]
+	path = source/lib/libfmt
+	url = git@github.com:fmtlib/fmt.git

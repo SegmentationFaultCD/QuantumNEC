@@ -58,14 +58,11 @@ private:
     ListNode _head { }; /* 链表头 */
     ListNode _end { };  /* 链表尾 */
 public:
-    auto init( void ) {
+    List( void ) noexcept {
         this->_head.prev = nullptr;
         this->_head.next = &this->_end;
         this->_end.prev  = &this->_head;
         this->_end.next  = nullptr;
-    }
-    List( void ) noexcept {
-        this->init( );
     }
 
     ~List( void ) noexcept = default;

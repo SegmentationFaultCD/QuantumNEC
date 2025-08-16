@@ -10,7 +10,7 @@ auto GDT::initialize( std::uint64_t core ) -> void {
 
     auto &desrciptor = segment_descriptors[ core ];
     std::construct_at( &gdtrs[ core ], desrciptor );
-    Library::memset( desrciptor, 0, sizeof desrciptor );
+    std::memset( desrciptor, 0, sizeof desrciptor );
 
     std::construct_at( &desrciptor[ 0 ] );
     std::construct_at( &desrciptor[ 1 ], 0, 0xFFFFF, SAccess { 0, 1, 0, 1, 1, 0, 1 }, ( 1ul << 1 ) | ( 1ul << 3 ) );
