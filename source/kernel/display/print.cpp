@@ -1,6 +1,6 @@
-#include <cstdint>
+#include <kernel/display/print.hpp>
 namespace Display {
-inline std::uint8_t ascii[ 256 ][ 16 ] {
+std::uint8_t ascii[ 256 ][ 16 ] {
     /*	0000	*/
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
@@ -309,4 +309,25 @@ inline std::uint8_t ascii[ 256 ][ 16 ] {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
 };
+#include <kernel/driver/serial_port/serial_port.hpp>
+auto putc( std::uint64_t *FB, std::int64_t Xsize, std::int64_t X, std::int64_t Y, char16_t font ) -> void {
+    auto FontPtr { ascii[ font ] };
+    for ( auto i = 0; i < 16; i++ ) {
+        auto address = (uint32_t *)( FB ) + Xsize * ( Y + i ) + X;
+
+        auto testval = 0x100;
+        for ( auto j = 0; j < 8; j++ ) {
+            testval = testval >> 1;
+
+            if ( *FontPtr & testval ) {
+                *address = 0x00ffffffu;
+            }
+            else {
+                *address = 0x00000000u;
+            }
+            address++;
+        }
+        FontPtr++;
+    }
 }
+}     // namespace Display

@@ -32,7 +32,6 @@ enum class Sign {
     space    = ' '
 };
 using cxxstring = std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > >;
-
 template < typename T >
 struct formatter {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
@@ -200,6 +199,10 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
         parse_align( align, data, fs );
         return fs;
     }
+    else {
+        data.append( parse_base( true, 16, (unsigned long long)arg ) );
+        return data;
+    }
     return "";
 }
 template <>
@@ -246,6 +249,22 @@ struct formatter< char > {
         return parse_format_spac( arg, ctx );
     }
 };
+template <>
+struct formatter< const void * > {
+    constexpr auto parse( std::string_view fmt ) { return fmt; }
+
+    auto format( const void *arg, std::string_view ctx ) -> cxxstring {
+        return parse_format_spac( arg, ctx );
+    }
+};
+template <>
+struct formatter< void * > {
+    constexpr auto parse( std::string_view fmt ) { return fmt; }
+
+    auto format( void *arg, std::string_view ctx ) -> cxxstring {
+        return parse_format_spac( arg, ctx );
+    }
+};
 inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring {
     fmt::format_parse_context f { fmt };
     auto                      index = 0;
@@ -275,6 +294,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring 
 
             args.get( stol( arg_id.c_str( ) ) ).visit( [ & ]( auto data ) {
                 using T = decltype( data );
+
                 formatter< T > fmt;
                 formatted_string.append_range( fmt.format( data, fmt.parse( format_spec ) ) );
             } );
@@ -292,6 +312,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring 
             formatted_string.push_back( fmt[ i ] );
         }
     }
+    formatted_string.push_back( '\0' );
     return formatted_string;
 }
 

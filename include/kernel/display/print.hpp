@@ -5,29 +5,11 @@
 #include <lib/format.hpp>
 #include <limine.h>
 namespace Display {
-inline std::uint8_t ascii[ 256 ][ 16 ];
-constexpr auto      LINEEOF = 0;
-inline auto         putc( std::uint64_t *FB, std::int64_t Xsize, std::int64_t X, std::int64_t Y, char16_t font ) -> void {
-    std::int32_t   i { }, j { };
-    std::uint32_t *Address { };
-    std::uint8_t  *FontPtr { ascii[ font ] };
-    std::int32_t   testval { };
-    for ( i = 0; i < 16; i++ ) {
-        Address = (uint32_t *)( FB ) + Xsize * ( Y + i ) + X;
-        testval = 0x100;
-        for ( j = 0; j < 8; j++ ) {
-            testval = testval >> 1;
-            if ( *FontPtr & testval )
-                *Address = 0x00ffffffu;
-            else
-                *Address = 0x00000000u;
-            Address++;
-        }
-        FontPtr++;
-    }
-}
 
-inline struct {
+constexpr auto LINEEOF = 0;
+auto           putc( std::uint64_t *FB, std::int64_t Xsize, std::int64_t X, std::int64_t Y, char16_t font ) -> void;
+
+struct _Pos_ {
     int64_t   XResolution;
     int64_t   YResolution;
     int64_t   XPosition;
@@ -38,9 +20,9 @@ inline struct {
     uint64_t  FB_length;
     int64_t   column;
     uint64_t  row;
-} position;
+} inline position;
 
-inline auto initialize( limine_framebuffer *frame ) {
+inline auto initialize( limine_framebuffer *frame ) -> void {
     position.XResolution = static_cast< int64_t >( frame->width );
     position.YResolution = static_cast< int64_t >( frame->height );
     position.XPosition   = 0;
@@ -56,10 +38,11 @@ inline auto initialize( limine_framebuffer *frame ) {
 template < typename... Args >
 auto print( fmt::format_string< Args... > fmt, Args... args ) {
     Driver::SerialPort output;
-    auto               fmt_str = Library::format( fmt, args... );
-    auto               fstr    = fmt_str.c_str( );
-    while ( *fstr ) {
-        switch ( *fstr ) {
+
+    auto fmt_str = Library::format( fmt, args... );
+
+    for ( auto ch : fmt_str ) {
+        switch ( ch ) {
         case '\a':
             break;
         case '\n':
@@ -75,7 +58,6 @@ auto print( fmt::format_string< Args... > fmt, Args... args ) {
                 output.write( ' ' );
                 ++position.XPosition;
             }
-
             break;
         case '\r':
             position.XPosition = position.column + 1;
@@ -99,29 +81,25 @@ auto print( fmt::format_string< Args... > fmt, Args... args ) {
         default:
             putc( position.FB_addr, position.XResolution,
                   position.XPosition * position.XCharSize,
-                  position.YPosition * position.YCharSize, *fstr );
+                  position.YPosition * position.YCharSize, ch );
             ++position.XPosition;
-            output.write( *fstr );
+            output.write( ch );
         }
-
         // 结尾部分
-        if ( position.XPosition
-             >= ( position.XResolution / position.XCharSize ) ) {
+        if ( position.XPosition >= ( position.XResolution / position.XCharSize ) ) {
             ++( position.YPosition );
             position.XPosition = LINEEOF;
         }
-        if ( position.YPosition
-             >= ( position.YResolution / position.YCharSize ) ) {
+        if ( position.YPosition >= ( position.YResolution / position.YCharSize ) ) {
             position.YPosition = LINEEOF;
         }
-        fstr++;
     }
 }
 
 template < typename... Args >
 auto println( fmt::format_string< Args... > fmt, Args... args ) {
-    print( fmt, args... );
-    print( "\n" );
+    Display::print( fmt, args... );
+    Display::print( "\n" );
 }
 
 inline auto println( ) -> void {

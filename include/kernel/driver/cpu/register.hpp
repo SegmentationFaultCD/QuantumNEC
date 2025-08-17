@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <lib/format.hpp>
 namespace Driver {
 struct ControlRegisters {
     struct CR0 {
@@ -18,6 +19,9 @@ struct ControlRegisters {
         std::uint64_t CD : 1;     // 控制Cache高速缓存功能，CD=1关闭该功能
         std::uint64_t PG : 1;     // 开启分页模式
         explicit CR0( void ) noexcept = default;
+        operator std::uint64_t( ) {
+            return *( (uint64_t *)this );
+        }
     };
 
     // CR1 保留
@@ -32,6 +36,9 @@ struct ControlRegisters {
 
         std::uint64_t PFLA;
         explicit CR2( void ) noexcept = default;
+        operator std::uint64_t( ) {
+            return *( (uint64_t *)this );
+        }
     };
     struct CR3 {
         /*
@@ -45,6 +52,9 @@ struct ControlRegisters {
         std::uint64_t : 7;
         std::uint64_t page_directory_base : 52;
         explicit CR3( void ) noexcept = default;
+        operator std::uint64_t( ) {
+            return *( (uint64_t *)this );
+        }
     };
     struct CR4 {
         /*
@@ -103,6 +113,9 @@ struct ControlRegisters {
         std::uint64_t PKS : 1;
         std::uint64_t : 39;
         explicit CR4( void ) noexcept = default;
+        operator std::uint64_t( ) {
+            return *( (uint64_t *)this );
+        }
     };
     // CR5 ~ CR7 保留，如果使用结果和 CR1 一样.
     struct CR8 {
@@ -110,6 +123,9 @@ struct ControlRegisters {
         uint64_t TPL : 4;
         uint64_t : 60;
         explicit CR8( void ) noexcept = default;
+        operator std::uint64_t( ) {
+            return *( (uint64_t *)this );
+        }
     };
     // CR9 ~ CR15 保留，如果使用结果和 CR1 一样.
 };

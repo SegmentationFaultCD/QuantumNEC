@@ -59,7 +59,7 @@ __attribute__( ( used, section( ".requests" ) ) ) volatile limine_module_request
 __attribute__( ( used, section( ".limine_requests" ) ) ) static volatile struct limine_stack_size_request stack_size_request = {
     .id         = LIMINE_STACK_SIZE_REQUEST,
     .revision   = 3,
-    .stack_size = 4096,
+    .stack_size = 1024 * 64,
 };
 }     // namespace
 
@@ -75,10 +75,15 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 }     // namespace
 
 #include <kernel/display/print.hpp>
+#include <kernel/driver/cpu/sse.hpp>
 #include <kernel/memory/allocator/kheap.hpp>
 #include <kernel/memory/paging/hhdm.hpp>
 #include <kernel/memory/paging/page_table.hpp>
 #include <lib/format.hpp>
+#define TERMINAL_EMBEDDED_FONT
+#include <kernel/display/print.hpp>
+#include <kernel/driver/acpi/table.hpp>
+#include <os_terminal.h>
 #include <ranges>
 #include <span>
 #include <vector>
@@ -88,8 +93,16 @@ auto ff( std::span< int > f ) {
     Driver::SerialPort { }.print( buf );
     Driver::SerialPort { }.print( "\n" );
 }
+
+auto alloc( std::size_t size ) -> void * {
+    return operator new( size );
+}
+auto free( void *address ) -> void {
+    operator delete( address );
+}
 extern "C" auto loader_entry( void ) -> void {
-    Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
+    Driver::initialize_sse( );
+
     Driver::SerialPort::initialize( );
     Interrupt::IDT::initialize( 0 );
     Memory::GDT::initialize( 0 );
@@ -97,78 +110,49 @@ extern "C" auto loader_entry( void ) -> void {
     Memory::hhdm_initialize( hhdm_request.response );
     Memory::KernelHeap::kernel_heap_initialize( );
     Memory::Paging::initialize( paging_mode_request.response );
-
+    Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
+    Driver::initialize_acpi( acpi_request.response );
     using namespace Memory::Page;
 
-    char                                   buf[ 114 ];
     Memory::Page::allocator< Type::P2Mib > a;
     auto                                   p = a.allocate( 1025 );
-    Library::utoa( std::uint64_t( p ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", p );
     auto p2 = a.allocate( 1026 );
-    Library::utoa( std::uint64_t( p2 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", p2 );
     auto p3 = a.allocate( 2 );
-    Library::utoa( std::uint64_t( p3 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", p3 );
     auto p4 = a.allocate( 1 );
-    Library::utoa( std::uint64_t( p4 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", p4 );
     a.deallocate( p, 1025 );
     p = a.allocate( 1025 );
-    Library::utoa( std::uint64_t( p ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", p );
     auto p6 = a.allocate( 1025 );
-    Library::utoa( std::uint64_t( p6 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", p6 );
     a.deallocate( p6, 1025 );
     auto p7 = a.allocate( 1025 );
-    Library::utoa( std::uint64_t( p7 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", p7 );
     Memory::Page::allocator< Type::P4Kib > b;
     auto                                   t1 = b.allocate( 114 );
-    Library::utoa( std::uint64_t( t1 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", t1 );
     auto t2 = b.allocate( 1112 );
-    Library::utoa( std::uint64_t( t2 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", t2 );
     auto t3 = b.allocate( 12 );
-    Library::utoa( std::uint64_t( t3 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", t3 );
     Memory::Page::allocator< Type::P1Gib > c;
 
     auto c1 = c.allocate( 514 );
-    Library::utoa( std::uint64_t( c1 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", c1 );
     auto c2 = c.allocate( 1321 );
-    Library::utoa( std::uint64_t( c2 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", c2 );
     auto c3 = c.allocate( 1 );
-    Library::utoa( std::uint64_t( c3 ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", c3 );
 
     // C++ standard library test
 
     std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > > string;     // 空
                                                                                                            //
     string.append( "const char *s" );
-    Driver::SerialPort { }.print( string.c_str( ) );
-
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Display::println( "{}", string.c_str( ) );
     int s[] = { 1, 2, 3, 4 };
     ff( s );
 
@@ -178,20 +162,28 @@ extern "C" auto loader_entry( void ) -> void {
     vec.push_back( 2 );
 
     for ( auto i : vec ) {
-        Library::utoa( std::uint64_t( i ), buf, 16 );
-        Driver::SerialPort { }.print( buf );
-        Driver::SerialPort { }.print( "\n" );
+        Display::print( "{} ", i );
     }
+    Display::println( );
 
     auto s2 = string | std::ranges::views::filter( []( const char c ) -> bool { return c != ' '; } ) | std::ranges::to< std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > > >( );
-    Driver::SerialPort { }.print( s2.c_str( ) );
-    Driver::SerialPort { }.print( "\n" );
-    char buff[ 1145 ];
+    Display::println( "{}", s2.c_str( ) );
+    void *s1111 = (void *)111212121l;
+    Display::println( "{} {:x} {:x} {:x} {:x} {:x}", s1111, 114514, 1, 1, 1, 1 );
 
-    Driver::SerialPort { }.print( Library::format( "{1:*>18x} {0:*>18x}", 1145ul, 19198ul ).c_str( ) );
-    Driver::SerialPort { }.print( "\n" );
+    // TerminalDisplay td;
+    // td.red_mask_size    = framebuffer_request.response->framebuffers[ 0 ]->red_mask_size;
+    // td.blue_mask_size   = framebuffer_request.response->framebuffers[ 0 ]->blue_mask_size;
+    // td.green_mask_size  = framebuffer_request.response->framebuffers[ 0 ]->green_mask_size;
+    // td.red_mask_shift   = framebuffer_request.response->framebuffers[ 0 ]->red_mask_shift;
+    // td.blue_mask_shift  = framebuffer_request.response->framebuffers[ 0 ]->blue_mask_shift;
+    // td.green_mask_shift = framebuffer_request.response->framebuffers[ 0 ]->green_mask_shift;
+    // td.buffer           = (uint32_t *)framebuffer_request.response->framebuffers[ 0 ]->address;
+    // td.height           = framebuffer_request.response->framebuffers[ 0 ]->height;
+    // td.width            = framebuffer_request.response->framebuffers[ 0 ]->width;
+    // td.pitch            = framebuffer_request.response->framebuffers[ 0 ]->pitch;
 
-    Display::println( "{}", 1114514 );
-
+    // terminal_init( &td, 15.0f, alloc, free );
     while ( true );
+    // terminal_process( "Hello world" );
 }

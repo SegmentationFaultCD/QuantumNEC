@@ -3,7 +3,7 @@ set_project("QuantumNEC")
 add_rules("mode.debug")
 
 -- limine的和自己的头文件路径
-add_includedirs("./include", "source/kernel/boot/limine", "source/lib/libfmt/include/")
+add_includedirs("./include", "source/kernel/boot/limine", "source/lib/libfmt/include/", "source/lib/libos-terminal")
 -- 架构自选
 set_arch("x86-64")
 -- 不优化
@@ -11,98 +11,8 @@ set_optimize("none")
 
 set_languages("c23", "c++26") 
 
--- target("c")
---     add_toolchains("clang")
---     add_cxxflags(
---             "-fno-builtin", -- 不要内建函数
---             "-mcmodel=large", -- 大内存模式
---             "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
---             "-fno-stack-protector", -- 不要栈保护
---             "-nostdlib", -- 不要标准库
---             "-nostartfiles", -- 不要默认启动文件
---             "-fno-strict-aliasing", -- 关闭严格的别名规则优化
---             "-fno-common", -- 共享全局变量
---             "-fno-rtti", -- 不要运行时类型信息鉴别
---             "-fno-exceptions", -- 不需要异常
---             "-static", 
---             "-mno-red-zone", -- 禁用红色区域
---             "-fno-stack-check", -- 不要栈检查
---             "-Wall", 
---             "-Wextra",   
---             "-fuse-ld=ld",
---             "-fPIC", {force = true}
---     )
---     set_kind("static")
---     add_files("source/libc/*.cpp", "source/libc/*.S")
---     after_build(function (target) 
---         run_dir = target:rundir()
---         os.cp(""..run_dir.."/libc.a", "./library/")
---     end)
--- target("cxx")
---     add_toolchains("clang")
---     add_deps("c")
---     add_cxxflags(
---             "-fno-builtin", -- 不要内建函数
---             "-mcmodel=large", -- 大内存模式
---             "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
---             "-fno-stack-protector", -- 不要栈保护
---             "-nostdlib", -- 不要标准库
---             "-nostartfiles", -- 不要默认启动文件
---             "-fno-strict-aliasing", -- 关闭严格的别名规则优化
---             "-fno-common", -- 共享全局变量
---             "-fno-rtti", -- 不要运行时类型信息鉴别
---             "-fno-exceptions", -- 不需要异常
---             "-mno-red-zone", -- 禁用红色区域
---             "-fno-stack-check", -- 不要栈检查
---             "-static", 
---             "-Wall",
---             "-fuse-ld=ld",
---             "-Wextra",   
---             "-fPIC", {force = true}
---     )
---     set_kind("static")
---     add_files("source/libcxx/*.cpp")
---     after_build(function (target) 
---         run_dir = target:rundir()
---         os.cp(""..run_dir.."/libcxx.a", "./library/")
---     end)
-
--- target("servicer.elf")
---     add_toolchains("clang")
---     add_deps("c", "cxx")
---     add_cxxflags(
---             "-fno-builtin", -- 不要内建函数
---             "-mcmodel=large", -- 大内存模式
---             "-ffreestanding", -- 生成不依赖于任何操作系统或运行环境的代码
---             "-fno-stack-protector", -- 不要栈保护
---             "-nostdlib", -- 不要标准库
---             "-nostartfiles", -- 不要默认启动文件
---             "-fno-strict-aliasing", -- 关闭严格的别名规则优化
---             "-fno-common", -- 共享全局变量
---             "-fno-rtti", -- 不要运行时类型信息鉴别
---             "-fno-exceptions", -- 不需要异常
---             "-mno-red-zone", -- 禁用红色区域
---             "-fno-stack-check", -- 不要栈检查
---             "-Wall", 
---             "-Wextra", 
---             "-static",  
---             "-fuse-ld=ld",
---             "-fPIE", {force = true}
---     )
---     set_kind("binary") 
---     add_files("source/modules/service/servicer.cpp")
---     add_linkdirs("library")
---     add_links("c", "cxx")
---     add_linkorders("cxx", "c")
---     add_ldflags("-nostdlib",{force = true}, "-target x86_64-freestanding", "-T ./source/libc/libclinker.lds")
---     after_build(function (target)
---         run_dir = target:rundir()
---         os.cp(run_dir.."/servicer.elf", "vm/QuantumNEC/SYSTEM64")
---     end)
-
 target("micro_kernel.elf")
-    add_toolchains("clang")
-    -- add_deps("c", "cxx", "servicer.elf") 
+    add_toolchains("clang") 
     set_kind("binary")
     add_cxxflags(
             "-fno-builtin", -- 不要内建函数
@@ -116,20 +26,18 @@ target("micro_kernel.elf")
             "-mno-red-zone", -- 禁用红色区域
             "-fno-stack-check", -- 不要栈检查
             "-Wall", 
-            "-Wextra",
-            "-mno-mmx", "-mno-sse", "-mno-sse2", "-msoft-float",
-            "-fuse-ld=ld",
-            "-D APIC",
+            "-Wextra", 
             "-static",
             "-fPIC",
             "-Wpointer-arith",
             "-Wno-missing-field-initializers",
             "-Wwrite-strings",
             "-fno-threadsafe-statics", 
-            -- "-ffreestanding",  -- 生成不依赖于任何操作系统或运行环境的代码
             "-Wno-reorder", {force = true} -- 构造函数的初始化顺序不固定
     )   
-    add_ldflags("-nostdlib", {force = true}, "-target x86_64-freestanding", "-T scripts/linker/x86_64linker.lds") 
+    add_linkdirs("source/lib/libos-terminal")
+    add_links("os_terminal")
+    add_ldflags("-fuse-ld=lld","-static","-nostdlib", {force = true}, "-target x86_64-freestanding", "-T scripts/linker/x86_64linker.lds") 
     add_files(
         "source/kernel/*/*.cpp",
         "source/kernel/*/*.S",
@@ -171,7 +79,7 @@ target("run")
                              -name QuantumNEC \
                              -boot order=dc \
                              -net none \
-                             -rtc base=localtime -nographic"
+                             -rtc base=localtime -nographic "
                       -- -nographic"-- -d in_asm"   -serial chardev:com1 -chardev stdio,mux=on,id=com1 \ --   
         os.exec("qemu-system-x86_64 "..qemu_flags)
     end)

@@ -4,6 +4,7 @@
 #include <kernel/driver/cpu/register.hpp>
 namespace Driver {
 class IO {
+public:
     struct CpuidStatus {
         enum : int {
             CPUID_FEAT_RCX_SSE3          = 1 << 0,
@@ -75,7 +76,7 @@ class IO {
         std::uint64_t rbx;
         std::uint64_t rcx;
         std::uint64_t rdx;
-        explicit CpuidStatus( uint64_t _m, uint64_t _s, uint64_t _a, uint64_t _b, uint64_t _c, uint64_t _d ) noexcept {
+        CpuidStatus( uint64_t _m, uint64_t _s, uint64_t _a, uint64_t _b, uint64_t _c, uint64_t _d ) noexcept {
             this->mop = _m;
             this->sop = _s;
             this->rax = _a;
@@ -84,7 +85,7 @@ class IO {
             this->rdx = _d;
         }
 
-        explicit CpuidStatus( std::same_as< CpuidStatus > auto &&status ) noexcept {
+        CpuidStatus( std::same_as< CpuidStatus > auto &&status ) noexcept {
             this->mop = status.mop;
             this->sop = status.sop;
             this->rax = status.rax;
@@ -92,7 +93,7 @@ class IO {
             this->rcx = status.rcx;
             this->rdx = status.rdx;
         }
-        explicit CpuidStatus( void ) noexcept {
+        CpuidStatus( void ) noexcept {
         }
     };
 

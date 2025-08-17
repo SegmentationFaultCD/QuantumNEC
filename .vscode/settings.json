@@ -135,10 +135,12 @@
         "-std=c++26",
         "-I${workspaceFolder}/include",
         "-I${workspaceFolder}/source/kernel/boot/limine/",
-        "-I${workspaceFolder}/source/lib/libfmt/include/"
+        "-I${workspaceFolder}/source/lib/libfmt/include/",
+        "-I${workspaceFolder}/source/lib/libos-terminal/"
     ],
     "clangd.onConfigChanged": "restart",
     "clangd.serverCompletionRanking": true,
     "clangd.detectExtensionConflicts": true,
     "background.enabled": true,
+    "cmake.ignoreCMakeListsMissing": true,
 }
