@@ -10,9 +10,9 @@ namespace Memory::Page {
 
 auto page_memory_initialize( limine_memmap_response *map ) -> void;
 enum class Type : uint64_t {
-    P4Kib = 0ul,
-    P2Mib = 1ul,
-    P1Gib = 2ul
+    P4Kib = 1ul,
+    P2Mib = 2ul,
+    P1Gib = 3ul
 };
 consteval auto operator""_KB( unsigned long long size ) {
     return size * 1024ul;

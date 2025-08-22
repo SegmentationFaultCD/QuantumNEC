@@ -1,5 +1,4 @@
 #pragma once
-#include <cstdint>
 #include <type_traits>
 namespace Memory {
 template < typename T >     // type of objects
@@ -58,4 +57,5 @@ public:
         }
     }
 };
+
 }     // namespace Memory
