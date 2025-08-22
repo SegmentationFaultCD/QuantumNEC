@@ -101,11 +101,6 @@ auto alloc( std::size_t size ) -> void * {
 auto free( void *address ) -> void {
     operator delete( address );
 }
-struct A {
-    ~A( ) {
-        Display::println( "NO!!!!!!!!!!!!" );
-    }
-};
 
 extern "C" auto loader_entry( void ) -> void {
     Driver::initialize_sse( );
@@ -118,7 +113,7 @@ extern "C" auto loader_entry( void ) -> void {
     Memory::KernelHeap::kernel_heap_initialize( );
     Memory::Paging::initialize( paging_mode_request.response );
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
-    // Driver::initialize_acpi( acpi_request.response );
+    Driver::initialize_acpi( acpi_request.response );
     using namespace Memory::Page;
 
     Memory::Page::allocator< Type::P2Mib > a;
@@ -189,7 +184,7 @@ extern "C" auto loader_entry( void ) -> void {
     // td.height           = framebuffer_request.response->framebuffers[ 0 ]->height;
     // td.width            = framebuffer_request.response->framebuffers[ 0 ]->width;
     // td.pitch            = framebuffer_request.response->framebuffers[ 0 ]->pitch;
-    f2( );
+
     // terminal_init( &td, 15.0f, alloc, free );
     while ( true );
     // terminal_process( "Hello world" );

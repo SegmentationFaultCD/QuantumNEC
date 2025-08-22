@@ -25,7 +25,7 @@ auto GeneralInterruptHandle::registers( IDT::Frame *frame ) noexcept -> void {
                       "Rlfags:{} DS:{:x} ES:{:x} FS:{:x} GS:{:x}\n"
                       "R8:{:x} R9:{:x} R10:{:x} R11:{:x} R12:{:x} R13:{:x} R14:{:x} R15:{:x}\n"
                       "RAX:{:x} RBX:{:x} RCX:{:x} RDX:{:x}\n"
-                      "RBP:{:x} RSI{:x} RDI{:x}\n"
+                      "RBP:{:x} RSI:{:x} RDI:{:x}\n"
                       "CR0:{:x} CR2:{:x} CR3:{:x} CR4:{:x} CR8:{:x}",
                       frame->rsp, frame->ss, frame->cs, (uint64_t)frame->rflags, frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                       frame->regs.r8, frame->regs.r9, frame->regs.r10, frame->regs.r11, frame->regs.r12, frame->regs.r13, frame->regs.r14, frame->regs.r15,
