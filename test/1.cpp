@@ -1,3 +1,5 @@
-#include <memory>
 #include <print>
-#include <type_traits>
+
+auto main( void ) -> int {
+    std::println( "{:x}", 0x5fdul << 21 );
+}
