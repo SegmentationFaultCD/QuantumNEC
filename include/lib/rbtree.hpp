@@ -242,7 +242,7 @@ public:
     }
 
 public:
-    auto find( const K &key ) -> T & {
+    auto find( const K &key ) -> T * {
         auto cur = _root;
         while ( cur != nullptr ) {
             auto result = cur->key( ) <=> key;
@@ -251,8 +251,9 @@ public:
             else if ( result == std::strong_ordering::greater )
                 cur = cur->_left;
             else
-                return cur->_data;
+                return &cur->_data;
         }
+        return nullptr;
     }
     // TODO 转换为插入Node而非data
 

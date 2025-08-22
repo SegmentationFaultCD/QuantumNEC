@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <kernel/display/print.hpp>
 #include <kernel/memory/allocator/page.hpp>
 #include <limine.h>
 namespace Memory {
@@ -197,11 +198,11 @@ struct Paging {
             return *this;
         }
         virtual auto get_virtual_index( uint64_t virtual_address ) -> std::uint64_t override {
-            return ( virtual_address & ~0x7fful ) >> this->get_offset( 1 ) & 0x1ff;
+            return ( virtual_address ) >> this->get_offset( 1 ) & 0x1ff;
         }
 
         virtual auto flags_base( uint64_t index ) -> uint64_t override {
-            return ( (page_entry *)this->pt )[ index ].base << 12;
+            return ( (page_entry *)this->pt )[ index ].base << this->get_offset( 1 );
         }
         virtual auto flags_ps_pat( uint64_t index ) -> uint64_t override {
             return 0;
@@ -209,7 +210,7 @@ struct Paging {
 
     private:
         virtual auto set_base( uint64_t index, uint64_t address ) -> void override {
-            ( (page_entry *)this->pt )[ index ].base = address >> 12;
+            ( (page_entry *)this->pt )[ index ].base = address >> this->get_offset( 1 );
         }
         virtual auto set_ps_pat( uint64_t index, bool bit ) -> void override {
             ( (page_entry *)this->pt )[ index ].pat = bit;
@@ -271,15 +272,15 @@ struct Paging {
             return *this;
         }
         virtual auto get_virtual_index( uint64_t virtual_address ) -> std::uint64_t override {
-            return ( virtual_address & ~0x7fful ) >> this->get_offset( 2 ) & 0x1ff;
+            return ( virtual_address ) >> this->get_offset( 2 ) & 0x1ff;
         }
 
         virtual auto flags_base( uint64_t index ) -> uint64_t override {
             if ( ( (page_entry *)this->pt )[ index ].ps ) {
-                return ( (huge_page_entry *)this->pt )->base << 21;
+                return (uint64_t)( (huge_page_entry *)this->pt )[ index ].base << this->get_offset( 2 );
             }
             else {
-                return ( (page_entry *)this->pt )[ index ].base << 12;
+                return (uint64_t)( (page_entry *)this->pt )[ index ].base << this->get_offset( 1 );
             }
         }
         virtual auto flags_ps_pat( uint64_t index ) -> uint64_t override {
@@ -289,10 +290,10 @@ struct Paging {
     private:
         virtual auto set_base( uint64_t index, uint64_t address ) -> void override {
             if ( ( (page_entry *)this->pt )[ index ].ps ) {
-                ( (huge_page_entry *)this->pt )->base = address >> 21;
+                ( (huge_page_entry *)this->pt )[ index ].base = ( address >> this->get_offset( 2 ) );
             }
             else {
-                ( (page_entry *)this->pt )[ index ].base = address >> 12;
+                ( (page_entry *)this->pt )[ index ].base = ( address >> this->get_offset( 1 ) );
             }
         }
         virtual auto set_ps_pat( uint64_t index, bool bit ) -> void override {
@@ -355,15 +356,15 @@ struct Paging {
             return *this;
         }
         virtual auto get_virtual_index( uint64_t virtual_address ) -> std::uint64_t override {
-            return ( virtual_address & ~0x7fful ) >> this->get_offset( 3 ) & 0x1ff;
+            return ( virtual_address ) >> this->get_offset( 3 ) & 0x1ff;
         }
 
         virtual auto flags_base( uint64_t index ) -> uint64_t override {
             if ( ( (page_entry *)this->pt )[ index ].ps ) {
-                return ( (huge_page_entry *)this->pt )->base << 30;
+                return (uint64_t)( (huge_page_entry *)this->pt )[ index ].base << this->get_offset( 3 );
             }
             else {
-                return ( (page_entry *)this->pt )[ index ].base << 12;
+                return (uint64_t)( (page_entry *)this->pt )[ index ].base << this->get_offset( 1 );
             }
         }
         virtual auto flags_ps_pat( uint64_t index ) -> uint64_t override {
@@ -373,10 +374,10 @@ struct Paging {
     private:
         virtual auto set_base( uint64_t index, uint64_t address ) -> void override {
             if ( ( (page_entry *)this->pt )[ index ].ps ) {
-                ( (huge_page_entry *)this->pt )->base = address >> 30;
+                ( (huge_page_entry *)this->pt )[ index ].base = address >> this->get_offset( 3 );
             }
             else {
-                ( (page_entry *)this->pt )[ index ].base = address >> 12;
+                ( (page_entry *)this->pt )[ index ].base = address >> this->get_offset( 1 );
             }
         }
         virtual auto set_ps_pat( uint64_t index, bool bit ) -> void override {
@@ -419,11 +420,11 @@ struct Paging {
             return *this;
         }
         virtual auto get_virtual_index( uint64_t virtual_address ) -> std::uint64_t override {
-            return ( virtual_address & ~0x7fful ) >> this->get_offset( 4 ) & 0x1ff;
+            return ( virtual_address ) >> this->get_offset( 4 ) & 0x1ff;
         }
 
         virtual auto flags_base( uint64_t index ) -> uint64_t override {
-            return ( (page_entry *)this->pt )[ index ].base << 12;
+            return ( (page_entry *)this->pt )[ index ].base << this->get_offset( 1 );
         }
         virtual auto flags_ps_pat( uint64_t index ) -> uint64_t override {
             return 0;
@@ -431,7 +432,7 @@ struct Paging {
 
     private:
         virtual auto set_base( uint64_t index, uint64_t address ) -> void override {
-            ( (page_entry *)this->pt )[ index ].base = address >> 12;
+            ( (page_entry *)this->pt )[ index ].base = address >> this->get_offset( 1 );
         }
         virtual auto set_ps_pat( uint64_t index, bool bit ) -> void override {
         }
@@ -472,11 +473,11 @@ struct Paging {
             return *this;
         }
         virtual auto get_virtual_index( uint64_t virtual_address ) -> std::uint64_t override {
-            return ( virtual_address & ~0x7fful ) >> this->get_offset( 5 ) & 0x1ff;
+            return ( virtual_address ) >> this->get_offset( 5 ) & 0x1ff;
         }
 
         virtual auto flags_base( uint64_t index ) -> uint64_t override {
-            return ( (page_entry *)this->pt )[ index ].base << 12;
+            return (std::uint64_t)( (page_entry *)this->pt )[ index ].base << this->get_offset( 1 );
         }
         virtual auto flags_ps_pat( uint64_t index ) -> uint64_t override {
             return 0;
@@ -484,7 +485,7 @@ struct Paging {
 
     private:
         virtual auto set_base( uint64_t index, uint64_t address ) -> void override {
-            ( (page_entry *)this->pt )[ index ].base = address >> 12;
+            ( (page_entry *)this->pt )[ index ].base = address >> this->get_offset( 1 );
         }
         virtual auto set_ps_pat( uint64_t index, bool bit ) -> void override {
         }

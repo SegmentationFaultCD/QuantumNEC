@@ -215,7 +215,7 @@ public:
         auto node = zone_tree.find( base );
 
         if ( node != nullptr ) {
-            auto head = ( node->owner != nullptr ) ? node->owner : node;
+            auto head = ( ( *node )->owner != nullptr ) ? ( *node )->owner : ( *node );
 
             auto base        = ( reinterpret_cast< std::uint64_t >( address ) - head->base );
             auto zone_index  = ( base & __zone_memory_mask__( ) ) / __zone_min_memory__;
@@ -243,7 +243,7 @@ public:
 private:
     inline static Library::RBTree< std::uint64_t, zone * > zone_trees[ 3 ] { };
 
-    inline static auto zone_tree = zone_trees[ std::to_underlying( page_type ) ];
+    inline static auto zone_tree = zone_trees[ std::to_underlying( page_type ) - 1 ];
 
     inline static auto free_memory_total  = 0ul;
     inline static auto all_memory_total   = 0ul;

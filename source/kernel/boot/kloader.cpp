@@ -140,6 +140,7 @@ extern "C" auto loader_entry( void ) -> void {
     Display::println( "{}", t2 );
     auto t3 = b.allocate( 12 );
     Display::println( "{}", t3 );
+
     Memory::Page::allocator< Type::P1Gib > c;
 
     auto c1 = c.allocate( 514 );

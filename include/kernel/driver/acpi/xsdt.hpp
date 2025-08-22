@@ -3,8 +3,9 @@
 #include <kernel/driver/acpi/table.hpp>
 #include <kernel/memory/paging/hhdm.hpp>
 namespace Driver {
-struct XSDT : Table::ACPISDTHeader {
+struct [[gnu::packed]] XSDT : Table::ACPISDTHeader {
     explicit XSDT( void ) noexcept = default;
+
     auto operator[]( std::size_t index ) const -> const ACPISDTHeader & {
         auto entries { reinterpret_cast< const uint64_t * >( this + 1 ) };
         return *reinterpret_cast< const ACPISDTHeader * >( entries + index );
@@ -14,12 +15,12 @@ struct XSDT : Table::ACPISDTHeader {
     }
 
     template < typename TableType >
-        requires std::invocable< typename TableType::get_signature >
-    auto find_table( uint32_t signature = TableType::get_signature( ) ) -> TableType::table_type * {
+        requires std::invocable< decltype( TableType::get_signature ) >
+    auto find_table( ) -> TableType * {
         auto address = reinterpret_cast< uint64_t * >( this + 1 );
         for ( std::size_t i { }; i < this->size( ); i++ ) {
             auto *header = (ACPISDTHeader *)( Memory::physical_to_virtual( address[ i ] ) );
-            if ( header->signature == signature ) {
+            if ( header->signature == TableType::get_signature( ) ) {
                 if ( Table::check_sum( header, header->length ) )
                     return reinterpret_cast< TableType::table_type * >( header );
             }

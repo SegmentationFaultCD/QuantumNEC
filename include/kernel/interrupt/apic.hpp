@@ -2,5 +2,6 @@
 namespace Interrupt {
 
 class Apic {
+    
 };
 }     // namespace Interrupt

@@ -43,6 +43,7 @@ auto Paging::pmlxt::map( uint64_t physics_address, uint64_t virtual_address, uin
                     [ & ]( this auto &&_self, std::uint64_t _level, pmlxt &_table, std::uint64_t _index ) {
                         if ( ( _level == 0 || !_table.empty( ) ) && !_table.flags_ps_pat( _index ) && _table.flags_p( _index ) ) {
                             Page::allocator< Page::Type::P4Kib > { }.deallocate( (void *)_table.flags_base( _index ), 1 );
+
                             return;
                         }
                         else {
@@ -62,19 +63,19 @@ auto Paging::pmlxt::map( uint64_t physics_address, uint64_t virtual_address, uin
                 }
 
                 table = { index,
-                          physics_address & ~0x7FFul,
+                          physics_address,
                           flags | table.is_huge( mode ) };
 
                 physics_address += table.check_page_size( mode );
                 virtual_address += table.check_page_size( mode );
-
+                Driver::IO::invlpg( reinterpret_cast< void * >( virtual_address ) );
                 return;
             }
             else if ( !table.flags_p( index ) || table.flags_ps_pat( index ) ) {
                 auto new_table = Page::allocator< Page::Type::P4Kib > { }.allocate( 1 );
                 std::memset( (void *)physical_to_virtual( new_table ), 0, table.PT_SIZE );
                 table = { index,
-                          (uint64_t)new_table & ~0x7FFul,
+                          (uint64_t)new_table,
                           flags };
             }
             auto &next_table = *page_table[ level + std::to_underlying( mode ) - 2 ];
