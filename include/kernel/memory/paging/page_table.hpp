@@ -122,7 +122,7 @@ struct Paging {
         virtual auto flags_xd( uint64_t index ) -> uint64_t {
             return ( this->pt )[ index ] & PAGE_XD;
         }
-        virtual auto flags_base( uint64_t index ) -> uint64_t   = 0;
+        virtual auto flags_base( uint64_t index ) -> uint64_t = 0;
         virtual auto flags_ps_pat( uint64_t index ) -> uint64_t = 0;
         virtual auto set_p( uint64_t index, bool bit ) -> void {
             this->pt[ index ] |= (uint64_t)bit << 0;
@@ -152,7 +152,7 @@ struct Paging {
             this->pt[ index ] |= (uint64_t)bit << 63;
         }
         virtual auto set_base( uint64_t index, uint64_t address ) -> void = 0;
-        virtual auto set_ps_pat( uint64_t index, bool bit ) -> void       = 0;
+        virtual auto set_ps_pat( uint64_t index, bool bit ) -> void = 0;
 
     protected:
         std::uint64_t *pt;
@@ -186,6 +186,7 @@ struct Paging {
 
         virtual auto operator=( std::tuple< uint64_t, uint64_t, uint64_t > group ) -> pmlxt & override {
             auto &[ index, base, flags ] = group;
+            this->pt[ index ] = 0;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -260,6 +261,7 @@ struct Paging {
 
         virtual auto operator=( std::tuple< uint64_t, uint64_t, uint64_t > group ) -> pmlxt & override {
             auto &[ index, base, flags ] = group;
+            this->pt[ index ] = 0;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -344,6 +346,7 @@ struct Paging {
 
         virtual auto operator=( std::tuple< uint64_t, uint64_t, uint64_t > group ) -> pmlxt & override {
             auto &[ index, base, flags ] = group;
+            this->pt[ index ] = 0;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -408,6 +411,7 @@ struct Paging {
 
         virtual auto operator=( std::tuple< uint64_t, uint64_t, uint64_t > group ) -> pmlxt & override {
             auto &[ index, base, flags ] = group;
+            this->pt[ index ] = 0;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -461,6 +465,7 @@ struct Paging {
 
         virtual auto operator=( std::tuple< uint64_t, uint64_t, uint64_t > group ) -> pmlxt & override {
             auto &[ index, base, flags ] = group;
+            this->pt[ index ] = 0;
             this->set_p( index, !!( flags & PAGE_PRESENT ) );
             this->set_rw( index, !!( flags & PAGE_RW_W ) );
             this->set_us( index, !!( flags & PAGE_US_U ) );
@@ -495,6 +500,6 @@ struct Paging {
     static auto initialize( limine_paging_mode_response *pg ) -> void;
 
     inline static pmlxt *kernel_page_table;
-    inline static bool   support_5level_paging { };
+    inline static bool support_5level_paging { };
 };
 }     // namespace Memory

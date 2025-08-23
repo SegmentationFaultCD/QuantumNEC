@@ -6,9 +6,9 @@ AccessModifierOffset: -4
 # 开括号(开圆括号、开尖括号、开方括号)后的对齐: Align, DontAlign, AlwaysBreak(总是在开括号后换行)
 AlignAfterOpenBracket: Align
 # 连续赋值时，对齐所有等号
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
 # 连续声明时，对齐所有声明的变量名
-AlignConsecutiveDeclarations: true
+AlignConsecutiveDeclarations: false
 # 右对齐逃脱换行(使用反斜杠换行)的反斜杠
 AlignEscapedNewlines: Right
 # 水平对齐二元和三元表达式的操作数

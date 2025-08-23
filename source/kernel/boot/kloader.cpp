@@ -20,45 +20,45 @@ __attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION(
 namespace {
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_framebuffer_request framebuffer_request = {
-    .id       = LIMINE_FRAMEBUFFER_REQUEST,
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 3,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_memmap_request memmap_request = {
-    .id       = LIMINE_MEMMAP_REQUEST,
+    .id = LIMINE_MEMMAP_REQUEST,
     .revision = 3,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_rsdp_request acpi_request = {
-    .id       = LIMINE_RSDP_REQUEST,
+    .id = LIMINE_RSDP_REQUEST,
     .revision = 3,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_hhdm_request hhdm_request = {
-    .id       = LIMINE_HHDM_REQUEST,
+    .id = LIMINE_HHDM_REQUEST,
     .revision = 3,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_smp_request smp_request = {
-    .id       = LIMINE_SMP_REQUEST,
+    .id = LIMINE_SMP_REQUEST,
     .revision = 3,
     .response = nullptr
 };
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_paging_mode_request paging_mode_request = {
-    .id       = LIMINE_PAGING_MODE_REQUEST,
+    .id = LIMINE_PAGING_MODE_REQUEST,
     .revision = 3,
     .response = nullptr
 };
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile limine_module_request modules_request = {
-    .id       = LIMINE_MODULE_REQUEST,
+    .id = LIMINE_MODULE_REQUEST,
     .revision = 3,
     .response = nullptr
 };
 
 __attribute__( ( used, section( ".limine_requests" ) ) ) static volatile struct limine_stack_size_request stack_size_request = {
-    .id         = LIMINE_STACK_SIZE_REQUEST,
-    .revision   = 3,
+    .id = LIMINE_STACK_SIZE_REQUEST,
+    .revision = 3,
     .stack_size = 1024 * 64,
 };
 }     // namespace
@@ -108,16 +108,16 @@ extern "C" auto loader_entry( void ) -> void {
     Driver::SerialPort::initialize( );
     Interrupt::IDT::initialize( 0 );
     Memory::GDT::initialize( 0 );
-    Memory::Page::page_memory_initialize( memmap_request.response );
+    Memory::Page::initialize( memmap_request.response );
     Memory::hhdm_initialize( hhdm_request.response );
-    Memory::KernelHeap::kernel_heap_initialize( );
+    Memory::KernelHeap::initialize( );
     Memory::Paging::initialize( paging_mode_request.response );
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
     Driver::initialize_acpi( acpi_request.response );
     using namespace Memory::Page;
 
     Memory::Page::allocator< Type::P2Mib > a;
-    auto                                   p = a.allocate( 1025 );
+    auto p = a.allocate( 1025 );
     Display::println( "{}", p );
     auto p2 = a.allocate( 1026 );
     Display::println( "{}", p2 );
@@ -134,7 +134,7 @@ extern "C" auto loader_entry( void ) -> void {
     auto p7 = a.allocate( 1025 );
     Display::println( "{}", p7 );
     Memory::Page::allocator< Type::P4Kib > b;
-    auto                                   t1 = b.allocate( 114 );
+    auto t1 = b.allocate( 114 );
     Display::println( "{}", t1 );
     auto t2 = b.allocate( 1112 );
     Display::println( "{}", t2 );
@@ -161,7 +161,6 @@ extern "C" auto loader_entry( void ) -> void {
 
     std::vector< int, Memory::KernelHeap::allocator< int > > vec;
     vec.emplace_back( 1 );
-
     vec.push_back( 2 );
 
     for ( auto i : vec ) {

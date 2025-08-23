@@ -22,7 +22,7 @@ struct [[gnu::packed]] XSDT : Table::ACPISDTHeader {
             auto *header = (ACPISDTHeader *)( Memory::physical_to_virtual( address[ i ] ) );
             if ( header->signature == TableType::get_signature( ) ) {
                 if ( Table::check_sum( header, header->length ) )
-                    return reinterpret_cast< TableType::table_type * >( header );
+                    return reinterpret_cast< TableType * >( header );
             }
         }
         // 没找到这个表

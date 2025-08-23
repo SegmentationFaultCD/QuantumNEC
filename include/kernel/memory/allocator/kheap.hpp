@@ -4,14 +4,14 @@
 #include <kernel/memory/allocator/slab.hpp>
 #include <kernel/memory/paging/hhdm.hpp>
 namespace Memory::KernelHeap {
-auto kernel_heap_initialize( void ) -> void;
+auto initialize( void ) -> void;
 template < typename T >
 class allocator;
 struct allocator_manager {
     template < typename T >
     friend class allocator;
 
-    friend auto kernel_heap_initialize( void ) -> void;
+    friend auto initialize( void ) -> void;
 
 private:
     constexpr static std::uint64_t cache_size[] {
@@ -32,23 +32,23 @@ private:
         524288,
         1048576,
     };
-    constexpr static auto   cache_size_count = sizeof( cache_size ) / sizeof( uint64_t );
+    constexpr static auto cache_size_count = sizeof( cache_size ) / sizeof( uint64_t );
     inline static SlabCache slab_caches[ cache_size_count ];
 };
 
 template < typename T >
 class allocator : public Memory::allocator< T > {
-    friend auto kernel_heap_initialize( void ) -> void;
+    friend auto initialize( void ) -> void;
 
 public:
-    using value_type                             = T;
-    using pointer                                = value_type *;
-    using const_pointer                          = const value_type *;
-    using size_type                              = size_t;
-    using difference_type                        = std::ptrdiff_t;
+    using value_type = T;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using size_type = size_t;
+    using difference_type = std::ptrdiff_t;
     using propagate_on_container_move_assignment = std::true_type;
-    using self                                   = allocator< T >;
-    using type                                   = T;
+    using self = allocator< T >;
+    using type = T;
 
 private:
     constexpr static std::uint64_t cache_size[] {
@@ -137,16 +137,16 @@ public:
                          case 128:
                          case 256:
                          case 512: {
-                             auto virtual_address  = (uint64_t)physical_to_virtual( page );
-                             auto struct_size      = sizeof( Slab ) + page_allocator.__page_size__ / slab_cache->size / 8;
-                             slab                  = (Slab *)( virtual_address + page_allocator.__page_size__ - struct_size );
-                             slab->color_map       = (uint64_t *)( (uint64_t)slab + sizeof( struct Slab ) );
-                             slab->free_count      = ( page_allocator.__page_size__ - ( page_allocator.__page_size__ / slab_cache->size / 8 ) - sizeof( Slab ) / slab_cache->size );
-                             slab->using_count     = 0;
-                             slab->color_count     = slab->free_count;
+                             auto virtual_address = (uint64_t)physical_to_virtual( page );
+                             auto struct_size = sizeof( Slab ) + page_allocator.__page_size__ / slab_cache->size / 8;
+                             slab = (Slab *)( virtual_address + page_allocator.__page_size__ - struct_size );
+                             slab->color_map = (uint64_t *)( (uint64_t)slab + sizeof( struct Slab ) );
+                             slab->free_count = ( page_allocator.__page_size__ - ( page_allocator.__page_size__ / slab_cache->size / 8 ) - sizeof( Slab ) / slab_cache->size );
+                             slab->using_count = 0;
+                             slab->color_count = slab->free_count;
                              slab->virtual_address = (void *)virtual_address;
-                             slab->page            = (void *)page;
-                             slab->color_length    = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 << 3 );
+                             slab->page = (void *)page;
+                             slab->color_length = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 << 3 );
                              std::construct_at( &slab->list );
                              std::memset( slab->color_map, 0xff, slab->color_length );
                              for ( auto i = 0ul; i < slab->color_count; i++ )
@@ -163,14 +163,14 @@ public:
                          case 262144:
                          case 524288:
                          case 1048576: {
-                             slab                  = (Slab *)this->allocate( sizeof( Slab ) );
-                             slab->free_count      = page_allocator.__page_size__ / slab_cache->size;
-                             slab->using_count     = 0;
-                             slab->color_count     = slab->free_count;
-                             slab->color_length    = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
-                             slab->color_map       = (uint64_t *)this->allocate( slab->color_length );
+                             slab = (Slab *)this->allocate( sizeof( Slab ) );
+                             slab->free_count = page_allocator.__page_size__ / slab_cache->size;
+                             slab->using_count = 0;
+                             slab->color_count = slab->free_count;
+                             slab->color_length = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
+                             slab->color_map = (uint64_t *)this->allocate( slab->color_length );
                              slab->virtual_address = (void *)physical_to_virtual( page );
-                             slab->page            = (void *)page;
+                             slab->page = (void *)page;
                              std::construct_at( &slab->list );
                              std::memset( slab->color_map, 0xff, slab->color_length );
                              for ( auto i = 0ul; i < slab->color_count; ++i ) {

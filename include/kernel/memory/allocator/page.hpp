@@ -8,7 +8,7 @@
 #include <limine.h>
 namespace Memory::Page {
 
-auto page_memory_initialize( limine_memmap_response *map ) -> void;
+auto initialize( limine_memmap_response *map ) -> void;
 enum class Type : uint64_t {
     P4Kib = 1ul,
     P2Mib = 2ul,
@@ -26,16 +26,16 @@ consteval auto operator""_GB( unsigned long long size ) {
 
 template < Type __type__ >
 class allocator : public Memory::allocator< void > {
-    friend auto page_memory_initialize( limine_memmap_response *map ) -> void;
+    friend auto initialize( limine_memmap_response *map ) -> void;
 
 public:
-    using value_type                             = void;
-    using pointer                                = void *;
-    using const_pointer                          = const void *;
-    using size_type                              = std::size_t;
-    using difference_type                        = std::ptrdiff_t;
+    using value_type = void;
+    using pointer = void *;
+    using const_pointer = const void *;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
     using propagate_on_container_move_assignment = std::true_type;
-    using type                                   = void;
+    using type = void;
 
     template < class U >
     struct rebind {
@@ -137,7 +137,7 @@ public:
                     // high                    low
 
                     auto end_index = i + 1ul;
-                    auto stop      = false;
+                    auto stop = false;
 
                     if ( i + ( page_count - head_size + this->page_descriptor_count - 1 ) / this->page_descriptor_count > head->zone_count ) {
                         continue;
@@ -177,12 +177,12 @@ public:
         // 这时理应开辟新zones
 
         auto number_of_zone = ( page_count + page_descriptor_count - 1 ) / page_descriptor_count;
-        auto new_zones      = new zone[ number_of_zone ] { };
+        auto new_zones = new zone[ number_of_zone ] { };
 
         std::uint64_t bases = 0;
         if constexpr ( page_type != Type::P1Gib ) {
             using Above = allocator< Type( std::to_underlying( page_type ) + 1ul ) >;
-            bases       = reinterpret_cast< std::uint64_t >( Above { }.allocate( number_of_zone * this->__page_size__ * page_descriptor_count / Above::__page_size__ ) );
+            bases = reinterpret_cast< std::uint64_t >( Above { }.allocate( number_of_zone * this->__page_size__ * page_descriptor_count / Above::__page_size__ ) );
         }
         else {
             bases = this->global_memory_mark;
@@ -204,9 +204,9 @@ public:
         }
         new_zones[ number_of_zone - 1 ].pages.template set< true >( 0, page_count % this->page_descriptor_count );
 
-        new_zones[ 0 ].free_page  = number_of_zone * this->page_descriptor_count - page_count;
+        new_zones[ 0 ].free_page = number_of_zone * this->page_descriptor_count - page_count;
         new_zones[ 0 ].zone_count = number_of_zone;
-        new_zones[ 0 ].owner      = nullptr;
+        new_zones[ 0 ].owner = nullptr;
         return reinterpret_cast< pointer >( new_zones[ 0 ].base );
     }
     virtual auto deallocate( const_pointer address, std::size_t page_count ) -> void override {
@@ -217,8 +217,8 @@ public:
         if ( node != nullptr ) {
             auto head = ( ( *node )->owner != nullptr ) ? ( *node )->owner : ( *node );
 
-            auto base        = ( reinterpret_cast< std::uint64_t >( address ) - head->base );
-            auto zone_index  = ( base & __zone_memory_mask__( ) ) / __zone_min_memory__;
+            auto base = ( reinterpret_cast< std::uint64_t >( address ) - head->base );
+            auto zone_index = ( base & __zone_memory_mask__( ) ) / __zone_min_memory__;
             auto start_index = ( base & this->__page_mask__ ) / this->__page_size__ % this->page_descriptor_count;
 
             if ( start_index + page_count <= this->page_descriptor_count ) {
@@ -245,8 +245,8 @@ private:
 
     inline static auto zone_tree = zone_trees[ std::to_underlying( page_type ) - 1 ];
 
-    inline static auto free_memory_total  = 0ul;
-    inline static auto all_memory_total   = 0ul;
+    inline static auto free_memory_total = 0ul;
+    inline static auto all_memory_total = 0ul;
     inline static auto global_memory_mark = 0ul;
 };
 

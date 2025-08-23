@@ -3,15 +3,15 @@
 #include <lib/string.hpp>
 namespace Memory::Page {
 
-auto page_memory_initialize( limine_memmap_response *map ) -> void {
+auto initialize( limine_memmap_response *map ) -> void {
     static allocator< Type::P2Mib >::zone zones[ 128 ] { };
     for ( std::uint64_t base = 0; auto &zone : zones ) {
         std::construct_at( &zone, base, Library::RBTree< std::uint64_t, allocator< Type::P2Mib >::zone * >::Node { base, &zone } );
         zone.owner = &zones[ 0 ];
         base += allocator< Type::P2Mib >::__page_size__ * allocator< Type::P2Mib >::page_descriptor_count;
     }
-    zones[ 0 ].free_page  = allocator< Type::P2Mib >::page_descriptor_count * 128;
-    zones[ 0 ].owner      = nullptr;
+    zones[ 0 ].free_page = allocator< Type::P2Mib >::page_descriptor_count * 128;
+    zones[ 0 ].owner = nullptr;
     zones[ 0 ].zone_count = 128;
 
     allocator< Type::P1Gib >::global_memory_mark = 128 * allocator< Type::P2Mib >::__page_size__ * allocator< Type::P2Mib >::page_descriptor_count;
@@ -33,7 +33,7 @@ auto page_memory_initialize( limine_memmap_response *map ) -> void {
         {
             // 如果是这三种类型那么就计算空闲内存
             auto start_index = ( ( ( entry->base ) + ( allocator< Type::P2Mib >::__page_size__ - 1 ) ) / allocator< Type::P2Mib >::__page_size__ );
-            auto end_index   = ( entry->base + entry->length ) / allocator< Type::P2Mib >::__page_size__;
+            auto end_index = ( entry->base + entry->length ) / allocator< Type::P2Mib >::__page_size__;
             // 统计空闲内存
             if ( end_index >= start_index ) {
                 auto size = end_index - start_index;
@@ -48,9 +48,9 @@ auto page_memory_initialize( limine_memmap_response *map ) -> void {
             // 计算取得所在区域的header的编号
             auto base_index = ( entry->base & allocator< Type::P2Mib >::__zone_memory_mask__( ) ) / allocator< Type::P2Mib >::__zone_min_memory__;
             // 取得处于所在header的bitmap中的编号
-            auto index       = ( entry->base & allocator< Type::P2Mib >::__page_mask__ ) / allocator< Type::P2Mib >::__page_size__ % allocator< Type::P2Mib >::page_descriptor_count;
+            auto index = ( entry->base & allocator< Type::P2Mib >::__page_mask__ ) / allocator< Type::P2Mib >::__page_size__ % allocator< Type::P2Mib >::page_descriptor_count;
             auto start_index = entry->base / allocator< Type::P2Mib >::__page_size__;
-            auto end_index   = ( ( ( entry->base + entry->length ) + ( allocator< Type::P2Mib >::__page_size__ - 1 ) ) / allocator< Type::P2Mib >::__page_size__ );
+            auto end_index = ( ( ( entry->base + entry->length ) + ( allocator< Type::P2Mib >::__page_size__ - 1 ) ) / allocator< Type::P2Mib >::__page_size__ );
 
             // mark这部分
             zones[ base_index ].pages.set( index, end_index - start_index );
