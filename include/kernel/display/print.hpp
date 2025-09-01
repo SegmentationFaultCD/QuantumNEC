@@ -24,7 +24,7 @@ struct _Pos_ {
 } inline position;
 
 inline auto initialize( limine_framebuffer *frame ) -> void {
-    position.XResolution = static_cast< int64_t >( frame->width );
+    position.XResolution = static_cast< int64_t >( frame->width ),
     position.YResolution = static_cast< int64_t >( frame->height );
     position.XPosition = 0;
     position.YPosition = 0;
@@ -37,10 +37,12 @@ inline auto initialize( limine_framebuffer *frame ) -> void {
 }
 
 template < typename... Args >
-auto print( fmt::format_string< Args... > fmt, Args... args ) {
+auto println( fmt::format_string< Args... > fmt, Args... args ) {
     Driver::SerialPort output;
+    Task::kernel_thread_lock.acquire( );
 
     auto fmt_str = Library::format( fmt, args... );
+    fmt_str += '\n';
 
     for ( auto ch : fmt_str ) {
         switch ( ch ) {
@@ -95,15 +97,7 @@ auto print( fmt::format_string< Args... > fmt, Args... args ) {
             position.YPosition = LINEEOF;
         }
     }
+    Task::kernel_thread_lock.release( );
 }
 
-template < typename... Args >
-auto println( fmt::format_string< Args... > fmt, Args... args ) {
-    Display::print( fmt, args... );
-    Display::print( "\n" );
-}
-
-inline auto println( ) -> void {
-    print( "\n" );
-}
 }     // namespace Display

@@ -19,10 +19,10 @@ auto SSE::write( void ) -> void {
 auto initialize_sse( void ) -> void {
     auto cr0 = IO::read_cr0( );
     auto cr4 = IO::read_cr4( );
-    cr0.EM   = 0;
-    cr0.MP   = 1;
+    cr0.EM = 0;
+    cr0.MP = 1;
     IO::write_cr0( cr0 );
-    cr4.OSFXSR     = 1;
+    cr4.OSFXSR = 1;
     cr4.OSXMMEXCPT = 1;
     IO::write_cr4( cr4 );
 }

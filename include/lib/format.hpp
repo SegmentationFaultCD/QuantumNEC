@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <fmt/core.h>
+#include <kernel/driver/serial_port/serial_port.hpp>
 #include <kernel/memory/allocator/kheap.hpp>
 #include <lib/string.hpp>
 #include <ranges>
@@ -22,20 +23,20 @@ inline auto stol( std::string_view s ) {
 }
 
 enum class Align {
-    left   = '<',
-    right  = '>',
+    left = '<',
+    right = '>',
     center = '^'
 };
 enum class Sign {
-    all      = '+',
+    all = '+',
     only_neg = '-',
-    space    = ' '
+    space = ' '
 };
 using cxxstring = std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > >;
 template < typename T >
 struct formatter {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto           format( const T &, std::string_view fmt ) -> cxxstring { return { }; }
+    auto format( const T &, std::string_view fmt ) -> cxxstring { return { }; }
 };
 auto parse_sign( auto &&arg, Sign sign, cxxstring &ctx )
     requires std::three_way_comparable< decltype( arg ) >
@@ -95,8 +96,8 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
     auto i = 0;
 
     cxxstring weigh { };
-    auto      align = Align::right;
-    auto      fill  = ' ';
+    auto align = Align::right;
+    auto fill = ' ';
 
     bool give_align = false;
 
@@ -114,7 +115,7 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
     }
 
     if ( ( fmt[ i ] == '^' || fmt[ i ] == '<' || fmt[ i ] == '>' ) ) {
-        align      = (Align)fmt[ i ];
+        align = (Align)fmt[ i ];
         give_align = true;
         i++;
     }
@@ -148,8 +149,8 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
         fill = '0';
         i++;
     }
-    auto base          = 10;
-    auto caps          = false;
+    auto base = 10;
+    auto caps = false;
     auto escape_appear = false;
 
     switch ( fmt[ i ] ) {
@@ -208,21 +209,21 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
 template <>
 struct formatter< long long unsigned int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto           format( long long unsigned int &arg, std::string_view ctx ) -> cxxstring {
+    auto format( long long unsigned int &arg, std::string_view ctx ) -> cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
 template <>
 struct formatter< unsigned int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto           format( unsigned int &arg, std::string_view ctx ) -> cxxstring {
+    auto format( unsigned int &arg, std::string_view ctx ) -> cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
 template <>
 struct formatter< int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto           format( int &arg, std::string_view ctx ) -> cxxstring {
+    auto format( int &arg, std::string_view ctx ) -> cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
@@ -230,7 +231,7 @@ struct formatter< int > {
 template <>
 struct formatter< long long int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto           format( long long arg, std::string_view ctx ) -> cxxstring {
+    auto format( long long arg, std::string_view ctx ) -> cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
@@ -238,14 +239,14 @@ struct formatter< long long int > {
 template <>
 struct formatter< const char * > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto           format( const char *arg, std::string_view ctx ) -> cxxstring {
+    auto format( const char *arg, std::string_view ctx ) -> cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
 template <>
 struct formatter< char > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto           format( char arg, std::string_view ctx ) -> cxxstring {
+    auto format( char arg, std::string_view ctx ) -> cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
@@ -267,8 +268,8 @@ struct formatter< void * > {
 };
 inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring {
     fmt::format_parse_context f { fmt };
-    auto                      index = 0;
-    cxxstring                 formatted_string;
+    auto index = 0;
+    cxxstring formatted_string;
     for ( auto i = 0; i < fmt.size( ); ++i ) {
         if ( fmt[ i ] == '{' ) {
             if ( fmt[ i + 1 ] == '{' ) {
@@ -278,8 +279,8 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring 
             }
 
             std::string_view format_spec = "";
-            auto             end         = fmt.find_first_of( '}', i + 1 );
-            auto             spec_start  = fmt.find_first_of( ':', i + 1 );
+            auto end = fmt.find_first_of( '}', i + 1 );
+            auto spec_start = fmt.find_first_of( ':', i + 1 );
             if ( spec_start != fmt.npos ) {
                 format_spec = fmt.substr( spec_start + 1, end - spec_start + 1 );
             }

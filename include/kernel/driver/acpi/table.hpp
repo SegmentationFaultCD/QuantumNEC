@@ -30,19 +30,19 @@ public:
     struct [[gnu::packed]] ACPISDTHeader {
         std::uint32_t signature;
         std::uint32_t length;
-        std::uint8_t  reserved;
-        std::uint8_t  check_sum;
-        std::uint8_t  OEMID[ 6 ];
-        std::uint8_t  OEMTableID[ 8 ];
-        std::uint32_t OEM_reserved;
+        std::uint8_t revision;
+        std::uint8_t check_sum;
+        std::uint8_t OEMID[ 6 ];
+        std::uint8_t OEMTableID[ 8 ];
+        std::uint32_t OEM_revision;
         std::uint32_t creator_ID;
-        std::uint32_t creator_reserved;
+        std::uint32_t creator_revision;
     };
     struct [[gnu::packed]] GenericAddressStructure {
-        std::uint8_t  address_space_id;     // 0 - system memory, 1 - system I/O
-        std::uint8_t  register_bit_width;
-        std::uint8_t  register_bit_offset;
-        std::uint8_t  access_width;
+        std::uint8_t address_space_id;     // 0 - system memory, 1 - system I/O
+        std::uint8_t register_bit_width;
+        std::uint8_t register_bit_offset;
+        std::uint8_t access_width;
         std::uint64_t address;
     };
 };

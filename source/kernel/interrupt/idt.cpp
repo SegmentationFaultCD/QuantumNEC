@@ -15,16 +15,16 @@
 #include <lib/string.hpp>
 namespace Interrupt {
 
-GeneralInterruptHandle       ghandler[ 256 ];
-PageFault                    ph;
-InvalidTSS                   th;
-SegmentNotPresent            sh;
-StackSegmentFault            ssh;
-GeneralProtectionFault       gh;
-ControlProtectionException   ch;
+GeneralInterruptHandle ghandler;
+PageFault ph;
+InvalidTSS th;
+SegmentNotPresent sh;
+StackSegmentFault ssh;
+GeneralProtectionFault gh;
+ControlProtectionException ch;
 HypervisorInjectionException hh;
-VMMCommunicationException    vh;
-SecurityException            seh;
+VMMCommunicationException vh;
+SecurityException seh;
 
 auto IDT::initialize( std::uint64_t core ) -> void {
     Driver::IO::cli( );
@@ -294,7 +294,7 @@ auto IDT::initialize( std::uint64_t core ) -> void {
     idtr.write( );
 
     for ( auto i = 0; i < 256; ++i ) {
-        GeneralInterruptHandle::handlers[ i ] = &ghandler[ i ];
+        GeneralInterruptHandle::handlers[ i ] = &ghandler;
     }
     GeneralInterruptHandle::handlers[ 10 ] = &th;
     GeneralInterruptHandle::handlers[ 11 ] = &sh;

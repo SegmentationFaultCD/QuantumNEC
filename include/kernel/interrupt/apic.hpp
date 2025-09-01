@@ -81,31 +81,7 @@ inline struct Apic {
      0xfee003e0     0x83e        分频配置寄存器（定时器专用）    N/A
      N/A            0x83f        SELF IPI寄存器              N/A
  */
-    constexpr static auto LOCAL_BASE_APIC_ID { 0x0020 };
-    constexpr static auto LOCAL_BASE_APIC_VERSION { 0x0030 };
-    constexpr static auto LOCAL_BASE_APIC_TPR { 0x0080 };
-    constexpr static auto LOCAL_BASE_APIC_APR { 0x0090 };
-    constexpr static auto LOCAL_BASE_APIC_PPR { 0x00A0 };
-    constexpr static auto LOCAL_BASE_APIC_EOI { 0x00B0 };
-    constexpr static auto LOCAL_BASE_APIC_RRD { 0x00C0 };
-    constexpr static auto LOCAL_BASE_APIC_LDR { 0x00D0 };
-    constexpr static auto LOCAL_BASE_APIC_DFR { 0x00E0 };
-    constexpr static auto LOCAL_BASE_APIC_SVR { 0x00F0 };
-    constexpr static auto LOCAL_BASE_APIC_ENABLE { 0x00000100 };
-    constexpr static auto LOCAL_BASE_APIC_ESR { 0x0280 };
-    constexpr static auto LOCAL_BASE_APIC_LVT_CMCI { 0x02F0 };
-    constexpr static auto LOCAL_BASE_APIC_ICRL0 { 0x0300 };
-    constexpr static auto LOCAL_BASE_APIC_ICRL1 { 0x0310 };
-    constexpr static auto LOCAL_BASE_APIC_LVT_TIMER { 0x0320 };
-    constexpr static auto LOCAL_BASE_APIC_LVT_TS { 0x0330 };
-    constexpr static auto LOCAL_BASE_APIC_LVT_PMC { 0x0340 };
-    constexpr static auto LOCAL_BASE_APIC_LVT_LINT0 { 0x0350 };
-    constexpr static auto LOCAL_BASE_APIC_LVT_LINT1 { 0x0360 };
-    constexpr static auto LOCAL_BASE_APIC_LVT_ERROR { 0x0370 };
-    constexpr static auto LOCAL_BASE_APIC_TICR { 0x0380 };
-    constexpr static auto LOCAL_BASE_APIC_TCCR { 0x0390 };
-    constexpr static auto LOCAL_BASE_APIC_TDCR { 0x03E0 };
-    
+
     constexpr static auto LOCAL_APIC_MSR_SVR { 0x80f };
     constexpr static auto LOCAL_APIC_MSR_VERSION { 0x803 };
     constexpr static auto LOCAL_APIC_MSR_ID { 0x802 };
@@ -125,26 +101,6 @@ inline struct Apic {
     constexpr static auto LOCAL_APIC_MSR_TCCR { 0x839 };
     constexpr static auto LOCAL_APIC_MSR_TDCR { 0x83e };
 
-    constexpr static auto APIC_INIT { 0x00000500 };
-    constexpr static auto APIC_STARTUP { 0x00000600 };
-    constexpr static auto APIC_DELIVS { 0x00001000 };
-    constexpr static auto APIC_ASSERT { 0x00004000 };
-    constexpr static auto APIC_DEASSERT { 0x00000000 };
-    constexpr static auto APIC_LEVEL { 0x00008000 };
-    constexpr static auto APIC_BCAST { 0x00080000 };
-    constexpr static auto APIC_BUSY { 0x00001000 };
-    constexpr static auto APIC_FIXED { 0x00000000 };
-    constexpr static auto APIC_X1 { 0x0000000B };
-    constexpr static auto APIC_PERIODIC { 0x00020000 };
-    constexpr static auto APIC_PCINT { 0x0340 };
-    constexpr static auto APIC_MASKED { 0x00010000 };
-    constexpr static auto IOAPIC_REG_ID { 0x00 };
-    constexpr static auto IOAPIC_REG_VER { 0x01 };
-    constexpr static auto IOAPIC_REG_TABLE { 0x10 };
-    constexpr static auto INT_DISABLED { 0x00010000 };
-    constexpr static auto INT_LEVEL { 0x00008000 };
-    constexpr static auto INT_ACTIVELOW { 0x00002000 };
-    constexpr static auto INT_LOGICAL { 0x00000800 };
     constexpr static auto APIC_ICR_IOAPIC_FIXED { 0 };
     constexpr static auto IOAPIC_ICR_LOWEST_PRIORITY { 1 };
     constexpr static auto APIC_ICR_IOAPIC_SMI { 2 };
@@ -175,9 +131,10 @@ inline struct Apic {
     constexpr static auto APIC_IOAPIC_POLARITY_LOW { 1 };
     using irq_t = uint64_t;
     struct [[gnu::packed]] SpuriousInterruptVectorRegister {
-        uint32_t : 8;
+        uint32_t vector : 8;
         uint32_t enable_apic : 1;
-        uint32_t : 3;
+        uint32_t focus_processor : 1;
+        uint32_t : 2;
         uint32_t mask_eoi : 1;
         uint32_t : 19;
         explicit SpuriousInterruptVectorRegister( void ) = default;
@@ -195,6 +152,8 @@ inline struct Apic {
     constexpr static auto SVR_EOI_MASK = 1;
     constexpr static auto SVR_EOI_UNMASK = 0;
 
+    constexpr static auto TIMER_SPEED { 100 };     // hz
+
     struct [[gnu::packed]] LocalVectorTableRegisters {
         uint32_t vector : 8;             // 0~7	ALL
         uint32_t deliver_mode : 3;       // 8~10	      CMCI LINT0 LINT1 PerformCounter ThermalSensor
@@ -205,7 +164,7 @@ inline struct Apic {
         uint32_t trigger : 1;            // 15	           LINT0 LINT1
         uint32_t mask : 1;               // 16	ALL
         uint32_t timer_mode : 2;         // 17~18	Timer
-        uint32_t resd : 13;              // 19~31
+        uint32_t : 13;                   // 19~31
         operator uint32_t( ) {
             return *reinterpret_cast< uint32_t * >( this );
         }
@@ -323,9 +282,12 @@ inline struct Apic {
     auto find_ioapic( std::uint32_t gsi ) -> std::int64_t;
     auto enable( std::uint8_t vector, std::uint32_t irq ) -> void;
     auto install( std::uint8_t vector, std::uint32_t irq ) -> void;
+    auto register_ioapic( std::uint8_t vector, std::uint32_t irq ) -> void;
 
     auto apic_id( void ) -> std::uint64_t;
+    auto eoi( void ) -> void;
+
 } apic;
 
-auto initialize_apic( void ) -> void;
+auto initialize_apic( bool bsp ) -> void;
 }     // namespace Interrupt

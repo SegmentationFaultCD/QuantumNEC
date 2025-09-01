@@ -1,4 +1,5 @@
 #include <kernel/display/print.hpp>
+#include <kernel/driver/acpi/hpet_t.hpp>
 #include <kernel/driver/acpi/madt.hpp>
 #include <kernel/driver/acpi/table.hpp>
 #include <kernel/driver/acpi/xsdp.hpp>
@@ -8,6 +9,7 @@
 #include <kernel/memory/paging/hhdm.hpp>
 #include <kernel/memory/paging/page_table.hpp>
 namespace Driver {
+
 auto initialize_acpi( limine_rsdp_response *rsdp ) -> void {
     auto xsdp = (XSDP *)Memory::physical_to_virtual( rsdp->address );
     using namespace Memory;
@@ -34,64 +36,9 @@ auto initialize_acpi( limine_rsdp_response *rsdp ) -> void {
         Display::println( "XSDT signature {} can't satisfy!", xsdt->signature );
     }
 
-    auto madt = xsdt->find_table< MADT >( );
+    std::construct_at( xsdt->find_table< MADT >( ) );
+    std::construct_at( xsdt->find_table< HPET >( ) );
+
     // madt就跟在xsdt后面，不要map了
-    Interrupt::apic.lapic_address = physical_to_virtual( madt->local_APIC_address );
-    Paging::kernel_page_table->map(
-        madt->local_APIC_address,
-        physical_to_virtual( madt->local_APIC_address ),
-        1,
-        Paging::kernel_page_table->PAGE_PRESENT | Paging::kernel_page_table->PAGE_RW_W | Paging::kernel_page_table->PAGE_US_S,
-        Page::Type::P4Kib );
-    auto ics = (MADT::MadtICS *)( madt + 1 );
-    for ( auto length = 0ul; length <= madt->length; length += ics->length, ics = (MADT::MadtICS *)( (std::uint64_t)ics + ics->length ) ) {
-        using enum MADT::ICSAttribute;
-        switch ( ics->type ) {
-        case PROCESSOR_LOCAL_APIC: {
-            Interrupt::apic.local_apic_ID[ Interrupt::apic.core_count++ ] = ( (MADT::ProcessorLocalApic *)ics )->APIC_ID;
-        } break;
-        case IO_APIC: {
-            auto &ioapic = Interrupt::apic.ioapic[ Interrupt::apic.ioapic_count ];
-
-            ioapic.ioapic_address = physical_to_virtual( ( (MADT::IOApic *)ics )->IOApic_address );
-
-            Paging::kernel_page_table->map(
-                virtual_to_physical( ioapic.ioapic_address ),
-                ioapic.ioapic_address,
-                1,
-                Paging::kernel_page_table->PAGE_PRESENT | Paging::kernel_page_table->PAGE_RW_W | Paging::kernel_page_table->PAGE_US_S,
-                Page::Type::P2Mib );
-
-            ioapic.ioapic_index_address = reinterpret_cast< void * >( ioapic.ioapic_address );
-            ioapic.ioapic_data_address = reinterpret_cast< void * >( ioapic.ioapic_address + 0x10UL );
-            ioapic.ioapic_EOI_address = reinterpret_cast< void * >( ioapic.ioapic_address + 0x40UL );
-            ioapic.ioapic_id = ( (MADT::IOApic *)ics )->IOApic_ID;
-            ioapic.gsi_base = ( (MADT::IOApic *)ics )->global_system_interrupt_base;
-            ioapic.irq_count = ( ( MMIO< std::uint64_t > { ioapic.ioapic_index_address }[ 1 ] >> 16 ) & 0xFF ) + 1;
-
-            Interrupt::apic.ioapic_count++;
-
-        } break;
-        case INTERRUPT_SOURCE_OVERRIDE:
-            Interrupt::apic.iso[ Interrupt::apic.iso_count++ ] = *( (MADT::InterruptSourceOverride *)ics );
-            break;
-        case NO_MASKABLE_INTERRUPT_SOURCE:
-            break;
-        case LOCAL_APIC_NO_MASKABLE_INTERRUPTS:
-            break;
-        case LOCAL_APIC_ADDRESS_OVERRIDE:
-            break;
-        case IO_SAPIC:
-            break;
-        case LOCAL_SAPIC:
-            break;
-        case PLATFORM_INTERRUPT_SOURCE:
-            break;
-        case PROCESSOR_LOCAL_x2APIC:
-            break;
-        case LOCAL_X2APIC_NMI:
-            break;
-        }
-    }
 }
 }     // namespace Driver

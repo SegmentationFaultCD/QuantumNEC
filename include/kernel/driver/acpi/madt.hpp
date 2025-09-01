@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <kernel/driver/acpi/table.hpp>
 namespace Driver {
-struct [[gnu::packed]] MADT : Table::ACPISDTHeader {
+class [[gnu::packed]] MADT : Table::ACPISDTHeader {
     std::uint32_t local_APIC_address;
     std::uint32_t flags;
 
@@ -44,6 +44,7 @@ struct [[gnu::packed]] MADT : Table::ACPISDTHeader {
     // This explains how IRQ sources are mapped to global system interrupts.
     // For example, IRQ source for the timer is 0, and the global system interrupt will usually be 2.
     // So you could look for the I/O APIC with the base below 2 and within its redirection entries, then make the redirection entry for (2 - base) to be the timer interrupt.
+public:
     struct [[gnu::packed]] InterruptSourceOverride : MadtICS {
         std::uint8_t bus;
         std::uint8_t source;
@@ -70,6 +71,8 @@ struct [[gnu::packed]] MADT : Table::ACPISDTHeader {
             std::uint16_t : 12;
         };
     };
+
+private:
     // Specifies which I/O APIC interrupt inputs should be enabled as non-maskable.
     struct [[gnu::packed]] NoMaskableInterruptSource : MadtICS {
         std::uint16_t flags;
@@ -134,6 +137,7 @@ struct [[gnu::packed]] MADT : Table::ACPISDTHeader {
         std::uint8_t local_x2apic_LINT;
     };
 
+public:
     auto size( ) {
         return this->length;
     }
@@ -141,6 +145,8 @@ struct [[gnu::packed]] MADT : Table::ACPISDTHeader {
     consteval static auto get_signature( ) {
         return Table::SIGN_32( 'A', 'P', 'I', 'C' );
     }
+
+    explicit MADT( void ) noexcept;
 };
 
 }     // namespace Driver

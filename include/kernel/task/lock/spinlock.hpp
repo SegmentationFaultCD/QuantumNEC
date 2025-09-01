@@ -1,38 +1,44 @@
 #pragma once
 #include <atomic>
 #include <concepts>
+#include <cstdint>
+#include <memory>
 #include <utility>
-
 namespace Task {
 
-struct s_locks final : std::atomic_flag {
-    std::atomic_uint64_t reference_count;
+// 我不知道为什么特么标准库的atomic_flags老是炸
+// 遂决定自己写一个自旋锁
+
+struct s_locks final {
+    // std::atomic_flag lock;
+    volatile bool lock;
 
 public:
     explicit s_locks( void ) noexcept {
     }
     explicit s_locks( bool locked ) noexcept {
-        this->_M_i = locked;
+        this->lock = locked;
     }
-    virtual ~s_locks( void ) noexcept = default;
+    ~s_locks( void ) noexcept = default;
 
 public:
     /**
      * @brief 释放锁
      */
-    auto release( void ) {
-        std::atomic_flag_clear_explicit( this, std::memory_order_release );
+    [[clang::always_inline]] auto release( void ) {
+        // std::atomic_flag_clear_explicit( &this->lock, std::memory_order::release );
+        __atomic_clear( &( this->lock ), 5 );
     }
     /**
      * @brief 获取锁
      */
-    auto acquire( void ) {
-        while ( std::atomic_flag_test_and_set_explicit( this, std::memory_order_acquire ) ) {
-            __asm__ __volatile__( "pause\n\t" );
-        }
+    [[clang::always_inline]] auto acquire( void ) {
+        while ( __atomic_test_and_set( &( this->lock ), 5 ) ) {}
+        // while ( std::atomic_flag_test_and_set_explicit( &this->lock, std::memory_order::acquire ) )
+        //     __asm__ __volatile__( "pause" ::: "memory" );
     }
     auto locked( ) -> bool {
-        return this->_M_i;
+        return this->lock;
     }
 };
 
@@ -41,29 +47,32 @@ inline s_locks kernel_thread_lock { };     // be provided for kernel thread
 
 template < typename T >
 class spinlock final {
+    std::uint64_t reference_count;
+
 public:
-    spinlock( s_locks &_m_lock = kernel_thread_lock ) :
-        m_lock { _m_lock } {
+    spinlock( T &&value, s_locks &_m_lock = kernel_thread_lock ) :
+        m_lock { _m_lock }, value { std::move( value ) } {
+        std::construct_at( &_m_lock );
     }
     template < typename F >
         requires std::invocable< F, T & >
-    auto visit( F visitor ) {
-        if ( !this->m_lock.reference_count ) {
+    [[clang::always_inline]] auto visit( F visitor ) {
+        if ( !this->reference_count ) {
             m_lock.acquire( );
         }
-        this->m_lock.reference_count++;
+        this->reference_count++;
         if constexpr ( std::is_invocable_r_v< void, F, T & > ) {
             visitor( this->value );
-            this->m_lock.reference_count--;
-            if ( !this->m_lock.reference_count ) {
+            this->reference_count--;
+            if ( !this->reference_count ) {
                 m_lock.release( );
             }
             return;
         }
         else {
             decltype( auto ) return_value = visitor( this->value );
-            this->m_lock.reference_count--;
-            if ( !this->m_lock.reference_count ) {
+            this->reference_count--;
+            if ( !this->reference_count ) {
                 m_lock.release( );
             }
             return return_value;
@@ -72,8 +81,7 @@ public:
     }
 
 private:
-private:
-    T        value;
+    T value;
     s_locks &m_lock;
 };
 

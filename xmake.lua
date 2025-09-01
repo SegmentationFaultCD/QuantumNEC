@@ -79,7 +79,7 @@ target("run")
                              -name QuantumNEC \
                              -boot order=dc \
                              -net none \
-                             -rtc base=localtime -nographic "
+                             -rtc base=localtime -nographic"
                       -- -nographic"-- -d in_asm"   -serial chardev:com1 -chardev stdio,mux=on,id=com1 \ --   
         os.exec("qemu-system-x86_64 "..qemu_flags)
     end)

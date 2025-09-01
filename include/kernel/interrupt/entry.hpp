@@ -2,6 +2,7 @@
 #include <kernel/interrupt/idt.hpp>
 #include <string_view>
 namespace Interrupt {
+
 extern "C" auto do_IRQ( IDT::Frame *frame ) -> IDT::Frame *;
 class GeneralInterruptHandle {
     friend auto do_IRQ( IDT::Frame *frame ) -> IDT::Frame *;

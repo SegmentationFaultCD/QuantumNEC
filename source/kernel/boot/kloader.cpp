@@ -1,4 +1,5 @@
 #include <kernel/display/print.hpp>
+#include <kernel/driver/cpu/smp.hpp>
 #include <kernel/driver/serial_port/serial_port.hpp>
 #include <kernel/interrupt/idt.hpp>
 #include <kernel/memory/allocator/page.hpp>
@@ -6,7 +7,6 @@
 #include <lib/bitset.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
-
 namespace {
 
 __attribute__( ( used, section( ".requests" ) ) ) volatile LIMINE_BASE_REVISION( 3 );
@@ -83,6 +83,7 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 #define TERMINAL_EMBEDDED_FONT
 #include <kernel/display/print.hpp>
 #include <kernel/driver/acpi/table.hpp>
+#include <kernel/interrupt/apic.hpp>
 #include <os_terminal.h>
 #include <ranges>
 #include <span>
@@ -114,11 +115,15 @@ extern "C" auto loader_entry( void ) -> void {
     Memory::Paging::initialize( paging_mode_request.response );
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
     Driver::initialize_acpi( acpi_request.response );
+    Interrupt::initialize_apic( true );
+    Driver::initialize_smp( smp_request.response );
+
     using namespace Memory::Page;
 
     Memory::Page::allocator< Type::P2Mib > a;
     auto p = a.allocate( 1025 );
     Display::println( "{}", p );
+
     auto p2 = a.allocate( 1026 );
     Display::println( "{}", p2 );
     auto p3 = a.allocate( 2 );
@@ -164,9 +169,8 @@ extern "C" auto loader_entry( void ) -> void {
     vec.push_back( 2 );
 
     for ( auto i : vec ) {
-        Display::print( "{} ", i );
+        Display::println( "{} ", i );
     }
-    Display::println( );
 
     auto s2 = string | std::ranges::views::filter( []( const char c ) -> bool { return c != ' '; } ) | std::ranges::to< std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > > >( );
     Display::println( "{}", s2.c_str( ) );

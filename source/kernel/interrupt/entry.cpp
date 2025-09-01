@@ -98,7 +98,7 @@ auto PageFault::error_code( std::uint64_t code ) noexcept -> void {
     println( "{}", str.c_str( ) );
 }
 auto InvalidTSS::error_code( std::uint64_t code ) noexcept -> void {
-    ErrorCode   c_code { code };
+    ErrorCode c_code { code };
     const char *tbl;
     using namespace Display;
     if ( c_code.external ) {
@@ -124,7 +124,7 @@ auto InvalidTSS::error_code( std::uint64_t code ) noexcept -> void {
     println( "The selector index in the {} is {}.", tbl, (uint32_t)c_code.index );
 }
 auto SegmentNotPresent::error_code( std::uint64_t code ) noexcept -> void {
-    ErrorCode   c_code { code };
+    ErrorCode c_code { code };
     const char *tbl;
     using namespace Display;
     if ( c_code.external ) {
@@ -150,7 +150,7 @@ auto SegmentNotPresent::error_code( std::uint64_t code ) noexcept -> void {
     println( "The selector index in the {} is {}.", tbl, (uint32_t)c_code.index );
 }
 auto StackSegmentFault::error_code( std::uint64_t code ) noexcept -> void {
-    ErrorCode   c_code { code };
+    ErrorCode c_code { code };
     const char *tbl;
     using namespace Display;
     if ( c_code.external ) {
@@ -176,7 +176,7 @@ auto StackSegmentFault::error_code( std::uint64_t code ) noexcept -> void {
     println( "The selector index in the {} is {}.", tbl, (uint32_t)c_code.index );
 }
 auto GeneralProtectionFault::error_code( std::uint64_t code ) noexcept -> void {
-    ErrorCode   c_code { code };
+    ErrorCode c_code { code };
     const char *tbl;
     using namespace Display;
     if ( c_code.external ) {

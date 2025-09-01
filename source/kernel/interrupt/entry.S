@@ -85,7 +85,7 @@ return_from_isr:
     POP R13
     POP R14
     POP R15
-    ADD RSP, 32 
+    ADD RSP, 16
     IRETQ
 
 ret_from_exception:
