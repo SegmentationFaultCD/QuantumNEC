@@ -6,14 +6,7 @@
 #include <lib/rbtree.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
-namespace Memory::Page {
-
-auto initialize( limine_memmap_response *map ) -> void;
-enum class Type : uint64_t {
-    P4Kib = 1ul,
-    P2Mib = 2ul,
-    P1Gib = 3ul
-};
+namespace {
 consteval auto operator""_KB( unsigned long long size ) {
     return size * 1024ul;
 }
@@ -23,6 +16,15 @@ consteval auto operator""_MB( unsigned long long size ) {
 consteval auto operator""_GB( unsigned long long size ) {
     return size * 1024_MB;
 }
+}     // namespace
+namespace Memory::Page {
+
+auto initialize( limine_memmap_response *map ) -> void;
+enum class Type : uint64_t {
+    P4Kib = 1ul,
+    P2Mib = 2ul,
+    P1Gib = 3ul
+};
 
 template < Type __type__ >
 class allocator : public Memory::allocator< void > {

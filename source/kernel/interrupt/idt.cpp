@@ -290,22 +290,21 @@ auto IDT::initialize( std::uint64_t core ) -> void {
         SET_INTERRUPT_HANDLER( 0xfe, 0 );
         SET_INTERRUPT_HANDLER( 0xff, 0 );
         // 啊呀，骇死我力
+        for ( auto i = 0; i < 256; ++i ) {
+            GeneralInterruptHandle::handlers[ i ] = &ghandler;
+        }
+        GeneralInterruptHandle::handlers[ 10 ] = &th;
+        GeneralInterruptHandle::handlers[ 11 ] = &sh;
+        GeneralInterruptHandle::handlers[ 12 ] = &ssh;
+        GeneralInterruptHandle::handlers[ 13 ] = &gh;
+        GeneralInterruptHandle::handlers[ 14 ] = &ph;
+        GeneralInterruptHandle::handlers[ 15 ] = &ph;
+        GeneralInterruptHandle::handlers[ 21 ] = &ch;
+        GeneralInterruptHandle::handlers[ 28 ] = &hh;
+        GeneralInterruptHandle::handlers[ 29 ] = &vh;
+        GeneralInterruptHandle::handlers[ 30 ] = &seh;
     }
     idtr.write( );
-
-    for ( auto i = 0; i < 256; ++i ) {
-        GeneralInterruptHandle::handlers[ i ] = &ghandler;
-    }
-    GeneralInterruptHandle::handlers[ 10 ] = &th;
-    GeneralInterruptHandle::handlers[ 11 ] = &sh;
-    GeneralInterruptHandle::handlers[ 12 ] = &ssh;
-    GeneralInterruptHandle::handlers[ 13 ] = &gh;
-    GeneralInterruptHandle::handlers[ 14 ] = &ph;
-    GeneralInterruptHandle::handlers[ 15 ] = &ph;
-    GeneralInterruptHandle::handlers[ 21 ] = &ch;
-    GeneralInterruptHandle::handlers[ 28 ] = &hh;
-    GeneralInterruptHandle::handlers[ 29 ] = &vh;
-    GeneralInterruptHandle::handlers[ 30 ] = &seh;
 
     // 中断入口初始化
 }

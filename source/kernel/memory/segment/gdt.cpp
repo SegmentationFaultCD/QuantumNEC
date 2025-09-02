@@ -4,7 +4,7 @@
 #include <memory>
 using namespace Memory;
 auto GDT::initialize( std::uint64_t core ) -> void {
-    using SAccess  = SegmentDescriptor::Access;
+    using SAccess = SegmentDescriptor::Access;
     using SSAccess = SystemSegmentDescriptor::Access;
     using enum SystemSegmentDescriptor::Access::Type;
 
@@ -24,6 +24,7 @@ auto GDT::initialize( std::uint64_t core ) -> void {
                        0 );
 
     tss[ core ].io_map_base_address = sizeof( TaskStateSegment ) << 16;
-    gdtrs[ core ].write_( );
+
+    gdtrs[ core ].write( );
     tss[ core ].load_tr( );
 }

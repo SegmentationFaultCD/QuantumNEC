@@ -102,7 +102,7 @@ auto alloc( std::size_t size ) -> void * {
 auto free( void *address ) -> void {
     operator delete( address );
 }
-
+ 
 extern "C" auto loader_entry( void ) -> void {
     Driver::initialize_sse( );
 

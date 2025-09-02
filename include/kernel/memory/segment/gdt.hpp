@@ -8,9 +8,9 @@ class GDT {
 public:
     constexpr static auto SELECTOR_CODE64_KERNEL = 0x8;
     constexpr static auto SELECTOR_DATA64_KERNEL = 0x10;
-    constexpr static auto SELECTOR_CODE64_USER   = 0x18;
-    constexpr static auto SELECTOR_DATA64_USER   = 0x20;
-    constexpr static auto SELECTOR_TSS           = 0x28;
+    constexpr static auto SELECTOR_CODE64_USER = 0x18;
+    constexpr static auto SELECTOR_DATA64_USER = 0x20;
+    constexpr static auto SELECTOR_TSS = 0x28;
 
     constexpr static auto GDT_COUNT = 256;
 
@@ -18,7 +18,7 @@ public:
     struct [[gnu::packed]] SegmentDescriptor {
         std::uint16_t limit_low;
         std::uint16_t base_low;
-        std::uint8_t  base_middle;
+        std::uint8_t base_middle;
         struct [[gnu::packed]] Access {
             std::uint8_t A : 1;
             std::uint8_t RW : 1;
@@ -47,19 +47,19 @@ public:
     struct [[gnu::packed]] SystemSegmentDescriptor {
         std::uint16_t limit_low;
         std::uint16_t base_low;
-        std::uint8_t  base_middle;
+        std::uint8_t base_middle;
         struct [[gnu::packed]] Access {
             enum class Type : std::uint8_t {
-                LDT             = 0x2,
+                LDT = 0x2,
                 TSS64_AVAILABLE = 0x9,
-                TSS64_BUSY      = 0xB
+                TSS64_BUSY = 0xB
             } type : 4;
             std::uint8_t S : 1;
             std::uint8_t DPL : 2;
             std::uint8_t P : 1;
         } access_right;
-        std::uint8_t  limit_high : 4;
-        std::uint8_t  flags : 4;
+        std::uint8_t limit_high : 4;
+        std::uint8_t flags : 4;
         std::uint64_t base_high : 40;
         std::uint32_t : 32;
         SystemSegmentDescriptor( std::uint64_t base, std::uint64_t limit, Access access, std::uint8_t flag ) :
@@ -76,11 +76,11 @@ public:
         // In Long Mode, the TSS does not store information on a task's execution state, instead it is used to store the Interrupt Stack Table.
 
         [[maybe_unused]] uint32_t reserved1;
-        uint64_t                  rsp[ 3 ];
+        uint64_t rsp[ 3 ];
         [[maybe_unused]] uint64_t reserved2;
         [[maybe_unused]] uint64_t ist[ 7 ];
         [[maybe_unused]] uint64_t reserved3;
-        uint32_t                  io_map_base_address;
+        uint32_t io_map_base_address;
 
         auto load_tr( ) noexcept {
             __asm__ __volatile__( "ltr %%ax" ::"a"( SELECTOR_TSS ) : "memory" );
@@ -104,11 +104,11 @@ private:
         }
 
     public:
-        auto read_( void ) -> SegmentDescriptor * {
+        auto read( void ) -> SegmentDescriptor * {
             __asm__ __volatile__( "sgdt %0" : "=m"( *this ):: );
             return this->offset;
         }
-        auto write_( void ) -> void {
+        auto write( void ) -> void {
             __asm__ __volatile__( "lgdt %0" ::"m"( *this ) : );
             __asm__ __volatile__(
                 "movq %%rax, %%ds \n\t"
@@ -125,8 +125,8 @@ private:
         }
     };
 
-    inline static SegmentDescriptor  segment_descriptors[ GDT_COUNT ][ 1024 ] { };     // 最高256个gdt每个cpu一个核心
+    inline static SegmentDescriptor segment_descriptors[ GDT_COUNT ][ 1024 ] { };     // 最高256个gdt每个cpu一个核心
     inline static DescriptorRegister gdtrs[ GDT_COUNT ];
-    inline static TaskStateSegment   tss[ GDT_COUNT ];
+    inline static TaskStateSegment tss[ GDT_COUNT ];
 };
 }     // namespace Memory

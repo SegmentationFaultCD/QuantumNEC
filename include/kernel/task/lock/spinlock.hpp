@@ -10,15 +10,12 @@ namespace Task {
 // 遂决定自己写一个自旋锁
 
 struct s_locks final {
-    // std::atomic_flag lock;
-    volatile bool lock;
+    std::atomic_flag lock;
 
 public:
     explicit s_locks( void ) noexcept {
     }
-    explicit s_locks( bool locked ) noexcept {
-        this->lock = locked;
-    }
+
     ~s_locks( void ) noexcept = default;
 
 public:
@@ -26,19 +23,17 @@ public:
      * @brief 释放锁
      */
     [[clang::always_inline]] auto release( void ) {
-        // std::atomic_flag_clear_explicit( &this->lock, std::memory_order::release );
-        __atomic_clear( &( this->lock ), 5 );
+        std::atomic_flag_clear_explicit( &this->lock, std::memory_order::release );
     }
     /**
      * @brief 获取锁
      */
     [[clang::always_inline]] auto acquire( void ) {
-        while ( __atomic_test_and_set( &( this->lock ), 5 ) ) {}
-        // while ( std::atomic_flag_test_and_set_explicit( &this->lock, std::memory_order::acquire ) )
-        //     __asm__ __volatile__( "pause" ::: "memory" );
+        while ( std::atomic_flag_test_and_set_explicit( &this->lock, std::memory_order::acquire ) )
+            __asm__ __volatile__( "pause" ::: "memory" );
     }
     auto locked( ) -> bool {
-        return this->lock;
+        return this->lock._M_i;
     }
 };
 

@@ -105,10 +105,44 @@ class Clock : public GeneralInterruptHandle {
     }
     virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
         apic.eoi( );
-        Driver::SerialPort { }.print( "ssconst char *str\n" );
+
         return frame;
     }
 } clock;
+class ApicError : public GeneralInterruptHandle {
+    virtual auto name( std::uint64_t ) noexcept -> void override {
+    }
+    virtual auto registers( IDT::Frame *frame ) noexcept -> void override {
+    }
+    virtual auto error_code( std::uint64_t code ) noexcept -> void override {
+    }
+    virtual auto task( ) noexcept -> void override {
+    }
+    virtual auto cpu( ) noexcept -> void override {
+    }
+    virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
+        apic.eoi( );
+        while ( true );
+        return frame;
+    }
+} apic_error;
+class ApicSpuriousInterrupt : public GeneralInterruptHandle {
+    virtual auto name( std::uint64_t ) noexcept -> void override {
+    }
+    virtual auto registers( IDT::Frame *frame ) noexcept -> void override {
+    }
+    virtual auto error_code( std::uint64_t code ) noexcept -> void override {
+    }
+    virtual auto task( ) noexcept -> void override {
+    }
+    virtual auto cpu( ) noexcept -> void override {
+    }
+    virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
+        apic.eoi( );
+        while ( true );
+        return frame;
+    }
+} apic_spurious_interrupt;
 
 auto initialize_apic( bool bsp ) -> void {
     // ban 8259A pic
@@ -139,13 +173,14 @@ auto initialize_apic( bool bsp ) -> void {
         svr.mask_eoi = apic.SVR_EOI_UNMASK;
     }
     apic.write( apic.LOCAL_APIC_MSR_SVR, svr );
-
+    GeneralInterruptHandle::register_handle( IDT::APIC_SPURIOUS, &apic_spurious_interrupt );
     // 6个lvt我就不屏蔽了
 
     Apic::LocalVectorTableRegisters lvt { (std::uint32_t)apic.read( apic.LOCAL_APIC_MSR_LVT_ERROR ) };
     lvt.vector = IDT::APIC_ERROR;
     lvt.mask = apic.APIC_ICR_IOAPIC_UNMASKED;
     apic.write( apic.LOCAL_APIC_MSR_LVT_ERROR, lvt );
+    GeneralInterruptHandle::register_handle( IDT::APIC_ERROR, &apic_error );
 
     // apic timer， 使用hpet进行校正
     apic.write( apic.LOCAL_APIC_MSR_TDCR, 11 );
@@ -168,10 +203,13 @@ auto initialize_apic( bool bsp ) -> void {
     }
     auto lapic_timer = 0xffffffff - apic.read( apic.LOCAL_APIC_MSR_TCCR );
     calibrated_timer_initial = (uint64_t)( (uint64_t)( lapic_timer * 1000 ) / apic.TIMER_SPEED );
-    
+
     apic.write( apic.LOCAL_APIC_MSR_TICR, calibrated_timer_initial );
     GeneralInterruptHandle::register_handle( IDT::CLOCK, &clock );
+
     apic.register_ioapic( IDT::CLOCK, 0 );
+    apic.register_ioapic( IDT::APIC_ERROR, 124 );
+    apic.register_ioapic( IDT::APIC_SPURIOUS, 125 );
 
     // ioapic initialize
 }

@@ -1,4 +1,5 @@
 #include <kernel/display/print.hpp>
+#include <kernel/driver/cpu/io.hpp>
 #include <kernel/driver/cpu/smp.hpp>
 #include <kernel/driver/cpu/sse.hpp>
 #include <kernel/interrupt/apic.hpp>
@@ -15,7 +16,7 @@ auto initialize_smp( limine_smp_response *smp ) -> void {
     Memory::GDT::initialize( info->lapic_id );
     Interrupt::IDT::initialize( info->lapic_id );
     Driver::initialize_sse( );
-    Display::println( "Hello{}", info->lapic_id );
+    Display::println( "Hello {:x}", Driver::IO::read_cr3( ).page_directory_base );
     Interrupt::initialize_apic( false );
     while ( true );
 }
