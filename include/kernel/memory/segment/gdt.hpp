@@ -11,7 +11,6 @@ public:
     constexpr static auto SELECTOR_CODE64_USER = 0x18;
     constexpr static auto SELECTOR_DATA64_USER = 0x20;
     constexpr static auto SELECTOR_TSS = 0x28;
-
     constexpr static auto GDT_COUNT = 256;
 
 public:

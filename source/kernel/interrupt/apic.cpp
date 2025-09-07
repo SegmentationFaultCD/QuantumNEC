@@ -66,7 +66,8 @@ auto Apic::enable( std::uint8_t vector, std::uint32_t irq ) -> void {
     this->write( ioapic, index );
 }
 auto Apic::apic_id( void ) -> std::uint64_t {
-    return ( Driver::IO::cpuid( { 1, 0, 0, 0, 0, 0 } ).rdx >> 24 ) & 0xff;
+    // __asm__ volatile( "cpuid" : "=d"( edx ) : "a"( 0x0B ), "c"( 0 ) );
+    return Driver::IO::cpuid( { 1, 0, 0xb, 0, 0, 0 } ).rdx;
 }
 auto Apic::install( std::uint8_t vector, std::uint32_t irq ) -> void {
     auto ioapic = find_ioapic( irq );
@@ -105,7 +106,7 @@ class Clock : public GeneralInterruptHandle {
     }
     virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
         apic.eoi( );
-
+        Display::println( "CPU {}", apic.apic_id( ) );
         return frame;
     }
 } clock;
@@ -196,20 +197,24 @@ auto initialize_apic( bool bsp ) -> void {
 
     static std::uint64_t calibrated_timer_initial;
 
-    while ( true ) {
-        if ( hpet->elapsed( ) - b >= 1000000 ) {
-            break;
+    if ( bsp ) {
+        while ( true ) {
+            if ( hpet->elapsed( ) - b >= 1000000 ) {
+                break;
+            }
         }
+        auto lapic_timer = 0xffffffff - apic.read( apic.LOCAL_APIC_MSR_TCCR );
+        calibrated_timer_initial = (uint64_t)( (uint64_t)( lapic_timer * 1000 ) / apic.TIMER_SPEED );
     }
-    auto lapic_timer = 0xffffffff - apic.read( apic.LOCAL_APIC_MSR_TCCR );
-    calibrated_timer_initial = (uint64_t)( (uint64_t)( lapic_timer * 1000 ) / apic.TIMER_SPEED );
 
     apic.write( apic.LOCAL_APIC_MSR_TICR, calibrated_timer_initial );
-    GeneralInterruptHandle::register_handle( IDT::CLOCK, &clock );
 
-    apic.register_ioapic( IDT::CLOCK, 0 );
-    apic.register_ioapic( IDT::APIC_ERROR, 124 );
-    apic.register_ioapic( IDT::APIC_SPURIOUS, 125 );
+    if ( bsp ) {
+        GeneralInterruptHandle::register_handle( IDT::CLOCK, &clock );
+        apic.register_ioapic( IDT::CLOCK, 0 );
+        apic.register_ioapic( IDT::APIC_ERROR, 124 );
+        apic.register_ioapic( IDT::APIC_SPURIOUS, 125 );
+    }
 
     // ioapic initialize
 }

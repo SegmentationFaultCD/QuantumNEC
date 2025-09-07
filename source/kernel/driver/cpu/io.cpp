@@ -74,7 +74,7 @@ auto IO::in32( uint16_t port ) -> uint32_t {
 }
 
 auto IO::out8( uint16_t port,
-               uint8_t  value )
+               uint8_t value )
     -> void {
     __asm__ __volatile__( "outb %b[value],%w[port];" : : [value] "a"( value ), [port] "d"( port ) : "memory" );
 }
@@ -162,11 +162,8 @@ auto IO::get_page_table( void ) -> uint64_t * {
     return reinterpret_cast< uint64_t * >( read_cr3( ).page_directory_base << 12 );
 }
 auto IO::cpuid( CpuidStatus &&status ) -> CpuidStatus {
-    CpuidStatus   new_status { std::move( status ) };
-    std::uint64_t max_basic_operation_code { };
-    __asm__ __volatile__( "cpuid" : "=a"( max_basic_operation_code ) : "a"( status.mop & 0x80000000 ) : "rbx", "rcx", "rdx" );
-    if ( status.mop <= max_basic_operation_code ) {
-        __asm__ __volatile__( "cpuid\n\t" : "=a"( new_status.rax ), "=b"( new_status.rbx ), "=c"( new_status.rcx ), "=d"( new_status.rdx ) : "0"( new_status.mop ), "2"( new_status.sop ) );
-    }
-    return status;
+    CpuidStatus new_status { std::move( status ) };
+    __asm__ __volatile__( "cpuid" : "=a"( new_status.rax ), "=b"( new_status.rbx ), "=c"( new_status.rcx ), "=d"( new_status.rdx )
+                          : "a"( status.rax ), "b"( status.rbx ), "c"( status.rcx ), "d"( status.rdx ) );
+    return new_status;
 }

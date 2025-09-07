@@ -85,7 +85,7 @@ public:
             this->rdx = _d;
         }
 
-        CpuidStatus( CpuidStatus &&status ) noexcept {
+        CpuidStatus( const CpuidStatus &status ) noexcept {
             this->mop = status.mop;
             this->sop = status.sop;
             this->rax = status.rax;

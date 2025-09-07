@@ -1,6 +1,11 @@
 [
 {
   "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c23", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/entry.S.o", "source/kernel/interrupt/entry.S"],
+  "file": "source/kernel/interrupt/entry.S"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/boot/kloader.cpp.o", "source/kernel/boot/kloader.cpp"],
   "file": "source/kernel/boot/kloader.cpp"
 },
@@ -28,6 +33,11 @@
   "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/idt.cpp.o", "source/kernel/interrupt/idt.cpp"],
   "file": "source/kernel/interrupt/idt.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/task.cpp.o", "source/kernel/task/task.cpp"],
+  "file": "source/kernel/task/task.cpp"
 },
 {
   "directory": "/home/archlinux/QuantumNEC",
@@ -86,6 +96,16 @@
 },
 {
   "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/schedule/MuQss.cpp.o", "source/kernel/task/schedule/MuQss.cpp"],
+  "file": "source/kernel/task/schedule/MuQss.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/schedule/scheduler.cpp.o", "source/kernel/task/schedule/scheduler.cpp"],
+  "file": "source/kernel/task/schedule/scheduler.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/lib/abi.cpp.o", "source/lib/abi.cpp"],
   "file": "source/lib/abi.cpp"
 },
@@ -96,6 +116,6 @@
 },
 {
   "directory": "/home/archlinux/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c23", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/entry.S.o", "source/kernel/interrupt/entry.S"],
-  "file": "source/kernel/interrupt/entry.S"
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/module/loader/elf.cpp.o", "source/module/loader/elf.cpp"],
+  "file": "source/module/loader/elf.cpp"
 }]

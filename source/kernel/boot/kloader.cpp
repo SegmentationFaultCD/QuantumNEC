@@ -4,6 +4,7 @@
 #include <kernel/interrupt/idt.hpp>
 #include <kernel/memory/allocator/page.hpp>
 #include <kernel/memory/segment/gdt.hpp>
+#include <kernel/task/schedule/scheduler.hpp>
 #include <lib/bitset.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
@@ -84,11 +85,12 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 #include <kernel/display/print.hpp>
 #include <kernel/driver/acpi/table.hpp>
 #include <kernel/interrupt/apic.hpp>
+#include <kernel/task/task.hpp>
+#include <module/loader/elf.hpp>
 #include <os_terminal.h>
 #include <ranges>
 #include <span>
 #include <vector>
-
 auto ff( std::span< int > f ) {
     char buf[ 114 ];
     Library::utoa( std::uint64_t( f[ 0 ] ), buf, 16 );
@@ -102,8 +104,8 @@ auto alloc( std::size_t size ) -> void * {
 auto free( void *address ) -> void {
     operator delete( address );
 }
- 
-extern "C" auto loader_entry( void ) -> void {
+
+extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Driver::initialize_sse( );
 
     Driver::SerialPort::initialize( );
@@ -116,7 +118,12 @@ extern "C" auto loader_entry( void ) -> void {
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
     Driver::initialize_acpi( acpi_request.response );
     Interrupt::initialize_apic( true );
+    Task::initialize_scheduler( );
+    Task::initialize_task( 0 );
     Driver::initialize_smp( smp_request.response );
+    Interrupt::IDT::enable_interrupt( );
+
+    while ( true );
 
     using namespace Memory::Page;
 
@@ -164,13 +171,10 @@ extern "C" auto loader_entry( void ) -> void {
     int s[] = { 1, 2, 3, 4 };
     ff( s );
 
-    std::vector< int, Memory::KernelHeap::allocator< int > > vec;
-    vec.emplace_back( 1 );
-    vec.push_back( 2 );
+    std::vector< int, Memory::KernelHeap::allocator< int > > vec { 3 };
+    vec.clear( );
 
-    for ( auto i : vec ) {
-        Display::println( "{} ", i );
-    }
+    Display::println( "{}", vec[ 0 ] );
 
     auto s2 = string | std::ranges::views::filter( []( const char c ) -> bool { return c != ' '; } ) | std::ranges::to< std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > > >( );
     Display::println( "{}", s2.c_str( ) );
@@ -188,7 +192,8 @@ extern "C" auto loader_entry( void ) -> void {
     // td.height           = framebuffer_request.response->framebuffers[ 0 ]->height;
     // td.width            = framebuffer_request.response->framebuffers[ 0 ]->width;
     // td.pitch            = framebuffer_request.response->framebuffers[ 0 ]->pitch;
-
+    while ( true );
+    Module::elf_loader.load_elf_file( 114 );
     // terminal_init( &td, 15.0f, alloc, free );
     while ( true );
     // terminal_process( "Hello world" );

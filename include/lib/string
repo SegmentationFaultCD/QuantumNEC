@@ -1,0 +1,10 @@
+#pragma once
+#include <kernel/memory/allocator/kheap.hpp>
+#include <string>
+
+namespace std {
+template < typename _C >
+using cxxbasic_string = std::basic_string< _C, char_traits< _C >, Memory::KernelHeap::allocator< _C > >;
+
+using cxxstring = cxxbasic_string< char >;
+}     // namespace std

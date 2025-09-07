@@ -1,0 +1,8 @@
+#pragma once
+#include <kernel/memory/allocator/kheap.hpp>
+#include <vector>
+
+namespace std {
+template < typename T >
+using cxxvector = std::vector< T, Memory::KernelHeap::allocator< T > >;
+}

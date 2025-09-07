@@ -42,7 +42,8 @@ target("micro_kernel.elf")
         "source/kernel/*/*.cpp",
         "source/kernel/*/*.S",
         "source/kernel/*/*/*.cpp", 
-        "source/lib/*.cpp"
+        "source/lib/*.cpp",
+        "source/module/loader/*.cpp"
     )
 
     before_build(function (target) 

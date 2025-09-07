@@ -4,8 +4,10 @@
 #include <kernel/driver/serial_port/serial_port.hpp>
 #include <kernel/memory/allocator/kheap.hpp>
 #include <lib/string.hpp>
+#include <lib/string>
 #include <ranges>
 #include <string>
+
 namespace Library {
 
 // 这个format极其简单，删除了format_to vformat_to_n 等等一系列函数, format_context等等辅助类
@@ -32,13 +34,12 @@ enum class Sign {
     only_neg = '-',
     space = ' '
 };
-using cxxstring = std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > >;
 template < typename T >
 struct formatter {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto format( const T &, std::string_view fmt ) -> cxxstring { return { }; }
+    auto format( const T &, std::string_view fmt ) -> std::cxxstring { return { }; }
 };
-auto parse_sign( auto &&arg, Sign sign, cxxstring &ctx )
+auto parse_sign( auto &&arg, Sign sign, std::cxxstring &ctx )
     requires std::three_way_comparable< decltype( arg ) >
 {
     if ( auto result = arg <=> 0; result == std::strong_ordering::equal || result == std::strong_ordering::greater ) {
@@ -54,7 +55,7 @@ auto parse_sign( auto &&arg, Sign sign, cxxstring &ctx )
         ctx.insert( 0, "-" );
     }
 }
-inline auto parse_align( Align align, std::string_view data, cxxstring &ctx ) {
+inline auto parse_align( Align align, std::string_view data, std::cxxstring &ctx ) {
     using enum Align;
     switch ( align ) {
     case left:
@@ -69,7 +70,7 @@ inline auto parse_align( Align align, std::string_view data, cxxstring &ctx ) {
     }
 }
 auto parse_base( bool caps, std::int32_t base, auto &&arg ) {
-    cxxstring data;
+    std::cxxstring data;
 
     const char *digits;
     if ( caps ) {
@@ -85,17 +86,17 @@ auto parse_base( bool caps, std::int32_t base, auto &&arg ) {
     return data;
 }
 
-inline auto parse_alternate_form( cxxstring &ctx, std::int32_t base ) {
+inline auto parse_alternate_form( std::cxxstring &ctx, std::int32_t base ) {
     // TODO 前缀符
 }
-inline auto parse_leading_zeros( cxxstring &ctx ) {
+inline auto parse_leading_zeros( std::cxxstring &ctx ) {
     // TODO 先导0，align存在时忽略此处理
 }
 
-auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
+auto parse_format_spac( auto &&arg, std::string_view fmt ) -> std::cxxstring {
     auto i = 0;
 
-    cxxstring weigh { };
+    std::cxxstring weigh { };
     auto align = Align::right;
     auto fill = ' ';
 
@@ -183,7 +184,7 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
     }
 
     escape_appear = ( fmt[ i ] == '?' );
-    cxxstring data;
+    std::cxxstring data;
 
     using T = std::remove_reference_t< decltype( arg ) >;
     if constexpr ( std::is_same_v< T, char > || std::is_same_v< T, const char * > ) {
@@ -196,7 +197,7 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
         if ( weigh == "" ) {
             return data;
         }
-        auto fs = std::views::repeat( fill, stol( weigh.c_str( ) ) ) | std::ranges::to< cxxstring >( );
+        auto fs = std::views::repeat( fill, stol( weigh.c_str( ) ) ) | std::ranges::to< std::cxxstring >( );
         parse_align( align, data, fs );
         return fs;
     }
@@ -209,21 +210,21 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> cxxstring {
 template <>
 struct formatter< long long unsigned int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto format( long long unsigned int &arg, std::string_view ctx ) -> cxxstring {
+    auto format( long long unsigned int &arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
 template <>
 struct formatter< unsigned int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto format( unsigned int &arg, std::string_view ctx ) -> cxxstring {
+    auto format( unsigned int &arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
 template <>
 struct formatter< int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto format( int &arg, std::string_view ctx ) -> cxxstring {
+    auto format( int &arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
@@ -231,7 +232,7 @@ struct formatter< int > {
 template <>
 struct formatter< long long int > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto format( long long arg, std::string_view ctx ) -> cxxstring {
+    auto format( long long arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
@@ -239,14 +240,14 @@ struct formatter< long long int > {
 template <>
 struct formatter< const char * > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto format( const char *arg, std::string_view ctx ) -> cxxstring {
+    auto format( const char *arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
 template <>
 struct formatter< char > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
-    auto format( char arg, std::string_view ctx ) -> cxxstring {
+    auto format( char arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
@@ -254,7 +255,7 @@ template <>
 struct formatter< const void * > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
 
-    auto format( const void *arg, std::string_view ctx ) -> cxxstring {
+    auto format( const void *arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
@@ -262,14 +263,14 @@ template <>
 struct formatter< void * > {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
 
-    auto format( void *arg, std::string_view ctx ) -> cxxstring {
+    auto format( void *arg, std::string_view ctx ) -> std::cxxstring {
         return parse_format_spac( arg, ctx );
     }
 };
-inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring {
+inline auto vformat( std::string_view fmt, fmt::format_args args ) -> std::cxxstring {
     fmt::format_parse_context f { fmt };
     auto index = 0;
-    cxxstring formatted_string;
+    std::cxxstring formatted_string;
     for ( auto i = 0; i < fmt.size( ); ++i ) {
         if ( fmt[ i ] == '{' ) {
             if ( fmt[ i + 1 ] == '{' ) {
@@ -285,7 +286,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring 
                 format_spec = fmt.substr( spec_start + 1, end - spec_start + 1 );
             }
 
-            cxxstring arg_id;
+            std::cxxstring arg_id;
             if ( spec_start != fmt.npos && fmt[ spec_start - 1 ] != '{' ) {
                 arg_id = fmt.substr( i + 1, spec_start - i - 1 );
             }
@@ -318,7 +319,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> cxxstring 
 }
 
 template < typename... Args >
-auto format( fmt::format_string< Args... > fmt, Args... args ) -> cxxstring {
+auto format( fmt::format_string< Args... > fmt, Args... args ) -> std::cxxstring {
     return Library::vformat( fmt.get( ).data( ), fmt::make_format_args( args... ) );
 }
 }     // namespace Library

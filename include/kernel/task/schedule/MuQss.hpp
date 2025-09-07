@@ -1,9 +1,13 @@
 #pragma once
 #include <cstdint>
+#include <kernel/task/schedule/scheduler.hpp>
+#include <kernel/task/task.hpp>
 #include <lib/list.hpp>
 #include <lib/skiplist.hpp>
+#include <lib/vector>
 namespace Task {
-class MuQss {
+class MuQss : public Scheduler< PCB > {
+    friend auto initialize_task( std::uint64_t core ) -> void;
     // MuQSS - The Multiple Queue Skiplist Scheduler by Con Kolivas.
     // MuQSS is a per-cpu runqueue variant of the original BFS scheduler with
     // one 8 level skiplist per runqueue, and fine grained locking for much more
@@ -72,12 +76,14 @@ public:
      * between CPUs whenever both runqueues are locked concurrently.
      */
     // PS: niffies可以放hpet里面算
+public:
+    virtual auto schedule( void ) -> Interrupt::IDT::Frame * override;
+    virtual auto sleep( PCB * ) -> void override;
+    virtual auto wake_up( PCB * ) -> void override;
 
 private:
-    // 任务运行队列
-    Library::List< std::int32_t > running_queue;
     // 任务调度队列
-    Library::List< Library::Skiplist< std::int32_t, 8ul >[ 103 ] > scheduler_queue;
+    std::cxxvector< Library::Skiplist< PCB *, 8ul >[ 103 ] > scheduler_queue;
     // CPU链表
     // 1                                                            2                       3                       4
     // [0 ,     1,  ···,  100,        101,       102]
@@ -85,5 +91,6 @@ private:
     // 插入任务，哪个队列少就插哪个
 
 public:
+    explicit MuQss( void );
 };
 }     // namespace Task

@@ -52,7 +52,7 @@ auto GeneralInterruptHandle::handler( IDT::Frame *frame ) noexcept -> IDT::Frame
 auto PageFault::error_code( std::uint64_t code ) noexcept -> void {
     ErrorCode c_code { code };
     using namespace Display;
-    Library::cxxstring str;
+    std::cxxstring str;
     if ( c_code.present ) {
         str += "Page fault was caused by a page-protection violation, ";
     }

@@ -101,6 +101,14 @@ private:
 
 public:
     static auto initialize( std::uint64_t core ) -> void;
+    static auto enable_interrupt( ) {
+        __asm__ __volatile__( "sti" );
+        __asm__ __volatile__( "std" );
+    }
+    static auto disable_interrupt( ) {
+        __asm__ __volatile__( "cli" );
+        __asm__ __volatile__( "cld" );
+    }
 
 private:
     class [[gnu::packed]] DescriptorRegister final : public Utils::DescriptorRegister< Descriptor, 256 > {

@@ -30,5 +30,6 @@ Hpet::Hpet( void ) noexcept {
     this->main_counter_value = 0;
     this->general_configuration.ENABLE_CNF = 1;
     this->general_configuration.LEG_RT_CNF = 0;
+    // 不要传统映射
 }
 }     // namespace Interrupt
