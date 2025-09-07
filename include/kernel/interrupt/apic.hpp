@@ -5,7 +5,7 @@
 
 namespace Interrupt {
 
-inline struct Apic {
+struct Apic {
     /*
      Base Address   MSR address  Name                        Attribute
      0xfee00000     none         保留                         N/A
@@ -276,6 +276,6 @@ inline struct Apic {
 
 public:
     static auto initialize( bool bsp ) -> void;
-} apic;
+} inline apic;
 
 }     // namespace Interrupt

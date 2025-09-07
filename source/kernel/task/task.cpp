@@ -26,6 +26,7 @@ auto initialize_task( std::uint64_t core ) -> void {
     main->running_thread = &mthread;
     main->page_table = nullptr;     // 为空说明默认使用内核页表
     main->cpu = core;
+    main->hw_scheduler = scheduler;
 
     kernel_thread_lock.acquire( );
     scheduler->running_queue.push_back( main );

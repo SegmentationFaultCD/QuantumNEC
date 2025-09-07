@@ -6,17 +6,19 @@ namespace Memory {
 
 Paging::Paging( void ) noexcept {
 }
-auto Paging::initialize( limine_paging_mode_response *pg ) -> void {
+auto Paging::initialize( limine_paging_mode_response *pg ) -> Paging * {
+    static Paging paging { };
     if ( pg->mode == LIMINE_PAGING_MODE_X86_64_5LVL ) {
-        support_5level_paging = true;
-        kernel_page_table = new pml5t { (uint64_t)physical_to_virtual( Driver::IO::get_page_table( ) ) };
+        paging.support_5level_paging = true;
+        paging.kernel_page_table = new pml5t { (uint64_t)physical_to_virtual( Driver::IO::get_page_table( ) ) };
     }
     else {
-        support_5level_paging = false;
-        kernel_page_table = new pml4t { (uint64_t)physical_to_virtual( Driver::IO::get_page_table( ) ) };
+        paging.support_5level_paging = false;
+        paging.kernel_page_table = new pml4t { (uint64_t)physical_to_virtual( Driver::IO::get_page_table( ) ) };
     }
 
-    kernel_page_table->page_protect( false );
+    paging.kernel_page_table->page_protect( false );
+    return &paging;
 }
 
 using namespace std;
@@ -85,7 +87,7 @@ auto Paging::pmlxt::map( uint64_t physics_address, uint64_t virtual_address, uin
             next_table = (uint64_t *)physical_to_virtual( table.flags_base( index ) );
             self( level - 1, next_table );
             return;
-        }( Paging::support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );
+        }( paging->support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );
     }
 }
 auto Paging::pmlxt::unmap( uint64_t virtual_address, std::size_t size, Page::Type mode ) -> void {
@@ -117,7 +119,7 @@ auto Paging::pmlxt::unmap( uint64_t virtual_address, std::size_t size, Page::Typ
             }
             next_table = (std::uint64_t *)physical_to_virtual( table.flags_base( index ) );
             self( level - 1, next_table );
-        }( Paging::support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );
+        }( paging->support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );
     }
 }
 
@@ -136,7 +138,6 @@ auto Paging::pmlxt::find_physcial_address( std::uint64_t virtual_address, Page::
     };
     return [ & ]( this auto &&self, std::uint64_t level, pmlxt &table ) -> void * {
         auto index = table.get_virtual_index( virtual_address );
-        Display::println( "??? {:x}", table.get( )[ index ] );
         if ( !table.flags_p( index ) ) {
             return nullptr;
         }
@@ -148,7 +149,7 @@ auto Paging::pmlxt::find_physcial_address( std::uint64_t virtual_address, Page::
             next_table = (uint64_t *)physical_to_virtual( table.flags_base( index ) );
             return self( level - 1, next_table );
         }
-    }( Paging::support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );
+    }( paging->support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );
 }
 auto Paging::pmlxt::page_protect( bool flags ) -> void {
     auto cr0 = Driver::IO::read_cr0( );

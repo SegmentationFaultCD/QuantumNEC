@@ -1,11 +1,11 @@
 #include <kernel/memory/allocator/page.hpp>
 #include <kernel/memory/paging/hhdm.hpp>
-#include <module/loader/elf.hpp>
-namespace Module {
-auto Elf::load_elf_file( uint64_t module_address ) -> std::expected< FileInformation, ElfErrorCode > {
+#include <kernel/syscall/module_loader/elf.hpp>
+namespace Kernel {
+auto Elf::load_elf_file( uint64_t module_address ) -> FileInformation {
     auto elf_header { reinterpret_cast< ElfHeader * >( module_address ) };
     if ( !check_elf_magic( elf_header ) )
-        return std::unexpected { ElfErrorCode::MAGIC_IS_NOT_STANDARD };
+        return { };
 
     auto P_header = (ProgramHeaderTable *)( module_address + elf_header->e_Phoff );
 
@@ -50,4 +50,4 @@ auto Elf::load_elf_file( uint64_t module_address ) -> std::expected< FileInforma
 
 auto Elf::check_elf_magic( void *Ehdr ) -> bool {
 }
-}     // namespace Module
+}     // namespace Kernel

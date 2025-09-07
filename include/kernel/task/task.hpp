@@ -45,14 +45,16 @@ class PCB {
 
     std::uint64_t cpu;
 
+    Scheduler *hw_scheduler;     // 如果要切换成别的调度器的话就用这个
+
 public:
     explicit PCB( void ) = default;
 
-    explicit PCB( std::string_view _name, auto *entry, std::uint64_t text_segment_length ) :
+    explicit PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length ) :
         name { _name },
         page_table { new Memory::Paging::pml4t {} }, thread_group { }, PID { id_pool.get( ) } {
         using namespace Memory;
-        this->page_table->copy( *Paging::kernel_page_table );
+        this->page_table->copy( *paging->kernel_page_table );
         using enum Memory::Page::Type;
         thread_group.push_back( Thread { } );
         auto &mthread = thread_group[ 0 ];
@@ -71,7 +73,7 @@ public:
                                ( text_segment_length + ( 4_KB - 1 ) ) / 4_KB,
                                this->page_table->PAGE_PRESENT | this->page_table->PAGE_RW_W | this->page_table->PAGE_US_U,
                                Page::Type::P2Mib );
-        mthread.frame->rip = entry;
+        mthread.frame->rip = (void *)entry;
         this->page_table->map( mthread.user_stack,
                                this->USER_STACK_START_ADDRESS - this->user_stack_size,
                                this->user_stack_size / Page::allocator< P2Mib >::__page_size__,
@@ -83,6 +85,8 @@ public:
         mthread.frame->rflags.IF = 1;
         this->cpu = Interrupt::apic.apic_id( );
         this->running_thread = &mthread;
+
+        this->hw_scheduler = scheduler;
     }
     template < typename T >
     auto create( T *entry ) -> void {

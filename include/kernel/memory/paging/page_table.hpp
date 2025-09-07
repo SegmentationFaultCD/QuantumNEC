@@ -496,10 +496,13 @@ struct Paging {
         }
     };
 
+private:
     Paging( void ) noexcept;
-    static auto initialize( limine_paging_mode_response *pg ) -> void;
 
-    inline static pmlxt *kernel_page_table;
-    inline static bool support_5level_paging { };
-} inline paging;
+public:
+    static auto initialize( limine_paging_mode_response *pg ) -> Paging *;
+
+    pmlxt *kernel_page_table;
+    bool support_5level_paging { };
+} inline *paging;
 }     // namespace Memory

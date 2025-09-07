@@ -15,12 +15,12 @@ auto initialize_smp( limine_smp_response *smp ) -> void {
 }
 
 [[noreturn]] auto smp_start( limine_smp_info *info ) -> void {
-    Memory::GDT::initialize( info->lapic_id );
-    Interrupt::IDT::initialize( info->lapic_id );
+    Memory::gdt->initialize( info->lapic_id );
+    Interrupt::idt->initialize( info->lapic_id );
     Driver::initialize_sse( );
     Interrupt::apic.initialize( false );
     Task::initialize_task( info->processor_id );
-    Kernel::syscall.initialize( );
+    Kernel::syscall->initialize( );
     // Interrupt::IDT::enable_interrupt( );
 
     while ( true );

@@ -87,7 +87,8 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 #include <kernel/interrupt/apic.hpp>
 #include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
-#include <module/loader/elf.hpp>
+
+#include <kernel/syscall/module_loader/loader.hpp>
 #include <os_terminal.h>
 #include <ranges>
 #include <span>
@@ -110,19 +111,21 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Driver::initialize_sse( );
 
     Driver::serial_port.initialize( );
-    Interrupt::IDT::initialize( 0 );
-    Memory::GDT::initialize( 0 );
+    Interrupt::idt = Interrupt::idt->initialize( 0 );
+    Memory::gdt = Memory::gdt->initialize( 0 );
     Memory::Page::initialize( memmap_request.response );
     Memory::hhdm_initialize( hhdm_request.response );
     Memory::KernelHeap::initialize( );
-    Memory::paging.initialize( paging_mode_request.response );
+    Memory::paging = Memory::paging->initialize( paging_mode_request.response );
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
     Driver::initialize_acpi( acpi_request.response );
     Interrupt::apic.initialize( true );
     Task::scheduler->initialize( );
     Task::initialize_task( 0 );
-    Kernel::syscall.initialize( );
+    Kernel::syscall = Kernel::syscall->initialize( );
     Driver::initialize_smp( smp_request.response );
+    Kernel::module_loader = Kernel::module_loader->initialize( modules_request.response );
+    while ( true );
 
     Interrupt::IDT::enable_interrupt( );
 
@@ -193,8 +196,7 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     // td.height           = framebuffer_request.response->framebuffers[ 0 ]->height;
     // td.width            = framebuffer_request.response->framebuffers[ 0 ]->width;
     // td.pitch            = framebuffer_request.response->framebuffers[ 0 ]->pitch;
-    while ( true );
-    Module::elf_loader.load_elf_file( 114 );
+
     // terminal_init( &td, 15.0f, alloc, free );
     while ( true );
     // terminal_process( "Hello world" );

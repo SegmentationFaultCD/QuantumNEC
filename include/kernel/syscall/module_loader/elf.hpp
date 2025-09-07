@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <expected>
-namespace Module {
+namespace Kernel {
 class Elf {
 public:
     constexpr static uint32_t ELF_MAGIC = 0x464C457F;     // 0x7f454c46; // ELF Magic as one unit
@@ -195,7 +195,7 @@ public:
     explicit Elf( void ) = default;
 
 public:
-    [[nodiscard( "cost the memory" )]] auto load_elf_file( uint64_t module_address ) -> std::expected< FileInformation, ElfErrorCode >;
+    [[nodiscard( "cost the memory" )]] auto load_elf_file( uint64_t module_address ) -> FileInformation;
     auto check_elf_magic( void *Ehdr ) -> bool;
 } inline elf_loader;
-}     // namespace Module
+}     // namespace Kernel

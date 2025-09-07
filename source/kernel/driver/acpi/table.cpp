@@ -14,22 +14,22 @@ auto initialize_acpi( limine_rsdp_response *rsdp ) -> void {
     auto xsdp = (XSDP *)Memory::physical_to_virtual( rsdp->address );
     using namespace Memory;
 
-    Paging::kernel_page_table->map(
+    paging->kernel_page_table->map(
         std::uint64_t( Memory::virtual_to_physical( xsdp ) ),
         (std::uint64_t)xsdp,
         1,
-        Paging::kernel_page_table->PAGE_PRESENT | Paging::kernel_page_table->PAGE_RW_W | Paging::kernel_page_table->PAGE_US_S,
+        paging->kernel_page_table->PAGE_PRESENT | paging->kernel_page_table->PAGE_RW_W | paging->kernel_page_table->PAGE_US_S,
         Page::Type::P4Kib );
 
     if ( xsdp->signature != XSDP::get_signature( ) ) {
         Display::println( "XSDP signature {} can't satisfy!", xsdp->signature );
     }
     auto xsdt = (XSDT *)Memory::physical_to_virtual( xsdp->get_xsdt( ) );
-    Paging::kernel_page_table->map(
+    paging->kernel_page_table->map(
         Memory::virtual_to_physical( xsdt ),
         (std::uint64_t)xsdt,
         1,
-        Paging::kernel_page_table->PAGE_PRESENT | Paging::kernel_page_table->PAGE_RW_W | Paging::kernel_page_table->PAGE_US_S,
+        paging->kernel_page_table->PAGE_PRESENT | paging->kernel_page_table->PAGE_RW_W | paging->kernel_page_table->PAGE_US_S,
         Page::Type::P2Mib );
 
     if ( xsdt->signature != XSDT::get_signature( ) ) {

@@ -6,11 +6,11 @@
 #include <memory>
 #define SET_TRAP_HANDLER( index, ist )                                                        \
     __asm__ __volatile__( "LEAQ interrupt_handler" #index "(%%RIP), %0" : "=r"( function ) ); \
-    std::construct_at( &interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, Descriptor::Attribute { Descriptor::Attribute::GateType::TRAP, 0, 1 } );
+    std::construct_at( &idt.interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, Descriptor::Attribute { Descriptor::Attribute::GateType::TRAP, 0, 1 } );
 
 #define SET_INTERRUPT_HANDLER( index, ist )                                                   \
     __asm__ __volatile__( "LEAQ interrupt_handler" #index "(%%RIP), %0" : "=r"( function ) ); \
-    std::construct_at( &interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, Descriptor::Attribute { Descriptor::Attribute::GateType::INTERRUPT, 0, 1 } );
+    std::construct_at( &idt.interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, Descriptor::Attribute { Descriptor::Attribute::GateType::INTERRUPT, 0, 1 } );
 #include <kernel/driver/serial_port/serial_port.hpp>
 #include <lib/string.hpp>
 namespace Interrupt {
@@ -26,11 +26,12 @@ HypervisorInjectionException hh;
 VMMCommunicationException vh;
 SecurityException seh;
 
-auto IDT::initialize( std::uint64_t core ) -> void {
+auto IDT::initialize( std::uint64_t core ) -> IDT * {
+    static IDT idt { };
     Driver::IO::cli( );
     if ( core == 0 ) {
-        std::construct_at( &idtr, interrupt_descriptors );
-        std::memset( interrupt_descriptors, 0, idtr.size( ) );
+        std::construct_at( &idt.idtr, idt.interrupt_descriptors );
+        std::memset( idt.interrupt_descriptors, 0, idt.idtr.size( ) );
 
         uint64_t function { };
         SET_TRAP_HANDLER( 0x00, 0 );
@@ -304,9 +305,10 @@ auto IDT::initialize( std::uint64_t core ) -> void {
         GeneralInterruptHandle::handlers[ 29 ] = &vh;
         GeneralInterruptHandle::handlers[ 30 ] = &seh;
     }
-    idtr.write( );
+    idt.idtr.write( );
 
     // 中断入口初始化
+    return &idt;
 }
 
 }     // namespace Interrupt

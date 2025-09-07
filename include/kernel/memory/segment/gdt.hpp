@@ -87,10 +87,10 @@ public:
     };
 
 private:
-    GDT( void ) = delete;
+    GDT( void ) {};
 
 public:
-    static auto initialize( std::uint64_t core ) -> void;
+    static auto initialize( std::uint64_t core ) -> GDT *;
 
 private:
     class [[gnu::packed]] DescriptorRegister final : public Utils::DescriptorRegister< SegmentDescriptor, 1024 > {
@@ -124,8 +124,8 @@ private:
         }
     };
 
-    inline static SegmentDescriptor segment_descriptors[ GDT_COUNT ][ 1024 ] { };     // 最高256个gdt每个cpu一个核心
-    inline static DescriptorRegister gdtrs[ GDT_COUNT ];
-    inline static TaskStateSegment tss[ GDT_COUNT ];
-};
+    SegmentDescriptor segment_descriptors[ GDT_COUNT ][ 1024 ] { };     // 最高256个gdt每个cpu一个核心
+    DescriptorRegister gdtrs[ GDT_COUNT ];
+    TaskStateSegment tss[ GDT_COUNT ];
+} inline *gdt;
 }     // namespace Memory

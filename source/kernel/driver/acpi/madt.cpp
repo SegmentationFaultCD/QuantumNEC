@@ -8,11 +8,11 @@ namespace Driver {
 MADT::MADT( void ) noexcept {
     using namespace Memory;
     Interrupt::apic.lapic_address = physical_to_virtual( this->local_APIC_address );
-    Paging::kernel_page_table->map(
+    paging->kernel_page_table->map(
         this->local_APIC_address,
         physical_to_virtual( this->local_APIC_address ),
         1,
-        Paging::kernel_page_table->PAGE_PRESENT | Paging::kernel_page_table->PAGE_RW_W | Paging::kernel_page_table->PAGE_US_S,
+        paging->kernel_page_table->PAGE_PRESENT | paging->kernel_page_table->PAGE_RW_W | paging->kernel_page_table->PAGE_US_S,
         Page::Type::P4Kib );
     auto ics = (MADT::MadtICS *)( this + 1 );
     for ( auto length = 0ul; length <= this->length; length += ics->length, ics = (MADT::MadtICS *)( (std::uint64_t)ics + ics->length ) ) {
@@ -26,11 +26,11 @@ MADT::MADT( void ) noexcept {
 
             ioapic.ioapic_address = physical_to_virtual( ( (MADT::IOApic *)ics )->IOApic_address );
 
-            Paging::kernel_page_table->map(
+            paging->kernel_page_table->map(
                 virtual_to_physical( ioapic.ioapic_address ),
                 ioapic.ioapic_address,
                 1,
-                Paging::kernel_page_table->PAGE_PRESENT | Paging::kernel_page_table->PAGE_RW_W | Paging::kernel_page_table->PAGE_US_S,
+                paging->kernel_page_table->PAGE_PRESENT | paging->kernel_page_table->PAGE_RW_W | paging->kernel_page_table->PAGE_US_S,
                 Page::Type::P2Mib );
 
             ioapic.ioapic_index_address = reinterpret_cast< void * >( ioapic.ioapic_address );

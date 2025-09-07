@@ -5,10 +5,10 @@
 namespace Driver {
 HPET::HPET( void ) noexcept {
     using namespace Memory;
-    Paging::kernel_page_table->map( this->base_address.address,
+    paging->kernel_page_table->map( this->base_address.address,
                                     physical_to_virtual( this->base_address.address ),
                                     1,
-                                    Paging::kernel_page_table->PAGE_PRESENT | Paging::kernel_page_table->PAGE_RW_W | Paging::kernel_page_table->PAGE_US_S,
+                                    paging->kernel_page_table->PAGE_PRESENT | paging->kernel_page_table->PAGE_RW_W | paging->kernel_page_table->PAGE_US_S,
                                     Page::Type::P4Kib );
     Interrupt::hpet = (decltype( Interrupt::hpet ))physical_to_virtual( this->base_address.address );
 

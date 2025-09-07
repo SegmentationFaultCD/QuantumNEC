@@ -50,6 +50,7 @@ public:
     constexpr static auto CLOCK { 32 };
     constexpr static auto APIC_ERROR { 156 };
     constexpr static auto APIC_SPURIOUS { 157 };
+    constexpr static auto SYSCALL { 0x80 };
 
 public:
     struct [[gnu::packed]] Descriptor {
@@ -97,10 +98,11 @@ public:
     };
 
 private:
-    IDT( void ) = delete;
+    IDT( void ) {};
 
 public:
-    static auto initialize( std::uint64_t core ) -> void;
+    static auto initialize( std::uint64_t core ) -> IDT *;
+
     static auto enable_interrupt( ) {
         __asm__ __volatile__( "sti" );
         __asm__ __volatile__( "std" );
@@ -130,7 +132,7 @@ private:
         }
     };
 
-    inline static Descriptor interrupt_descriptors[ 256 ] { };
-    inline static DescriptorRegister idtr { nullptr };
-};
+    Descriptor interrupt_descriptors[ 256 ] { };
+    DescriptorRegister idtr { nullptr };
+} inline *idt;
 }     // namespace Interrupt
