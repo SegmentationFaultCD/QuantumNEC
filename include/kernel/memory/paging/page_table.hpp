@@ -501,5 +501,5 @@ struct Paging {
 
     inline static pmlxt *kernel_page_table;
     inline static bool support_5level_paging { };
-};
+} inline paging;
 }     // namespace Memory

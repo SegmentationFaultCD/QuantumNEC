@@ -2,7 +2,9 @@
 #include <kernel/interrupt/idt.hpp>
 #include <lib/vector>
 namespace Task {
-template < typename PCB >
+class MuQss;
+class PCB;
+
 struct Scheduler {
     // interface
     virtual auto schedule( void ) -> Interrupt::IDT::Frame * = 0;
@@ -10,8 +12,10 @@ struct Scheduler {
     virtual auto wake_up( PCB * ) -> void = 0;
     // 任务运行队列
     std::cxxvector< PCB * > running_queue;
+
+    static auto initialize( void ) -> void;
 };
 
-auto initialize_scheduler( void ) -> void;
+inline Scheduler *scheduler;
 
 }     // namespace Task

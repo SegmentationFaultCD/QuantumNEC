@@ -106,7 +106,6 @@ class Clock : public GeneralInterruptHandle {
     }
     virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
         apic.eoi( );
-        Display::println( "CPU {}", apic.apic_id( ) );
         return frame;
     }
 } clock;
@@ -145,7 +144,7 @@ class ApicSpuriousInterrupt : public GeneralInterruptHandle {
     }
 } apic_spurious_interrupt;
 
-auto initialize_apic( bool bsp ) -> void {
+auto Apic::initialize( bool bsp ) -> void {
     // ban 8259A pic
     if ( bsp ) {
         Driver::IO::out8( 0x21, 0xff );
@@ -157,10 +156,10 @@ auto initialize_apic( bool bsp ) -> void {
     }
     using namespace Driver;
     // enable x2apic
-    auto base = IO::rdmsr( apic.IA32_APIC_BASE_MSR );
+    auto base = IO::rdmsr( IO::IA32_APIC_BASE_MSR );
     base |= 1 << 10;
     base |= 1 << 11;
-    IO::wrmsr( apic.IA32_APIC_BASE_MSR, base );
+    IO::wrmsr( IO::IA32_APIC_BASE_MSR, base );
 
     // enable SVR
     Apic::SpuriousInterruptVectorRegister svr { (std::uint32_t)apic.read( apic.LOCAL_APIC_MSR_SVR ) };

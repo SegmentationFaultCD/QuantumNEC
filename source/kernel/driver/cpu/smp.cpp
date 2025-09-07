@@ -5,6 +5,7 @@
 #include <kernel/interrupt/apic.hpp>
 #include <kernel/interrupt/idt.hpp>
 #include <kernel/memory/segment/gdt.hpp>
+#include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
 namespace Driver {
 auto initialize_smp( limine_smp_response *smp ) -> void {
@@ -17,8 +18,9 @@ auto initialize_smp( limine_smp_response *smp ) -> void {
     Memory::GDT::initialize( info->lapic_id );
     Interrupt::IDT::initialize( info->lapic_id );
     Driver::initialize_sse( );
-    Interrupt::initialize_apic( false );
+    Interrupt::apic.initialize( false );
     Task::initialize_task( info->processor_id );
+    Kernel::syscall.initialize( );
     // Interrupt::IDT::enable_interrupt( );
 
     while ( true );

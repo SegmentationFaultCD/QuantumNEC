@@ -195,7 +195,7 @@ public:
     explicit Elf( void ) = default;
 
 public:
-    auto load_elf_file( uint64_t module_address ) -> std::expected< FileInformation, ElfErrorCode >;
+    [[nodiscard( "cost the memory" )]] auto load_elf_file( uint64_t module_address ) -> std::expected< FileInformation, ElfErrorCode >;
     auto check_elf_magic( void *Ehdr ) -> bool;
 } inline elf_loader;
 }     // namespace Module

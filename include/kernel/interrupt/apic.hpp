@@ -6,19 +6,6 @@
 namespace Interrupt {
 
 inline struct Apic {
-    constexpr static auto IA32_APIC_BASE_MSR { 0x1B };
-    constexpr static auto IA32_APIC_BASE_MSR_BSP { 1UL << 8U };
-    constexpr static auto IA32_APIC_BASE_MSR_ENABLE { 1UL << 11U };
-    constexpr static auto IA32_APIC_BASE_MSR_BASE_ADDR_MSK { ~0xFFFUL };
-    constexpr static auto IA32_EFER { 0xc0000080 };
-    constexpr static auto IA32_STAR { 0xc0000081 };
-    constexpr static auto IA32_LSTAR { 0xc0000082 };
-    constexpr static auto IA32_FMASK { 0xc0000084 };
-    constexpr static auto IA32_EFER_SCE { 1 };
-    constexpr static auto IA32_KERNEL_GS_BASE { 0xc0000102 };
-    constexpr static auto IA32_USER_GS_BASE { 0xc0000101 };
-    constexpr static auto IA32_USER_FS_BASE { 0xc0000100 };
-
     /*
      Base Address   MSR address  Name                        Attribute
      0xfee00000     none         保留                         N/A
@@ -287,7 +274,8 @@ inline struct Apic {
     auto apic_id( void ) -> std::uint64_t;
     auto eoi( void ) -> void;
 
+public:
+    static auto initialize( bool bsp ) -> void;
 } apic;
 
-auto initialize_apic( bool bsp ) -> void;
 }     // namespace Interrupt

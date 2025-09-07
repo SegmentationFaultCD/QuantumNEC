@@ -6,6 +6,11 @@
 },
 {
   "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c23", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/syscall.S.o", "source/kernel/syscall/syscall.S"],
+  "file": "source/kernel/syscall/syscall.S"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/boot/kloader.cpp.o", "source/kernel/boot/kloader.cpp"],
   "file": "source/kernel/boot/kloader.cpp"
 },
@@ -33,6 +38,11 @@
   "directory": "/home/archlinux/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/idt.cpp.o", "source/kernel/interrupt/idt.cpp"],
   "file": "source/kernel/interrupt/idt.cpp"
+},
+{
+  "directory": "/home/archlinux/QuantumNEC",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/syscall.cpp.o", "source/kernel/syscall/syscall.cpp"],
+  "file": "source/kernel/syscall/syscall.cpp"
 },
 {
   "directory": "/home/archlinux/QuantumNEC",

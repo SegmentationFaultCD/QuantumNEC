@@ -5,6 +5,20 @@
 namespace Driver {
 class IO {
 public:
+    constexpr static auto IA32_APIC_BASE_MSR { 0x1B };
+    constexpr static auto IA32_APIC_BASE_MSR_BSP { 1UL << 8U };
+    constexpr static auto IA32_APIC_BASE_MSR_ENABLE { 1UL << 11U };
+    constexpr static auto IA32_APIC_BASE_MSR_BASE_ADDR_MSK { ~0xFFFUL };
+    constexpr static auto IA32_EFER { 0xc0000080 };
+    constexpr static auto IA32_STAR { 0xc0000081 };
+    constexpr static auto IA32_LSTAR { 0xc0000082 };
+    constexpr static auto IA32_FMASK { 0xc0000084 };
+    constexpr static auto IA32_EFER_SCE { 1 };
+    constexpr static auto IA32_KERNEL_GS_BASE { 0xc0000102 };
+    constexpr static auto IA32_USER_GS_BASE { 0xc0000101 };
+    constexpr static auto IA32_USER_FS_BASE { 0xc0000100 };
+
+public:
     struct CpuidStatus {
         enum : int {
             CPUID_FEAT_RCX_SSE3 = 1 << 0,

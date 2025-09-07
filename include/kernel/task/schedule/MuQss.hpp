@@ -6,7 +6,7 @@
 #include <lib/skiplist.hpp>
 #include <lib/vector>
 namespace Task {
-class MuQss : public Scheduler< PCB > {
+class MuQss : public Scheduler {
     friend auto initialize_task( std::uint64_t core ) -> void;
     // MuQSS - The Multiple Queue Skiplist Scheduler by Con Kolivas.
     // MuQSS is a per-cpu runqueue variant of the original BFS scheduler with
@@ -93,4 +93,5 @@ private:
 public:
     explicit MuQss( void );
 };
+
 }     // namespace Task

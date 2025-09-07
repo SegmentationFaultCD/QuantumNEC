@@ -38,7 +38,6 @@ inline auto initialize( limine_framebuffer *frame ) -> void {
 
 template < typename... Args >
 auto println( fmt::format_string< Args... > fmt, Args... args ) {
-    Driver::SerialPort output;
     Task::kernel_thread_lock.acquire( );
 
     auto fmt_str = Library::format( fmt, args... );
@@ -51,14 +50,14 @@ auto println( fmt::format_string< Args... > fmt, Args... args ) {
         case '\n':
             position.YPosition++;
             position.XPosition = position.column;     // 如果是，将光标行数加1, 列数设为BasePrint::Pos->column
-            output.write( '\n' );
+            Driver::serial_port.write( '\n' );
             break;
         case '\t':
             for ( auto i { 0 }; i < 4; ++i ) {
                 putc( position.FB_addr, position.XResolution,
                       position.XPosition * position.XCharSize,
                       position.YPosition * position.YCharSize, ' ' );
-                output.write( ' ' );
+                Driver::serial_port.write( ' ' );
                 ++position.XPosition;
             }
             break;
@@ -79,14 +78,14 @@ auto println( fmt::format_string< Args... > fmt, Args... args ) {
             putc( position.FB_addr, position.XResolution,
                   position.XPosition * position.XCharSize,
                   position.YPosition * position.YCharSize, ' ' );
-            output.write( ' ' );
+            Driver::serial_port.write( ' ' );
             break;
         default:
             putc( position.FB_addr, position.XResolution,
                   position.XPosition * position.XCharSize,
                   position.YPosition * position.YCharSize, ch );
             ++position.XPosition;
-            output.write( ch );
+            Driver::serial_port.write( ch );
         }
         // 结尾部分
         if ( position.XPosition >= ( position.XResolution / position.XCharSize ) ) {

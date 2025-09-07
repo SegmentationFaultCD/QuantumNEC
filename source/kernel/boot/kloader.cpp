@@ -85,6 +85,7 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 #include <kernel/display/print.hpp>
 #include <kernel/driver/acpi/table.hpp>
 #include <kernel/interrupt/apic.hpp>
+#include <kernel/syscall/syscall.hpp>
 #include <kernel/task/task.hpp>
 #include <module/loader/elf.hpp>
 #include <os_terminal.h>
@@ -108,22 +109,22 @@ auto free( void *address ) -> void {
 extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Driver::initialize_sse( );
 
-    Driver::SerialPort::initialize( );
+    Driver::serial_port.initialize( );
     Interrupt::IDT::initialize( 0 );
     Memory::GDT::initialize( 0 );
     Memory::Page::initialize( memmap_request.response );
     Memory::hhdm_initialize( hhdm_request.response );
     Memory::KernelHeap::initialize( );
-    Memory::Paging::initialize( paging_mode_request.response );
+    Memory::paging.initialize( paging_mode_request.response );
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
     Driver::initialize_acpi( acpi_request.response );
-    Interrupt::initialize_apic( true );
-    Task::initialize_scheduler( );
+    Interrupt::apic.initialize( true );
+    Task::scheduler->initialize( );
     Task::initialize_task( 0 );
+    Kernel::syscall.initialize( );
     Driver::initialize_smp( smp_request.response );
-    Interrupt::IDT::enable_interrupt( );
 
-    while ( true );
+    Interrupt::IDT::enable_interrupt( );
 
     using namespace Memory::Page;
 

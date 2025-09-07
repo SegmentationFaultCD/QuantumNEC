@@ -10,8 +10,6 @@
 #include <lib/format.hpp>
 #include <vector>
 namespace Task {
-class PCB;
-inline Scheduler< PCB > *scheduler;
 
 struct PidPool {
     Library::bitset< 1024 > map;

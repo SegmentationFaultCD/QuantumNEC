@@ -31,6 +31,6 @@ public:
 
 private:
     inline static bool support_serial_port { false };
-};
+} inline serial_port;
 
 }     // namespace Driver
