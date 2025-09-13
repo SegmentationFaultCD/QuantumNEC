@@ -6,19 +6,22 @@ namespace Task {
 MuQss::MuQss( ) {
 }
 auto MuQss::schedule( void ) -> Interrupt::IDT::Frame * {
+    // O(1)
 }
 auto MuQss::sleep( PCB * ) -> void {
 }
 auto MuQss::wake_up( PCB * ) -> void {
 }
 auto MuQss::insert( PCB *pcb ) -> void {
+    // O(LogN)
+
     auto sched = pcb->schedule;
     // 时间片默认就是rr_interval值,但是可以改
     sched->time_slice = this->rr_interval;
     sched->cpu = Interrupt::apic.apic_id( );
 
     sched->nice = this->default_nice;
-    sched->virtual_deadline = Interrupt::hpet->nano_time( ) + this->get_prio_ratio( this->default_prio_ratio ) * this->rr_interval;
+    sched->virtual_deadline = this->get_virtual_deadline( Interrupt::hpet->nano_time( ), this->get_prio_ratio( this->default_prio_ratio ) );
 
     // 0 ~ 99 实时任务
     // 100 等时任务

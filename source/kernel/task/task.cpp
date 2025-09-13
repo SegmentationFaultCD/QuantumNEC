@@ -25,12 +25,12 @@ auto initialize_task( std::uint64_t core ) -> void {
     std::construct_at( mthread.frame );
     main->running_thread = &mthread;
     main->page_table = nullptr;     // 为空说明默认使用内核页表
-    main->cpu = core;
+
     main->schedule = new Schedule;
     main->schedule->hw_scheduler = scheduler;
 
     kernel_thread_lock.acquire( );
-    main->schedule->hw_scheduler->running_queue.push_back( main );
+    main->schedule->hw_scheduler->running_queue.push_back( { } );
     kernel_thread_lock.release( );
 }
 PCB::PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length ) :
@@ -66,7 +66,7 @@ PCB::PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length 
     mthread.frame->rflags.IOPL = 0;
     mthread.frame->rflags.MBS = 1;
     mthread.frame->rflags.IF = 1;
-    this->cpu = Interrupt::apic.apic_id( );
+
     this->running_thread = &mthread;
 
     this->schedule = new Schedule;

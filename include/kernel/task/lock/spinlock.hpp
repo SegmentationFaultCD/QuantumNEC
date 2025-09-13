@@ -35,6 +35,10 @@ public:
     auto locked( ) -> bool {
         return this->lock._M_i;
     }
+
+    auto try_lock( ) {
+        return !std::atomic_flag_test_and_set_explicit( &this->lock, std::memory_order::acquire );
+    }
 };
 
 inline s_locks kernel_thread_lock { };     // be provided for kernel thread

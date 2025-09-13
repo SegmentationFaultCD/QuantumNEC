@@ -1,5 +1,6 @@
 #pragma once
 #include <kernel/interrupt/idt.hpp>
+#include <kernel/task/lock/spinlock.hpp>
 #include <lib/vector>
 namespace Task {
 class MuQss;
@@ -15,7 +16,6 @@ struct Scheduler {
     std::cxxvector< PCB * > running_queue;
 
     static auto initialize( void ) -> void;
-
     Scheduler( void ) = default;
 
     virtual ~Scheduler( void ) = default;

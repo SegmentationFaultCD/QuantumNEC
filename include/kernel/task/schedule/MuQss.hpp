@@ -26,9 +26,7 @@ public:
     };
 
 public:
-    constexpr static auto default_nice = 0;
-
-    constexpr static auto rr_interval = 6ul;     // 6ms,
+    constexpr static auto rr_interval = 6ul;     // 6ms,这个一般作为时间片填充
     /*
      *  The value is in milliseconds, and the default value is set to 6. Valid values
      *  are from 1 to 1000 Decreasing the value will decrease latencies at the cost of
@@ -41,8 +39,11 @@ public:
      *  microsecond range.
      */
 
-    // 由于MuQss没有动态优先级的概念，我们默认nice就是priority，与CFS，O1不同
     // nice默认为0，如要更改使用系统调用, 更改优先级，重新计算VD
+    constexpr static auto default_nice = 0;
+    // nice有40个
+    constexpr static auto min_nice = -20;
+    constexpr static auto max_nice = 40;
 
     // Virtual deadline:
 
@@ -72,8 +73,6 @@ public:
     // second cases.
 
     constexpr static double default_prio_ratio = 1.0;     // 静态优先级在时间片计算的权重
-    constexpr static auto min_nice = -20;
-    constexpr static auto max_nice = 40;
 
     auto get_prio_ratio( std::uint64_t nice ) {
         auto prio_ratio = this->default_prio_ratio;
@@ -83,7 +82,11 @@ public:
         return prio_ratio;
     }
 
-    // VD(Virtual Deadline) 计算公式为 niffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
+    // VD(Virtual Deadline) 计算公式为 nWWiffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
+
+    auto get_virtual_deadline( std::uint64_t now_time, double prio_ratio ) {
+        return now_time + prio_ratio * this->rr_interval;
+    }
 
     /*
      * Niffies are a monotonic forward moving timer not unlike the "jiffies" but are
