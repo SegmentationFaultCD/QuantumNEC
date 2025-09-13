@@ -12,9 +12,23 @@ class MuQss : public Scheduler {
     // MuQSS is a per-cpu runqueue variant of the original BFS scheduler with
     // one 8 level skiplist per runqueue, and fine grained locking for much more
     // scalability.
+public:
+    struct ScheduleData {
+        std::uint64_t time_slice;
+
+        std::uint64_t priority;
+
+        std::uint64_t nice;
+
+        std::uint64_t virtual_deadline;
+
+        std::uint64_t cpu;
+    };
 
 public:
-    constexpr static std::uint64_t rr_interval = 6;     // 6ms,
+    constexpr static auto default_nice = 0;
+
+    constexpr static auto rr_interval = 6ul;     // 6ms,
     /*
      *  The value is in milliseconds, and the default value is set to 6. Valid values
      *  are from 1 to 1000 Decreasing the value will decrease latencies at the cost of
@@ -56,19 +70,21 @@ public:
     // that it has an earlier virtual deadline than the currently running task. The
     // earlier deadline is the key to which task is next chosen for the first and
     // second cases.
-    constexpr static std::int64_t prio_ratio[ 40 ] {
-        /* -20 */ 88761, 71755, 56483, 46273, 36291,
-        /* -15 */ 29154, 23254, 18705, 14949, 11916,
-        /* -10 */ 9548, 7620, 6100, 4904, 3906,
-        /*  -5 */ 3121, 2501, 1991, 1586, 1277,
-        /*   0 */ 1024, 820, 655, 526, 423,
-        /*   5 */ 335, 272, 215, 172, 137,
-        /*  10 */ 110, 87, 70, 56, 45,
-        /*  15 */ 36, 29, 23, 18, 15
-        // 优先级数值越大优先级越低, vd越大
-    };     // 其实这里和CFS是一样的
 
-    // VD(Virtual Deadline) 计算公式为 niffies(纳秒级最小时间间隔计数) + (prio_ratio[nice] * rr_interval)
+    constexpr static double default_prio_ratio = 1.0;     // 静态优先级在时间片计算的权重
+    constexpr static auto min_nice = -20;
+    constexpr static auto max_nice = 40;
+
+    auto get_prio_ratio( std::uint64_t nice ) {
+        auto prio_ratio = this->default_prio_ratio;
+        for ( auto i = 1; i <= nice - this->min_nice; ++i ) {
+            prio_ratio *= 1.1;
+        }
+        return prio_ratio;
+    }
+
+    // VD(Virtual Deadline) 计算公式为 niffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
+
     /*
      * Niffies are a monotonic forward moving timer not unlike the "jiffies" but are
      * of nanosecond resolution. Niffies are calculated per-runqueue from the high
@@ -76,14 +92,22 @@ public:
      * between CPUs whenever both runqueues are locked concurrently.
      */
     // PS: niffies可以放hpet里面算
+
+    // dynamic_priority = max(100, min(static_priority - bonus + 5, 102))
+
+    // nice一般会转换成基准优先级
+
+    // RT task是0 ~ 99, 动态优先级就是静态优先级
+
 public:
     virtual auto schedule( void ) -> Interrupt::IDT::Frame * override;
     virtual auto sleep( PCB * ) -> void override;
     virtual auto wake_up( PCB * ) -> void override;
+    virtual auto insert( PCB * ) -> void override;
 
 private:
     // 任务调度队列
-    std::cxxvector< Library::Skiplist< PCB *, 8ul >[ 103 ] > scheduler_queue;
+    std::cxxvector< Library::Skiplist< PCB *, 8ul > > scheduler_queue;
     // CPU链表
     // 1                                                            2                       3                       4
     // [0 ,     1,  ···,  100,        101,       102]
@@ -93,5 +117,7 @@ private:
 public:
     explicit MuQss( void );
 };
-
+struct Schedule : MuQss::ScheduleData {
+    Scheduler *hw_scheduler;     // 如果要切换成别的调度器的话就用这个
+};
 }     // namespace Task

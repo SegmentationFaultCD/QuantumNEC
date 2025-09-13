@@ -196,6 +196,6 @@ public:
 
 public:
     [[nodiscard( "cost the memory" )]] auto load_elf_file( uint64_t module_address ) -> FileInformation;
-    auto check_elf_magic( void *Ehdr ) -> bool;
+    auto check_elf_magic( ElfHeader *Ehdr ) -> bool;
 } inline elf_loader;
 }     // namespace Kernel

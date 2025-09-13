@@ -11,6 +11,38 @@ set_optimize("none")
 
 set_languages("c23", "c++26") 
 
+target("filesystem")
+    add_toolchains("clang") 
+    set_kind("binary")
+    add_cxxflags(
+            "-fno-stack-protector", -- 不要栈保护
+            "-nostdlib", -- 不要标准库
+            "-nostartfiles", -- 不要默认启动文件
+            "-fno-strict-aliasing", -- 关闭严格的别名规则优化
+            "-fno-rtti", -- 不要运行时类型信息鉴别
+            "-fno-exceptions", -- 不需要异常
+            "-mno-red-zone", -- 禁用红色区域
+            "-fno-stack-check", -- 不要栈检查
+            "-Wall", 
+            "-Wextra", 
+            "-static",
+            "-fPIC",
+            "-Wpointer-arith",
+            "-Wno-missing-field-initializers",
+            "-Wwrite-strings",
+            "-fno-threadsafe-statics", 
+            "-Wno-reorder", {force = true} -- 构造函数的初始化顺序不固定
+    )   
+    
+    add_ldflags("-fuse-ld=lld","-static","-nostdlib", {force = true}, "-target x86_64-freestanding") 
+    add_files(
+        "source/module/filesystem/*.cpp"
+    )
+    after_build(function (target)
+        run_dir = target:rundir()
+        os.cp(run_dir.."/filesystem", "vm/OS/bin/")
+    end)
+
 target("micro_kernel.elf")
     add_toolchains("clang") 
     set_kind("binary")
@@ -42,8 +74,7 @@ target("micro_kernel.elf")
         "source/kernel/*/*.cpp",
         "source/kernel/*/*.S",
         "source/kernel/*/*/*.cpp", 
-        "source/lib/*.cpp",
-        "source/module/loader/*.cpp"
+        "source/lib/*.cpp"
     )
 
     before_build(function (target) 

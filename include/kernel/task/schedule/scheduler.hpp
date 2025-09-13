@@ -10,6 +10,7 @@ struct Scheduler {
     virtual auto schedule( void ) -> Interrupt::IDT::Frame * = 0;
     virtual auto sleep( PCB * ) -> void = 0;
     virtual auto wake_up( PCB * ) -> void = 0;
+    virtual auto insert( PCB * ) -> void = 0;
     // 任务运行队列
     std::cxxvector< PCB * > running_queue;
 

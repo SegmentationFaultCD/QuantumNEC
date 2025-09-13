@@ -125,9 +125,8 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Kernel::syscall = Kernel::syscall->initialize( );
     Driver::initialize_smp( smp_request.response );
     Kernel::module_loader = Kernel::module_loader->initialize( modules_request.response );
+    Interrupt::idt->enable_interrupt( );
     while ( true );
-
-    Interrupt::IDT::enable_interrupt( );
 
     using namespace Memory::Page;
 

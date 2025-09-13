@@ -48,6 +48,9 @@ auto Elf::load_elf_file( uint64_t module_address ) -> FileInformation {
     return file;
 }
 
-auto Elf::check_elf_magic( void *Ehdr ) -> bool {
+auto Elf::check_elf_magic( ElfHeader *Ehdr ) -> bool {
+    if ( Ehdr->e_Magic != ELF_MAGIC )
+        return false;
+    return true;
 }
 }     // namespace Kernel

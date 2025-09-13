@@ -18,9 +18,9 @@ struct PidPool {
     }
 } inline id_pool;
 
-class PCB {
-    friend auto initialize_task( std::uint64_t core ) -> void;
+struct Schedule;
 
+struct PCB {
     constexpr static auto user_stack_size = 8_MB;
     constexpr static auto kernel_stack_size = 4_KB;
 
@@ -41,58 +41,19 @@ class PCB {
 
     std::unique_ptr< Memory::Paging::pmlxt > page_table;
 
+    // 多线程必备(用户线程)
     std::vector< Thread, Memory::KernelHeap::allocator< Thread > > thread_group;
 
-    std::uint64_t cpu;
+    Schedule *schedule;
 
-    Scheduler *hw_scheduler;     // 如果要切换成别的调度器的话就用这个
-
-public:
     explicit PCB( void ) = default;
 
-    explicit PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length ) :
-        name { _name },
-        page_table { new Memory::Paging::pml4t {} }, thread_group { }, PID { id_pool.get( ) } {
-        using namespace Memory;
-        this->page_table->copy( *paging->kernel_page_table );
-        using enum Memory::Page::Type;
-        thread_group.push_back( Thread { } );
-        auto &mthread = thread_group[ 0 ];
-        mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > { }.allocate( this->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
-        mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > { }.allocate( this->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
-        mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack );     // 内核栈栈底
-        std::construct_at( mthread.frame );
-        mthread.frame->cs = GDT::SELECTOR_CODE64_USER;
-        mthread.frame->ss = GDT::SELECTOR_DATA64_USER;
-        mthread.frame->regs.ds = GDT::SELECTOR_DATA64_USER;
-        mthread.frame->regs.es = GDT::SELECTOR_DATA64_USER;
-        mthread.frame->regs.fs = GDT::SELECTOR_DATA64_USER;
-        mthread.frame->regs.gs = GDT::SELECTOR_DATA64_USER;
-        this->page_table->map( (std::uint64_t)entry,
-                               this->TEXT_SEGMENT,
-                               ( text_segment_length + ( 4_KB - 1 ) ) / 4_KB,
-                               this->page_table->PAGE_PRESENT | this->page_table->PAGE_RW_W | this->page_table->PAGE_US_U,
-                               Page::Type::P2Mib );
-        mthread.frame->rip = (void *)entry;
-        this->page_table->map( mthread.user_stack,
-                               this->USER_STACK_START_ADDRESS - this->user_stack_size,
-                               this->user_stack_size / Page::allocator< P2Mib >::__page_size__,
-                               this->page_table->PAGE_PRESENT | this->page_table->PAGE_RW_W | this->page_table->PAGE_US_U | this->page_table->PAGE_XD,
-                               Page::Type::P2Mib );
-        mthread.frame->rsp = USER_STACK_START_ADDRESS;
-        mthread.frame->rflags.IOPL = 0;
-        mthread.frame->rflags.MBS = 1;
-        mthread.frame->rflags.IF = 1;
-        this->cpu = Interrupt::apic.apic_id( );
-        this->running_thread = &mthread;
-
-        this->hw_scheduler = scheduler;
-    }
+    explicit PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length );
     template < typename T >
     auto create( T *entry ) -> void {
     }
 
-    auto schedule( ) {
+    auto schedule_thread( ) {
         return thread_group[ 0 ].frame;
         // 给线程用的
     }
