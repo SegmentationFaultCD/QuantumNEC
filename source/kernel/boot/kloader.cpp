@@ -127,7 +127,6 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Kernel::module_loader = Kernel::module_loader->initialize( modules_request.response );
     Interrupt::idt->enable_interrupt( );
     while ( true );
-
     using namespace Memory::Page;
 
     Memory::Page::allocator< Type::P2Mib > a;

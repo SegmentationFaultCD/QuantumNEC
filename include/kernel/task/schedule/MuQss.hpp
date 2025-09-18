@@ -3,8 +3,8 @@
 #include <kernel/task/schedule/scheduler.hpp>
 #include <kernel/task/task.hpp>
 #include <lib/list.hpp>
+#include <lib/rbtree.hpp>
 #include <lib/skiplist.hpp>
-#include <lib/vector>
 namespace Task {
 class MuQss : public Scheduler {
     friend auto initialize_task( std::uint64_t core ) -> void;
@@ -72,17 +72,17 @@ public:
     // earlier deadline is the key to which task is next chosen for the first and
     // second cases.
 
-    constexpr static double default_prio_ratio = 1.0;     // 静态优先级在时间片计算的权重
+    constexpr static double min_prio_ratio = 1.0;     // 静态优先级在时间片计算的权重
 
     auto get_prio_ratio( std::uint64_t nice ) {
-        auto prio_ratio = this->default_prio_ratio;
+        auto prio_ratio = this->min_prio_ratio;
         for ( auto i = 1; i <= nice - this->min_nice; ++i ) {
             prio_ratio *= 1.1;
         }
         return prio_ratio;
     }
 
-    // VD(Virtual Deadline) 计算公式为 nWWiffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
+    // VD(Virtual Deadline) 计算公式为 niffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
 
     auto get_virtual_deadline( std::uint64_t now_time, double prio_ratio ) {
         return now_time + prio_ratio * this->rr_interval;
@@ -96,21 +96,18 @@ public:
      */
     // PS: niffies可以放hpet里面算
 
-    // dynamic_priority = max(100, min(static_priority - bonus + 5, 102))
-
-    // nice一般会转换成基准优先级
-
-    // RT task是0 ~ 99, 动态优先级就是静态优先级
-
 public:
-    virtual auto schedule( void ) -> Interrupt::IDT::Frame * override;
+    virtual auto schedule( void ) -> void override;
     virtual auto sleep( PCB * ) -> void override;
     virtual auto wake_up( PCB * ) -> void override;
     virtual auto insert( PCB * ) -> void override;
+    virtual auto remove( PCB * ) -> void override;
 
 private:
     // 任务调度队列
-    std::cxxvector< Library::Skiplist< PCB *, 8ul > > scheduler_queue;
+
+    Library::RBTree< std::uint64_t, Library::Skiplist< PCB *, 8ul > > scheduler_queue;
+
     // CPU链表
     // 1                                                            2                       3                       4
     // [0 ,     1,  ···,  100,        101,       102]
@@ -118,9 +115,14 @@ private:
     // 插入任务，哪个队列少就插哪个
 
 public:
-    explicit MuQss( void );
+    explicit MuQss( void ) = default;
+
+public:
+    virtual auto initialize_normal( PCB * ) -> void override;
 };
 struct Schedule : MuQss::ScheduleData {
+    Schedule( PCB *_pcb, Scheduler *_hw_scheduler ) :
+        MuQss::ScheduleData { }, hw_scheduler { _hw_scheduler } {}
     Scheduler *hw_scheduler;     // 如果要切换成别的调度器的话就用这个
 };
 }     // namespace Task

@@ -21,7 +21,7 @@ auto initialize_smp( limine_smp_response *smp ) -> void {
     Interrupt::apic.initialize( false );
     Task::initialize_task( info->processor_id );
     Kernel::syscall->initialize( );
-    // Interrupt::IDT::enable_interrupt( );
+    //    Interrupt::idt->enable_interrupt( );
 
     while ( true );
 }

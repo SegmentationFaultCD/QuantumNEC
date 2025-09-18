@@ -6,9 +6,6 @@
 #include <utility>
 namespace Task {
 
-// 我不知道为什么特么标准库的atomic_flags老是炸
-// 遂决定自己写一个自旋锁
-
 struct s_locks final {
     std::atomic_flag lock;
 
@@ -36,7 +33,7 @@ public:
         return this->lock._M_i;
     }
 
-    auto try_lock( ) {
+    [[clang::always_inline]] auto try_lock( ) {
         return !std::atomic_flag_test_and_set_explicit( &this->lock, std::memory_order::acquire );
     }
 };
@@ -44,44 +41,18 @@ public:
 inline s_locks kernel_thread_lock { };     // be provided for kernel thread
 // user processes should create thier own locks.
 
-template < typename T >
-class spinlock final {
-    std::uint64_t reference_count;
-
+class auto_lock {
 public:
-    spinlock( T &&value, s_locks &_m_lock = kernel_thread_lock ) :
-        m_lock { _m_lock }, value { std::move( value ) } {
-        std::construct_at( &_m_lock );
+    auto_lock( s_locks &l ) :
+        lock { l } {
+        lock.acquire( );
     }
-    template < typename F >
-        requires std::invocable< F, T & >
-    [[clang::always_inline]] auto visit( F visitor ) {
-        if ( !this->reference_count ) {
-            m_lock.acquire( );
-        }
-        this->reference_count++;
-        if constexpr ( std::is_invocable_r_v< void, F, T & > ) {
-            visitor( this->value );
-            this->reference_count--;
-            if ( !this->reference_count ) {
-                m_lock.release( );
-            }
-            return;
-        }
-        else {
-            decltype( auto ) return_value = visitor( this->value );
-            this->reference_count--;
-            if ( !this->reference_count ) {
-                m_lock.release( );
-            }
-            return return_value;
-        }
-        std::unreachable( );
+    ~auto_lock( void ) {
+        lock.release( );
     }
 
 private:
-    T value;
-    s_locks &m_lock;
+    s_locks &lock;
 };
 
 }     // namespace Task

@@ -48,13 +48,19 @@ struct PCB {
 
     explicit PCB( void ) = default;
 
-    explicit PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length );
+    explicit PCB( std::string_view _name, std::uint64_t entry, std::uint64_t text_segment_length );
+
+    auto save_context( Interrupt::IDT::Frame *frame ) -> PCB &;
+    auto get_context( ) {
+        return this->running_thread->frame;
+    }
+
     template < typename T >
     auto create( T *entry ) -> void {
     }
 
-    auto schedule_thread( ) {
-        return thread_group[ 0 ].frame;
+    auto schedule_thread( ) -> PCB & {
+        return *this;
         // 给线程用的
     }
 

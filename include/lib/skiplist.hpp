@@ -5,19 +5,19 @@
 #include <utility>
 namespace Library {
 template < typename T, std::uint64_t MAXLEVEL >
+    requires std::copyable< T >
 class Skiplist {
 public:
     template < class _T, class Ref, class Ptr >
     struct SkiplistIterator;
-    class Node {
+    struct Node {
         friend Skiplist;
 
         template < class _T, class Ref, class Ptr >
         friend struct SkiplistIterator;
 
-    private:
         int64_t key;
-        T      *data;
+        T data;
 
     public:
         Node *forwards[ MAXLEVEL ];
@@ -25,31 +25,31 @@ public:
 
     public:
         Node( ) noexcept :
-            data { nullptr }, key { }, forwards { } {
+            data { }, key { }, forwards { } {
         }
-        Node( T *data, int64_t key ) noexcept :
+        Node( const T &data, int64_t key ) noexcept :
             data { data }, key { key }, forwards { } {
         }
         auto &operator=( const self &node ) {
             this->data = node.data;
-            this->key  = node.key;
+            this->key = node.key;
             for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
                 this->forwards[ i ] = node.forwards[ i ];
             }
             return *this;
         }
         auto *operator->( ) {
-            return data;
+            return &data;
         }
         auto &operator*( ) {
-            return *this->data;
+            return this->data;
         }
         auto &set_key( int64_t _key ) {
             this->key = _key;
             return *this;
         }
-        auto &operator=( T &data ) {
-            this->data = &data;
+        auto &operator=( const T &data ) {
+            this->data = data;
             return *this;
         }
     };
@@ -62,10 +62,10 @@ public:
         }
         // 迭代器解引用：
         Ref operator*( ) {
-            return *_pnode->data;
+            return _pnode->data;
         }
         Ptr operator->( ) {
-            return _pnode->data;
+            return &_pnode->data;
         }
         // 迭代器加加:前置加加
         self operator++( ) {
@@ -73,7 +73,7 @@ public:
             return *this;
         }
         self operator++( int ) {
-            self temp    = *this;
+            self temp = *this;
             this->_pnode = this->_pnode->forwards[ 0 ];
             return temp;
         }
@@ -89,8 +89,8 @@ public:
         bool operator==( const self &s ) const {
             return _pnode == s._pnode;
         }
-        bool operator!=( const self & ) const {
-            return _pnode->forwards[ 0 ];
+        bool operator!=( const self &s ) const {
+            return _pnode->forwards[ 0 ] != s._pnode;
         }
         auto is_empty( ) {
             return !this->_pnode;
@@ -100,7 +100,7 @@ public:
         }
         Node *_pnode;
     };
-    using iterator       = SkiplistIterator< T, T &, T * >;
+    using iterator = SkiplistIterator< T, T &, T * >;
     using const_iterator = const SkiplistIterator< T, T &, T * >;
     auto begin( ) {
         return iterator { head_.forwards[ 0 ]->forwards[ 0 ] };
@@ -116,9 +116,9 @@ public:
     }
 
 public:
-    auto insert( Node &node ) {
+    auto insert( const T &data, std::int64_t key ) {
+        Node *node = new Node { data, key };
         auto level_ = this->get_insert_level( );
-
         Node *s[ MAXLEVEL ] { };
         Node *current { }, *last { };
         for ( auto i = 0; i < MAXLEVEL; ++i ) {
@@ -128,22 +128,23 @@ public:
         current = last = &head_;
 
         for ( auto i = this->level - 1; i >= 0; i-- ) {
-            while ( current->forwards[ i ]->key != std::numeric_limits< int64_t >::max( ) && node.key > current->forwards[ i ]->key ) {
+            while ( current->forwards[ i ]->key != std::numeric_limits< int64_t >::max( ) && node->key > current->forwards[ i ]->key ) {
                 current = current->forwards[ i ];
             }
             s[ i ] = current;
         }
 
         last = current->forwards[ 0 ];
-        if ( last && last->key == node.key ) {
+
+        if ( last && last->key == node->key ) {
             return;
         }
         if ( level_ > this->level ) {
             this->level = level_;
         }
         for ( auto i = 0l; i < this->level; i++ ) {
-            node.forwards[ i ]    = s[ i ]->forwards[ i ];
-            s[ i ]->forwards[ i ] = &node;
+            node->forwards[ i ] = s[ i ]->forwards[ i ];
+            s[ i ]->forwards[ i ] = node;
         }
         this->count++;
     }
@@ -200,35 +201,19 @@ public:
         }
         this->count--;
     }
-    auto remove( Node &node ) {
-        this->remove( node.key );
-    }
+
     Skiplist( ) noexcept :
-        head_ { nullptr, std::numeric_limits< int64_t >::min( ) },
-        first_ { nullptr, std::numeric_limits< int64_t >::min( ) },
-        end_ { nullptr, std::numeric_limits< int64_t >::max( ) }, level { }, count { } {
+        head_ { { }, std::numeric_limits< int64_t >::min( ) },
+        first_ { { }, std::numeric_limits< int64_t >::min( ) },
+        end_ { { }, std::numeric_limits< int64_t >::max( ) }, level { }, count { } {
         for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
-            head_.forwards[ i ]                = &first_;
+            head_.forwards[ i ] = &first_;
             head_.forwards[ i ]->forwards[ i ] = &end_;
         }
     }
     ~Skiplist( ) {
     }
-    auto init( ) {
-        this->head_.data  = nullptr;
-        this->head_.key   = std::numeric_limits< int64_t >::min( );
-        this->first_.data = nullptr;
-        this->first_.key  = std::numeric_limits< int64_t >::min( );
-        this->end_.data   = nullptr;
-        this->end_.key    = std::numeric_limits< int64_t >::max( );
-        this->level       = 0;
-        this->count       = 0;
 
-        for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
-            head_.forwards[ i ]                = &first_;
-            head_.forwards[ i ]->forwards[ i ] = &end_;
-        }
-    }
     auto is_empty( ) {
         return !this->count;
     }
@@ -237,11 +222,12 @@ public:
     }
 
 private:
-    Node     head_, first_, end_;
+    Node head_, first_, end_;
     uint64_t count;
-    int64_t  level;
-    auto     get_insert_level( ) {
-        auto        upcount = 0l;
+    int64_t level;
+
+    auto get_insert_level( ) {
+        auto upcount = 0l;
         static auto _random = 1145ul;
         for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
             auto num = ( _random * ( _random - 1 ) ) % MAXLEVEL;

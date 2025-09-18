@@ -1,5 +1,4 @@
 #pragma once
-#include <concepts>
 #include <cstdint>
 namespace Library {
 // 双向链表
@@ -34,8 +33,8 @@ public:
         }
         auto &operator=( ListNode &node ) {
             this->container = node.container;
-            this->next      = node.next;
-            this->prev      = node.prev;
+            this->next = node.next;
+            this->prev = node.prev;
             return *this;
         }
         auto &operator=( T &data ) {
@@ -61,14 +60,14 @@ public:
     List( void ) noexcept {
         this->_head.prev = nullptr;
         this->_head.next = &this->_end;
-        this->_end.prev  = &this->_head;
-        this->_end.next  = nullptr;
+        this->_end.prev = &this->_head;
+        this->_end.next = nullptr;
     }
 
     ~List( void ) noexcept = default;
     auto &operator=( List &lt ) {
         this->_head = lt._head;
-        this->_end  = lt._end;
+        this->_end = lt._end;
         return *this;
     }
 
@@ -93,7 +92,7 @@ public:
             return *this;
         }
         self operator++( int ) {
-            self temp    = *this;
+            self temp = *this;
             this->_pnode = this->_pnode->next;
             return temp;
         }
@@ -102,7 +101,7 @@ public:
             return *this;
         }
         self operator--( int ) {
-            self temp    = *this;
+            self temp = *this;
             this->_pnode = this->_pnode->prev;
             return temp;
         }
@@ -115,7 +114,7 @@ public:
         }
         Node *_pnode;
     };
-    using iterator       = ListIterator< T, T &, T * >;
+    using iterator = ListIterator< T, T &, T * >;
     using const_iterator = const ListIterator< T, T &, T * >;
     auto end( ) {
         return iterator { &_end };
@@ -196,9 +195,9 @@ public:
     }
     auto insert( Node *node, Node *in_before ) {
         in_before->prev->next = node;
-        node->prev            = in_before->prev;
-        node->next            = in_before;
-        in_before->prev       = node;
+        node->prev = in_before->prev;
+        node->next = in_before;
+        in_before->prev = node;
     };
     auto back( void ) {
         return this->_end.prev;

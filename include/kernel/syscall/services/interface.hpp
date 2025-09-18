@@ -3,10 +3,9 @@
 namespace Kernel {
 class Servicer {
 public:
-    auto enable( ) {
-    }
-    auto disable( ) {
-    }
+    auto enable( ) -> void;
+    auto disable( ) -> void;
+
     Servicer( Task::PCB *pcb ) :
         service { pcb } {}
 

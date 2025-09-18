@@ -72,6 +72,7 @@ private:
 
 public:
     constexpr static auto cache_size_count = sizeof( cache_size ) / sizeof( uint64_t );
+    inline static Task::s_locks kheap_lock { };
 
 public:
     allocator( void ) noexcept {}
@@ -99,6 +100,10 @@ public:
 
 public:
     virtual auto allocate( size_type size ) -> T * override {
+        Task::auto_lock lock { this->kheap_lock };
+        return this->_allocate( size );
+    }
+    virtual auto _allocate( size_type size ) -> T * {
         using namespace Memory::Page;
         if constexpr ( !std::is_void_v< T > ) {
             size *= sizeof( T );
@@ -125,7 +130,7 @@ public:
             }
             else {
                 if ( slab = [ &page_allocator, &slab_cache, this ] -> Slab * {
-                         auto page = page_allocator.allocate( 1 );
+                         auto page = page_allocator._allocate( 1 );
 
                          if ( !page ) {
                              return nullptr;
@@ -163,12 +168,12 @@ public:
                          case 262144:
                          case 524288:
                          case 1048576: {
-                             slab = (Slab *)this->allocate( sizeof( Slab ) );
+                             slab = (Slab *)this->_allocate( sizeof( Slab ) );
                              slab->free_count = page_allocator.__page_size__ / slab_cache->size;
                              slab->using_count = 0;
                              slab->color_count = slab->free_count;
                              slab->color_length = ( ( slab->color_count + sizeof( uint64_t ) * 8 - 1 ) >> 6 ) << 3;
-                             slab->color_map = (uint64_t *)this->allocate( slab->color_length );
+                             slab->color_map = (uint64_t *)this->_allocate( slab->color_length );
                              slab->virtual_address = (void *)physical_to_virtual( page );
                              slab->page = (void *)page;
                              std::construct_at( &slab->list );
@@ -178,7 +183,7 @@ public:
                              };
                          } break;
                          default:
-                             page_allocator.deallocate( page, 1 );
+                             page_allocator._deallocate( page, 1 );
 
                              return nullptr;
                          }
@@ -214,8 +219,11 @@ public:
 
         return nullptr;
     }
-
     virtual auto deallocate( const T *address, [[maybe_unused]] size_type size = 0 ) -> void override {
+        Task::auto_lock lock { this->kheap_lock };
+        this->_deallocate( address, size );
+    }
+    virtual auto _deallocate( const T *address, [[maybe_unused]] size_type size = 0 ) -> void {
         using namespace Memory::Page;
         auto page_base_address = Page::allocator< Type::P2Mib >::__page_base__( address );
 
@@ -239,14 +247,14 @@ public:
                 case 512:
                     slab_cache->pool_list.remove( slab->list );
                     slab_cache->total_free -= slab->color_count;
-                    allocator_traits< decltype( page_allocator ) >::deallocate( page_allocator, slab->page, 1 );
+                    page_allocator._deallocate( slab->page, 1 );
                     break;
                 default:
                     slab_cache->pool_list.remove( slab->list );
                     slab_cache->total_free -= slab->color_count;
-                    allocator< uint64_t > { }.deallocate( slab->color_map, slab->color_count );
-                    page_allocator.deallocate( slab->page, 1 );
-                    allocator< Slab > { }.deallocate( slab, slab->color_count );
+                    allocator< uint64_t > { }._deallocate( slab->color_map, slab->color_count );
+                    page_allocator._deallocate( slab->page, 1 );
+                    allocator< Slab > { }._deallocate( slab, slab->color_count );
                     break;
                 }
             }
@@ -254,4 +262,11 @@ public:
     }
 };
 
+inline auto _kheap_allocator_nolock( std::size_t size ) -> void * {
+    return allocator< char > { }._allocate( size );
+}
+
+inline auto _kheap_deallocator_nolock( const void *address, [[maybe_unused]] std::size_t size ) -> void {
+    return allocator< char > { }._deallocate( (char *)address, size );
+}
 }     // namespace Memory::KernelHeap

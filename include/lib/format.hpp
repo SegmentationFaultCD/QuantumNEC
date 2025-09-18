@@ -319,7 +319,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> std::cxxst
 }
 
 template < typename... Args >
-auto format( fmt::format_string< Args... > fmt, Args... args ) -> std::cxxstring {
-    return Library::vformat( fmt.get( ).data( ), fmt::make_format_args( args... ) );
+auto format( fmt::format_string< Args... > fmt, Args &&...args ) -> std::cxxstring {
+    return Library::vformat( fmt.get( ).data( ), fmt::make_format_args( ( args )... ) );
 }
 }     // namespace Library

@@ -19,12 +19,9 @@ auto Loader::initialize( limine_module_response *modules ) -> Loader * {
             info.loadsegment_start,
             info.loadsegment_end - info.loadsegment_start }
     };
-
-    // 严格意义来说不算是模块
-
-    
-
     syscall->register_syscall( 1, fs_interface );
+    fs_interface->enable( );
+    // 严格意义来说不算是模块
 
     return &loader;
 }

@@ -4,10 +4,8 @@
 #include <kernel/task/task.hpp>
 namespace Task {
 auto initialize_task( std::uint64_t core ) -> void {
-    kernel_thread_lock.acquire( );
     auto main = new PCB;
     main->name.append( Library::format( "init{}", core ) );
-    kernel_thread_lock.release( );
 
     main->PID = id_pool.get( );
     main->thread_group.push_back( PCB::Thread { } );
@@ -15,25 +13,24 @@ auto initialize_task( std::uint64_t core ) -> void {
     using namespace Memory;
     using enum Memory::Page::Type;
 
-    kernel_thread_lock.acquire( );
     mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > { }.allocate( main->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
     mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > { }.allocate( main->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
-    kernel_thread_lock.release( );
 
     mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack );
 
     std::construct_at( mthread.frame );
     main->running_thread = &mthread;
     main->page_table = nullptr;     // 为空说明默认使用内核页表
-
-    main->schedule = new Schedule;
-    main->schedule->hw_scheduler = scheduler;
+    main->schedule = new Schedule { main, scheduler };
+    main->schedule->hw_scheduler->initialize_normal( main );
 
     kernel_thread_lock.acquire( );
-    main->schedule->hw_scheduler->running_queue.push_back( { } );
+    auto &cpu = main->schedule->hw_scheduler->running_queue[ Interrupt::apic.apic_id( ) ];
+    cpu = Scheduler::CPU { main };
+    cpu.cpu_id = Interrupt::apic.apic_id( );
     kernel_thread_lock.release( );
 }
-PCB::PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length ) :
+PCB::PCB( std::string_view _name, std::uint64_t entry, std::uint64_t text_segment_length ) :
     name { _name },
     page_table { new Memory::Paging::pml4t {} }, thread_group { }, PID { id_pool.get( ) } {
     using namespace Memory;
@@ -66,10 +63,11 @@ PCB::PCB( std::string_view _name, auto entry, std::uint64_t text_segment_length 
     mthread.frame->rflags.IOPL = 0;
     mthread.frame->rflags.MBS = 1;
     mthread.frame->rflags.IF = 1;
-
     this->running_thread = &mthread;
-
-    this->schedule = new Schedule;
-    this->schedule->hw_scheduler = scheduler;
+    this->schedule = new Schedule { this, scheduler };
+}
+auto PCB::save_context( Interrupt::IDT::Frame *frame ) -> PCB & {
+    *this->running_thread->frame = *frame;
+    return *this;
 }
 }     // namespace Task

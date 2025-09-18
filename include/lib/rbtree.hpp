@@ -5,7 +5,7 @@
 #include <utility>
 namespace Library {
 template < typename K, typename T >
-    requires std::move_constructible< T > && std::default_initializable< T > && std::totally_ordered< K >
+    requires std::totally_ordered< K > && std::copyable< T >
 class RBTree {
     enum Color : uint64_t {
         RED,
@@ -13,28 +13,40 @@ class RBTree {
     };
 
 public:
-    struct RBTreeNode {
-        template < typename, typename >
-        friend class _rb_tree;
+    class RBTreeNode {
+    public:
+        template < typename _K, typename _T >
+            requires std::totally_ordered< _K > && std::copyable< _T >
+        friend class RBTree;
         template < typename, typename, typename >
         friend class _RBTree_Iterator;
-        RBTreeNode( )                    = default;
+        template < typename, typename, typename >
+        friend class _RBTree_reverse_iterator;
+        RBTreeNode( ) = default;
         RBTreeNode( const RBTreeNode & ) = default;
-
-        RBTreeNode( const K &key, const T &data = T { } ) :
+        RBTreeNode( const K &key ) :
+            _key { key }, _data { } {}
+        RBTreeNode( const K &key, const T &data ) :
             _key { key }, _data { data } {}
-        T           _data;
-        K           _key;
-        Color       _col    = RED;
+
         RBTreeNode *_parent = nullptr;
-        RBTreeNode *_left   = nullptr;
-        RBTreeNode *_right  = nullptr;
-        auto       &data( ) {
+        RBTreeNode *_left = nullptr;
+        RBTreeNode *_right = nullptr;
+        auto &operator=( T &&data_ ) {
+            this->_data = data_;
+            return *this;
+        }
+        auto &data( ) {
             return this->_data;
         }
         auto &key( ) {
             return this->_key;
         }
+
+    private:
+        T _data;
+        K _key;
+        Color _col = RED;
     };
     using Node = RBTreeNode;
     template < typename _T, typename Ptr, typename Ref >
@@ -66,7 +78,7 @@ public:
             else {
                 Node *parent = cur->_parent;
                 while ( parent != nullptr && cur == parent->_right ) {
-                    cur    = cur->_parent;
+                    cur = cur->_parent;
                     parent = parent->_parent;
                 }
                 _cur = parent;
@@ -86,7 +98,7 @@ public:
             else {
                 Node *parent = cur->_parent;
                 while ( parent != nullptr && cur == parent->_left ) {
-                    cur    = cur->_parent;
+                    cur = cur->_parent;
                     parent = parent->_parent;
                 }
                 _cur = parent;
@@ -154,6 +166,12 @@ public:
     };
 
 public:
+    using iterator = _RBTree_Iterator< T, const T *, const T & >;
+    using const_iterator = _RBTree_Iterator< T, const T *, const T & >;
+    using reverse_iterator = _RBTree_reverse_iterator< iterator, const T *, const T & >;
+    using const_reverse_iterator = _RBTree_reverse_iterator< const_iterator, const T *, const T & >;
+
+public:
     bool Is_balance( ) {
         if ( _root == nullptr )
             return true;
@@ -161,8 +179,8 @@ public:
         if ( _root->_col != BLACK )
             return false;
 
-        auto cur      = _root;
-        int  numBlack = 0, count = 0;
+        auto cur = _root;
+        int numBlack = 0, count = 0;
         while ( cur != nullptr ) {
             if ( cur->_col == BLACK )
                 ++numBlack;
@@ -186,12 +204,6 @@ public:
         }
         return _Is_balance( root->_left, k, countBlack ) && _Is_balance( root->_right, k, countBlack );
     }
-
-public:
-    using iterator               = _RBTree_Iterator< T, const T *, const T & >;
-    using const_iterator         = _RBTree_Iterator< T, const T *, const T & >;
-    using reverse_iterator       = _RBTree_reverse_iterator< iterator, const T *, const T & >;
-    using const_reverse_iterator = _RBTree_reverse_iterator< const_iterator, const T *, const T & >;
 
     auto begin( ) {
         auto cur = _root;
@@ -263,7 +275,7 @@ public:
             _root->_col = BLACK;
             return { iterator { _root, _root }, true };
         }
-        Node *cur    = _root;
+        Node *cur = _root;
         Node *parent = nullptr;
         while ( cur != nullptr ) {
             parent = cur;
@@ -274,7 +286,7 @@ public:
             else
                 return { iterator { cur, _root }, false };
         }
-        auto newnode     = &node;
+        auto newnode = &node;
         newnode->_parent = parent;
         if ( parent->key( ) <=> node.key( ) == std::strong_ordering::less )
             parent->_right = newnode;
@@ -282,17 +294,17 @@ public:
             parent->_left = newnode;
         cur = newnode;
         while ( ( parent != nullptr && parent != _root ) && parent->_col == RED ) {
-            auto  grandfather = parent->_parent;
-            Node *uncle       = nullptr;
+            auto grandfather = parent->_parent;
+            Node *uncle = nullptr;
             if ( parent == grandfather->_right )
                 uncle = grandfather->_left;
             else
                 uncle = grandfather->_right;
             if ( uncle != nullptr && uncle->_col == RED ) {
                 uncle->_col = parent->_col = BLACK;
-                grandfather->_col          = RED;
-                cur                        = grandfather;
-                parent                     = cur->_parent;
+                grandfather->_col = RED;
+                cur = grandfather;
+                parent = cur->_parent;
             }
             else {
                 if ( parent == grandfather->_left ) {
@@ -314,6 +326,15 @@ public:
         _root->_col = BLACK;
         return { iterator { newnode, _root }, true };
     }
+    auto operator[]( std::uint64_t key ) -> T & {
+        if ( auto node = this->find( key ); node ) {
+            return *node;
+        }
+        auto new_node = new Node { key };
+        this->insert( *new_node );
+        return new_node->_data;
+    }
+
     auto erase( const K &key ) {
         auto cur = _root;
         while ( cur != nullptr ) {
@@ -330,7 +351,7 @@ public:
                         break;
                     }
                     if ( cur->_right != nullptr ) {
-                        auto parent          = cur->_parent;
+                        auto parent = cur->_parent;
                         cur->_right->_parent = parent;
                         if ( cur == parent->_right )
                             parent->_right = cur->_right;
@@ -366,7 +387,7 @@ public:
                         break;
                     }
                     if ( cur->_left != nullptr ) {
-                        auto parent         = cur->_parent;
+                        auto parent = cur->_parent;
                         cur->_left->_parent = parent;
                         if ( cur == parent->_right )
                             parent->_right = cur->_left;
@@ -400,7 +421,7 @@ public:
 
                     cur->data( ) = rightMin->data( );
                     if ( rightMin->_left != nullptr ) {
-                        auto parent              = rightMin->_parent;
+                        auto parent = rightMin->_parent;
                         rightMin->_left->_parent = parent;
                         if ( rightMin == parent->_right )
                             parent->_right = rightMin->_left;
@@ -436,7 +457,7 @@ private:
     auto DeleteFixUp( Node *node ) {
         auto dbl_black = node;
         while ( dbl_black != _root && ( dbl_black != nullptr && dbl_black->_col != RED ) ) {
-            auto  parent  = dbl_black->_parent;
+            auto parent = dbl_black->_parent;
             Node *sibling = nullptr;
             if ( dbl_black == parent->_left )
                 sibling = parent->_right;
@@ -444,41 +465,41 @@ private:
                 sibling = parent->_left;
 
             if ( sibling->_col == RED ) {
-                Color parentColor  = parent->_col;
+                Color parentColor = parent->_col;
                 Color siblingColor = sibling->_col;
                 if ( sibling == parent->_left )
                     RotateR( parent );
                 else
                     RotateL( parent );
 
-                parent->_col  = siblingColor;
+                parent->_col = siblingColor;
                 sibling->_col = parentColor;
             }
             else {
                 if ( ( sibling->_left == nullptr || sibling->_left->_col == BLACK ) && ( sibling->_right == nullptr || sibling->_right->_col == BLACK ) ) {
                     sibling->_col = RED;
-                    dbl_black     = parent;
+                    dbl_black = parent;
                 }
                 else if ( sibling->_left != nullptr && sibling->_left->_col == RED ) {
                     if ( sibling == parent->_left ) {
                         auto sibLeft = sibling->_left;
 
                         Color siblingColor = sibling->_col;
-                        Color parentColor  = parent->_col;
+                        Color parentColor = parent->_col;
                         RotateR( parent );
                         sibLeft->_col = siblingColor;
                         sibling->_col = parentColor;
-                        parent->_col  = BLACK;
+                        parent->_col = BLACK;
                     }
                     else {
                         auto sibLeft = sibling->_left;
 
                         Color siblingColor = sibling->_col;
-                        Color parentColor  = parent->_col;
+                        Color parentColor = parent->_col;
                         RotateRL( parent );
                         sibLeft->_col = parentColor;
                         sibling->_col = siblingColor;
-                        parent->_col  = BLACK;
+                        parent->_col = BLACK;
                     }
                     break;
                 }
@@ -487,21 +508,21 @@ private:
                         auto sibRight = sibling->_right;
 
                         Color siblingColor = sibling->_col;
-                        Color parentColor  = parent->_col;
+                        Color parentColor = parent->_col;
                         RotateL( parent );
                         sibRight->_col = siblingColor;
-                        sibling->_col  = parentColor;
-                        parent->_col   = BLACK;
+                        sibling->_col = parentColor;
+                        parent->_col = BLACK;
                     }
                     else {
                         auto sibRight = sibling->_right;
 
                         Color siblingColor = sibling->_col;
-                        Color parentColor  = parent->_col;
+                        Color parentColor = parent->_col;
                         RotateLR( parent );
                         sibRight->_col = parentColor;
-                        sibling->_col  = siblingColor;
-                        parent->_col   = BLACK;
+                        sibling->_col = siblingColor;
+                        parent->_col = BLACK;
                     }
                     break;
                 }
@@ -516,11 +537,11 @@ private:
     }
 
     auto RotateR( Node *parent ) {
-        auto SubL   = parent->_left;
+        auto SubL = parent->_left;
         auto ppnode = parent->_parent;
 
         parent->_parent = SubL;
-        parent->_left   = SubL->_right;
+        parent->_left = SubL->_right;
         if ( SubL->_right != nullptr )
             SubL->_right->_parent = parent;
 
@@ -535,15 +556,15 @@ private:
         }
 
         SubL->_parent = ppnode;
-        parent->_col  = RED;
-        SubL->_col    = BLACK;
+        parent->_col = RED;
+        SubL->_col = BLACK;
     }
     auto RotateL( Node *parent ) {
-        auto SubR   = parent->_right;
+        auto SubR = parent->_right;
         auto ppnode = parent->_parent;
 
         parent->_parent = SubR;
-        parent->_right  = SubR->_left;
+        parent->_right = SubR->_left;
         if ( SubR->_left != nullptr )
             SubR->_left->_parent = parent;
 
@@ -558,8 +579,8 @@ private:
         }
 
         SubR->_parent = ppnode;
-        parent->_col  = RED;
-        SubR->_col    = BLACK;
+        parent->_col = RED;
+        SubR->_col = BLACK;
     }
     auto RotateLR( Node *parent ) {
         auto SubL = parent->_left;

@@ -4,6 +4,9 @@
 #include <kernel/interrupt/apic.hpp>
 #include <kernel/interrupt/entry.hpp>
 #include <kernel/interrupt/hpet.hpp>
+#include <kernel/task/schedule/MuQss.hpp>
+#include <kernel/task/schedule/scheduler.hpp>
+#include <kernel/task/task.hpp>
 namespace Interrupt {
 
 auto Apic::write( std::uint32_t index, std::uint32_t reg, std::uint64_t value ) -> void {
@@ -106,8 +109,9 @@ class Clock : public GeneralInterruptHandle {
     }
     virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
         apic.eoi( );
-        
-        return frame;
+        auto &queue = Task::scheduler->running_queue[ Interrupt::apic.apic_id( ) ];
+        queue.running_task->save_context( frame ).schedule_thread( ).schedule->hw_scheduler->schedule( );
+        return queue.running_task->get_context( );
     }
 } clock;
 class ApicError : public GeneralInterruptHandle {

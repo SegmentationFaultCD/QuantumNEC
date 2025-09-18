@@ -6,6 +6,7 @@
 #include <lib/rbtree.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
+
 namespace {
 consteval auto operator""_KB( unsigned long long size ) {
     return size * 1024ul;
@@ -17,6 +18,11 @@ consteval auto operator""_GB( unsigned long long size ) {
     return size * 1024_MB;
 }
 }     // namespace
+namespace Memory::KernelHeap {
+inline auto _kheap_allocator_nolock( std::size_t size ) -> void *;
+inline auto _kheap_deallocator_nolock( const void *address, [[maybe_unused]] std::size_t size = 0 ) -> void;
+
+}     // namespace Memory::KernelHeap
 namespace Memory::Page {
 
 auto initialize( limine_memmap_response *map ) -> void;
@@ -105,7 +111,9 @@ public:
     virtual ~allocator( void ) {}
 
 public:
-    virtual auto allocate( std::size_t page_count ) -> pointer override {
+    // _ 为 无锁版本
+
+    virtual auto _allocate( std::size_t page_count ) -> pointer {
         if ( page_count == 0 ) {
             return nullptr;
         }
@@ -179,12 +187,13 @@ public:
         // 这时理应开辟新zones
 
         auto number_of_zone = ( page_count + page_descriptor_count - 1 ) / page_descriptor_count;
-        auto new_zones = new zone[ number_of_zone ] { };
+        auto new_zones = (zone *)KernelHeap::_kheap_allocator_nolock( sizeof( zone ) * number_of_zone );
+        std::construct_at( new_zones );
 
         std::uint64_t bases = 0;
         if constexpr ( page_type != Type::P1Gib ) {
             using Above = allocator< Type( std::to_underlying( page_type ) + 1ul ) >;
-            bases = reinterpret_cast< std::uint64_t >( Above { }.allocate( number_of_zone * this->__page_size__ * page_descriptor_count / Above::__page_size__ ) );
+            bases = reinterpret_cast< std::uint64_t >( Above { }._allocate( number_of_zone * this->__page_size__ * page_descriptor_count / Above::__page_size__ ) );
         }
         else {
             bases = this->global_memory_mark;
@@ -211,7 +220,11 @@ public:
         new_zones[ 0 ].owner = nullptr;
         return reinterpret_cast< pointer >( new_zones[ 0 ].base );
     }
-    virtual auto deallocate( const_pointer address, std::size_t page_count ) -> void override {
+    virtual auto allocate( std::size_t page_count ) -> pointer override {
+        Task::auto_lock lock { this->page_lock };
+        return this->_allocate( page_count );
+    }
+    virtual auto _deallocate( const_pointer address, std::size_t page_count ) -> void {
         auto base = reinterpret_cast< std::uint64_t >( address ) & __zone_memory_mask__( );
 
         auto node = zone_tree.find( base );
@@ -241,6 +254,10 @@ public:
 
         return;
     }
+    virtual auto deallocate( const_pointer address, std::size_t page_count ) -> void override {
+        Task::auto_lock lock { this->page_lock };
+        this->_deallocate( address, page_count );
+    }
 
 private:
     inline static Library::RBTree< std::uint64_t, zone * > zone_trees[ 3 ] { };
@@ -250,6 +267,8 @@ private:
     inline static auto free_memory_total = 0ul;
     inline static auto all_memory_total = 0ul;
     inline static auto global_memory_mark = 0ul;
+
+    inline static Task::s_locks page_lock { };
 };
 
 }     // namespace Memory::Page
