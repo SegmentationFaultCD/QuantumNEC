@@ -8,31 +8,32 @@ auto MuQss::schedule( void ) -> void {
     // O(1)
 
     auto running_task = this->running_queue[ Interrupt::apic.apic_id( ) ].running_task;
+
     auto sched = running_task->schedule;
     if ( !sched->time_slice ) {
         // 时间片耗尽的情况
 
         sched->time_slice = this->rr_interval;
         sched->virtual_deadline = this->get_virtual_deadline( Interrupt::hpet->nano_time( ), this->get_prio_ratio( sched->nice ) );
-        auto &running_queue = this->running_queue[ sched->cpu ];
-
-        running_queue.lock->acquire( );
-
-        // this->scheduler_queue[ sched->cpu ].insert( running_task, sched->virtual_deadline );
-        while ( true );
-        running_queue.lock->release( );
 
         auto best = *this->scheduler_queue[ Interrupt::apic.apic_id( ) ].begin( );
-
+        bool locked = false;
+        s_locks* nlock;
         for ( auto &cpu : this->running_queue ) {
             if ( !cpu.lock->try_lock( ) ) {
                 continue;
             };
+            locked = true;
 
             auto &schedule_queue = this->scheduler_queue[ cpu.cpu_id ];
             auto p = *schedule_queue.begin( );
 
             if ( best == p ) {
+                cpu.lock->release( );
+                continue;
+            }
+            if ( !p ) {
+                cpu.lock->release( );
                 continue;
             }
 
@@ -40,6 +41,7 @@ auto MuQss::schedule( void ) -> void {
                 best = p;
             }
             else {
+                cpu.lock->release( );
                 continue;
             }
 
@@ -51,6 +53,17 @@ auto MuQss::schedule( void ) -> void {
 
             cpu.lock->release( );
         }
+   
+
+        Display::println( "{}", best->name.c_str( ) );
+        while ( true );
+        auto &running_queue = this->running_queue[ sched->cpu ];
+
+        running_queue.lock->acquire( );
+
+        // this->scheduler_queue[ sched->cpu ].insert( running_task, sched->virtual_deadline );
+        while ( true );
+        running_queue.lock->release( );
     }
     else {
         Display::println( "??? {}", Interrupt::apic.apic_id( ) );
@@ -65,11 +78,10 @@ auto MuQss::insert( PCB *pcb ) -> void {
     this->initialize_normal( pcb );
     auto sched = pcb->schedule;
 
-    this->running_queue[ sched->cpu ].lock->acquire( );
+    // this->running_queue[ sched->cpu ].lock->acquire( );
     this->scheduler_queue[ sched->cpu ].insert( pcb, sched->virtual_deadline );
-    Display::println( "{:x} {}", sched->virtual_deadline, (void *)this->scheduler_queue[ sched->cpu ].begin( )._pnode->data );
-    Display::println( "{:x} {}", sched->virtual_deadline, (void *)( this->scheduler_queue[ sched->cpu ].search( sched->virtual_deadline )._pnode ) );
-    this->running_queue.find( sched->cpu )->lock->release( );
+
+    // this->running_queue.find( sched->cpu )->lock->release( );
 }
 auto MuQss::initialize_normal( PCB *pcb ) -> void {
     auto sched = pcb->schedule;

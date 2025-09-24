@@ -186,7 +186,7 @@ auto parse_format_spac( auto &&arg, std::string_view fmt ) -> std::cxxstring {
     escape_appear = ( fmt[ i ] == '?' );
     std::cxxstring data;
 
-    using T = std::remove_reference_t< decltype( arg ) >;
+    using T = decltype( auto( arg ) );
     if constexpr ( std::is_same_v< T, char > || std::is_same_v< T, const char * > ) {
         data += arg;     // todo 转义字符打印
         return data;
@@ -295,9 +295,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> std::cxxst
             }
 
             args.get( stol( arg_id.c_str( ) ) ).visit( [ & ]( auto data ) {
-                using T = decltype( data );
-
-                formatter< T > fmt;
+                formatter< decltype( auto { data } ) > fmt;
                 formatted_string.append_range( fmt.format( data, fmt.parse( format_spec ) ) );
             } );
 
