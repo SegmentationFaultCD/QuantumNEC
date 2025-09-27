@@ -1,7 +1,9 @@
+#include <algorithm>
 #include <kernel/interrupt/apic.hpp>
 #include <kernel/interrupt/hpet.hpp>
 #include <kernel/task/schedule/MuQss.hpp>
 #include <kernel/task/task.hpp>
+#include <lib/vector>
 namespace Task {
 
 auto MuQss::schedule( void ) -> void {
@@ -16,46 +18,38 @@ auto MuQss::schedule( void ) -> void {
         sched->time_slice = this->rr_interval;
         sched->virtual_deadline = this->get_virtual_deadline( Interrupt::hpet->nano_time( ), this->get_prio_ratio( sched->nice ) );
 
-        auto best = *this->scheduler_queue[ Interrupt::apic.apic_id( ) ].begin( );
-        bool locked = false;
-        s_locks* nlock;
+        using T = std::pair< std::uint64_t, PCB * >;
+        std::cxxvector< T > sq;
+
         for ( auto &cpu : this->running_queue ) {
-            if ( !cpu.lock->try_lock( ) ) {
-                continue;
-            };
-            locked = true;
-
-            auto &schedule_queue = this->scheduler_queue[ cpu.cpu_id ];
-            auto p = *schedule_queue.begin( );
-
-            if ( best == p ) {
-                cpu.lock->release( );
-                continue;
-            }
-            if ( !p ) {
-                cpu.lock->release( );
-                continue;
-            }
-
-            if ( p->schedule->virtual_deadline < best->schedule->virtual_deadline ) {
-                best = p;
-            }
-            else {
-                cpu.lock->release( );
-                continue;
-            }
-
-            best->schedule->cpu = Interrupt::apic.apic_id( );
-
-            schedule_queue.remove( best->schedule->virtual_deadline );
-
-            this->running_queue[ best->schedule->cpu ].running_task = best;
-
-            cpu.lock->release( );
+            sq.emplace_back( std::pair { cpu.cpu_id, *this->scheduler_queue[ cpu.cpu_id ].begin( ) } );
         }
-   
 
-        Display::println( "{}", best->name.c_str( ) );
+        std::ranges::sort( sq, []( const T &a, const T &b ) { return a.second->schedule->virtual_deadline > b.second->schedule->virtual_deadline; } );
+
+        T p;
+        s_locks *lock;
+
+        for ( auto &i : sq ) {
+            if ( lock = running_queue[ i.first ].lock; lock->try_lock( ) ) {
+                auto p = i.second;
+                this->scheduler_queue[ i.first ].remove( p->schedule->virtual_deadline );
+                p->schedule->cpu = Interrupt::apic.apic_id( );
+                this->running_queue[ p->schedule->cpu ].running_task = p;
+                lock->release( );
+                break;
+            }
+            lock = nullptr;
+        }
+
+        // 必然得到一个()
+
+        // 尝试给每个队列上锁
+
+        // 取头部
+
+        // 必然有一个队列未上锁
+
         while ( true );
         auto &running_queue = this->running_queue[ sched->cpu ];
 
