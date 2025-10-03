@@ -1,7 +1,6 @@
-#include <module/filesystem/fs_servicer.hpp>
-
-namespace Module {
-auto filesystem_servicer( void ) -> void {
+extern "C" int main( void ) {
+    int i = 0;
+    int j = i + 1;
     while ( true );
+    return 0;
 }
-}     // namespace Module

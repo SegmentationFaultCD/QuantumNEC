@@ -4,7 +4,7 @@
 #include <kernel/task/task.hpp>
 namespace Task {
 auto initialize_task( std::uint64_t core ) -> void {
-    auto main = new PCB;
+    auto main = new PCB { };
     main->name.append( Library::format( "init{}", core ) );
 
     main->PID = id_pool.get( );
@@ -30,7 +30,7 @@ auto initialize_task( std::uint64_t core ) -> void {
     cpu.cpu_id = Interrupt::apic.apic_id( );
     kernel_thread_lock.release( );
 }
-PCB::PCB( std::string_view _name, std::uint64_t entry, std::uint64_t text_segment_length ) :
+PCB::PCB( std::string_view _name, std::uint64_t entry_offset, std::uint64_t text_physical, std::uint64_t text_segment_length ) :
     name { _name },
     page_table { new Memory::Paging::pml4t {} }, thread_group { }, PID { id_pool.get( ) } {
     using namespace Memory;
@@ -40,7 +40,7 @@ PCB::PCB( std::string_view _name, std::uint64_t entry, std::uint64_t text_segmen
     auto &mthread = thread_group[ 0 ];
     mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > { }.allocate( this->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
     mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > { }.allocate( this->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
-    mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack );     // 内核栈栈底
+    mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack + this->kernel_stack_size - sizeof( Interrupt::IDT::Frame ) );     // 内核栈栈底
     std::construct_at( mthread.frame );
     mthread.frame->cs = GDT::SELECTOR_CODE64_USER;
     mthread.frame->ss = GDT::SELECTOR_DATA64_USER;
@@ -48,26 +48,35 @@ PCB::PCB( std::string_view _name, std::uint64_t entry, std::uint64_t text_segmen
     mthread.frame->regs.es = GDT::SELECTOR_DATA64_USER;
     mthread.frame->regs.fs = GDT::SELECTOR_DATA64_USER;
     mthread.frame->regs.gs = GDT::SELECTOR_DATA64_USER;
-    this->page_table->map( (std::uint64_t)entry,
+
+    this->page_table->map( (std::uint64_t)text_physical,
                            this->TEXT_SEGMENT,
                            ( text_segment_length + ( 4_KB - 1 ) ) / 4_KB,
                            this->page_table->PAGE_PRESENT | this->page_table->PAGE_RW_W | this->page_table->PAGE_US_U,
-                           Page::Type::P2Mib );
-    mthread.frame->rip = (void *)entry;
+                           Page::Type::P4Kib );
+
+    mthread.frame->rip = (void *)( TEXT_SEGMENT + entry_offset );
+
     this->page_table->map( mthread.user_stack,
-                           this->USER_STACK_START_ADDRESS - this->user_stack_size,
+                           this->USER_STACK_TOP - this->user_stack_size,
                            this->user_stack_size / Page::allocator< P2Mib >::__page_size__,
-                           this->page_table->PAGE_PRESENT | this->page_table->PAGE_RW_W | this->page_table->PAGE_US_U | this->page_table->PAGE_XD,
+                           this->page_table->PAGE_PRESENT | this->page_table->PAGE_RW_W | this->page_table->PAGE_US_U,
                            Page::Type::P2Mib );
-    mthread.frame->rsp = USER_STACK_START_ADDRESS;
+
+    mthread.frame->rsp = USER_STACK_TOP - 1;
     mthread.frame->rflags.IOPL = 0;
     mthread.frame->rflags.MBS = 1;
     mthread.frame->rflags.IF = 1;
+
     this->running_thread = &mthread;
     this->schedule = new Schedule { this, scheduler };
 }
 auto PCB::save_context( Interrupt::IDT::Frame *frame ) -> PCB & {
     *this->running_thread->frame = *frame;
     return *this;
+}
+auto PCB::activate( void ) -> void {
+    Memory::gdt->get_tss( this->schedule->cpu ).set_kstack( (std::uint64_t)Memory::physical_to_virtual( this->running_thread->kernel_stack + this->kernel_stack_size ) );
+    this->page_table->activate( );
 }
 }     // namespace Task

@@ -69,10 +69,9 @@ auto Paging::pmlxt::map( uint64_t physics_address, uint64_t virtual_address, uin
                 table = { index,
                           physics_address,
                           flags | table.is_huge( mode ) };
+                Driver::IO::invlpg( reinterpret_cast< void * >( virtual_address ) );
                 physics_address += table.check_page_size( mode );
                 virtual_address += table.check_page_size( mode );
-
-                Driver::IO::invlpg( reinterpret_cast< void * >( virtual_address ) );
 
                 return;
             }
@@ -142,11 +141,13 @@ auto Paging::pmlxt::find_physcial_address( std::uint64_t virtual_address, Page::
             return nullptr;
         }
         if ( !level ) {
+            Display::println( "{:x} end", table.get( )[ index ] );
             return (void *)table.flags_base( index );
         }
         else {
             auto &next_table = *page_table[ level + std::to_underlying( mode ) - 2 ];
             next_table = (uint64_t *)physical_to_virtual( table.flags_base( index ) );
+            Display::println( "{:x}", table.get( )[ index ] );
             return self( level - 1, next_table );
         }
     }( paging->support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );

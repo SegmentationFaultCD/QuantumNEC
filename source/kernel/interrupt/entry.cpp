@@ -22,7 +22,7 @@ auto GeneralInterruptHandle::name( std::uint64_t vector ) noexcept -> void {
 auto GeneralInterruptHandle::registers( IDT::Frame *frame ) noexcept -> void {
     Display::println( "RIP:{}", frame->rip );
     Display::println( "RSP:{:x} SS:{:x} CS:{:x}\n"
-                      "Rlfags:{} DS:{:x} ES:{:x} FS:{:x} GS:{:x}\n"
+                      "Rlfags:{:x} DS:{:x} ES:{:x} FS:{:x} GS:{:x}\n"
                       "R8:{:x} R9:{:x} R10:{:x} R11:{:x} R12:{:x} R13:{:x} R14:{:x} R15:{:x}\n"
                       "RAX:{:x} RBX:{:x} RCX:{:x} RDX:{:x}\n"
                       "RBP:{:x} RSI:{:x} RDI:{:x}\n"

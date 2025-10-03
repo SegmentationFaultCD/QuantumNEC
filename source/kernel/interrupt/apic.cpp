@@ -109,9 +109,18 @@ class Clock : public GeneralInterruptHandle {
     }
     virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
         apic.eoi( );
+
         auto &queue = Task::scheduler->running_queue[ Interrupt::apic.apic_id( ) ];
-        queue.running_task->save_context( frame ).schedule_thread( ).schedule->hw_scheduler->schedule( );
-        return queue.running_task->get_context( );
+        auto old = queue.running_task;
+
+        old->save_context( frame ).schedule_thread( ).schedule->hw_scheduler->schedule( );
+        // 前后两次可能发生改变
+        auto the_new = queue.running_task;
+        if ( the_new != old ) {
+            the_new->activate( );
+        }
+
+        return the_new->get_context( );
     }
 } clock;
 class ApicError : public GeneralInterruptHandle {

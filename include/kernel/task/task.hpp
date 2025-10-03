@@ -24,7 +24,7 @@ struct PCB {
     constexpr static auto user_stack_size = 8_MB;
     constexpr static auto kernel_stack_size = 4_KB;
 
-    constexpr static auto USER_STACK_START_ADDRESS = 0x8000000000000000ul;
+    constexpr static auto USER_STACK_TOP = 0x0000800000000000;
     constexpr static auto TEXT_SEGMENT = 0x08048000;
     constexpr static auto SHARED_LIBRARY_SEGMENT = 0x1000000000000000ul;
 
@@ -48,13 +48,13 @@ struct PCB {
 
     explicit PCB( void ) = default;
 
-    explicit PCB( std::string_view _name, std::uint64_t entry, std::uint64_t text_segment_length );
+    explicit PCB( std::string_view _name, std::uint64_t entry_offset, std::uint64_t text_physical, std::uint64_t text_segment_length );
 
     auto save_context( Interrupt::IDT::Frame *frame ) -> PCB &;
     auto get_context( ) {
         return this->running_thread->frame;
     }
-
+    auto activate( void ) -> void;
     template < typename T >
     auto create( T *entry ) -> void {
     }

@@ -221,8 +221,10 @@ public:
         return reinterpret_cast< pointer >( new_zones[ 0 ].base );
     }
     virtual auto allocate( std::size_t page_count ) -> pointer override {
-        Task::auto_lock lock { this->page_lock };
-        return this->_allocate( page_count );
+        this->page_lock.acquire( );
+        auto addr = this->_allocate( page_count );
+        this->page_lock.release( );
+        return addr;
     }
     virtual auto _deallocate( const_pointer address, std::size_t page_count ) -> void {
         auto base = reinterpret_cast< std::uint64_t >( address ) & __zone_memory_mask__( );
@@ -255,8 +257,9 @@ public:
         return;
     }
     virtual auto deallocate( const_pointer address, std::size_t page_count ) -> void override {
-        Task::auto_lock lock { this->page_lock };
+        this->page_lock.acquire( );
         this->_deallocate( address, page_count );
+        this->page_lock.release( );
     }
 
 private:

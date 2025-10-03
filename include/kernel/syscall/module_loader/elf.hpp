@@ -187,10 +187,6 @@ public:
     };
 
 public:
-    enum class ElfErrorCode {
-        MAGIC_IS_NOT_STANDARD,
-    };
-
 public:
     explicit Elf( void ) = default;
 

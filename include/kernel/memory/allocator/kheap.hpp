@@ -100,8 +100,10 @@ public:
 
 public:
     virtual auto allocate( size_type size ) -> T * override {
-        Task::auto_lock lock { this->kheap_lock };
-        return this->_allocate( size );
+        this->kheap_lock.acquire( );
+        auto addr = this->_allocate( size );
+        this->kheap_lock.release( );
+        return addr;
     }
     virtual auto _allocate( size_type size ) -> T * {
         using namespace Memory::Page;
@@ -220,8 +222,9 @@ public:
         return nullptr;
     }
     virtual auto deallocate( const T *address, [[maybe_unused]] size_type size = 0 ) -> void override {
-        Task::auto_lock lock { this->kheap_lock };
+        this->kheap_lock.acquire( );
         this->_deallocate( address, size );
+        this->kheap_lock.release( );
     }
     virtual auto _deallocate( const T *address, [[maybe_unused]] size_type size = 0 ) -> void {
         using namespace Memory::Page;

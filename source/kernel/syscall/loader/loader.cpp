@@ -16,6 +16,7 @@ auto Loader::initialize( limine_module_response *modules ) -> Loader * {
     auto fs_interface = new FilesystemServcie {
         new Task::PCB {
             "filesystem",
+            info.entry_offset,
             info.loadsegment_start,
             info.loadsegment_end - info.loadsegment_start }
     };

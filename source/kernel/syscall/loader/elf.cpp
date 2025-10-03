@@ -1,3 +1,4 @@
+#include <kernel/display/print.hpp>
 #include <kernel/memory/allocator/page.hpp>
 #include <kernel/memory/paging/hhdm.hpp>
 #include <kernel/syscall/module_loader/elf.hpp>
@@ -30,6 +31,7 @@ auto Elf::load_elf_file( uint64_t module_address ) -> FileInformation {
     Page::allocator< P4Kib > allocater;
     // allocate memory for relocating
     auto relocate_base { (uint64_t)physical_to_virtual( allocater.allocate( page_count ) ) };
+
     auto relocate_offset = relocate_base - low_address;
     auto zero_start = reinterpret_cast< uint64_t * >( relocate_base );
     for ( uint64_t i { }; i < ( page_count << 9 ); i++ ) {
@@ -45,6 +47,7 @@ auto Elf::load_elf_file( uint64_t module_address ) -> FileInformation {
     file.loadsegment_end = (uint64_t)virtual_to_physical( high_address + relocate_offset );
     file.loadsegment_start = (uint64_t)virtual_to_physical( low_address + relocate_offset );
     file.entry_offset = (uint64_t)virtual_to_physical( elf_header->e_Entry + relocate_offset - file.loadsegment_start );
+
     return file;
 }
 

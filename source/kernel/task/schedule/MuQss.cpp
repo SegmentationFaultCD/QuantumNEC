@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <kernel/driver/cpu/io.hpp>
 #include <kernel/interrupt/apic.hpp>
 #include <kernel/interrupt/hpet.hpp>
 #include <kernel/task/schedule/MuQss.hpp>
@@ -22,24 +23,28 @@ auto MuQss::schedule( void ) -> void {
         std::cxxvector< T > sq;
 
         for ( auto &cpu : this->running_queue ) {
-            sq.emplace_back( std::pair { cpu.cpu_id, *this->scheduler_queue[ cpu.cpu_id ].begin( ) } );
+            auto &sched_queue = this->scheduler_queue[ cpu.cpu_id ];
+            if ( sched_queue.is_empty( ) ) {
+                continue;
+            }
+            sq.emplace_back( std::pair { cpu.cpu_id, *sched_queue.begin( ) } );
         }
 
         std::ranges::sort( sq, []( const T &a, const T &b ) { return a.second->schedule->virtual_deadline > b.second->schedule->virtual_deadline; } );
 
-        T p;
-        s_locks *lock;
-
         for ( auto &i : sq ) {
-            if ( lock = running_queue[ i.first ].lock; lock->try_lock( ) ) {
+            if ( auto lock = running_queue[ i.first ].lock; lock->try_lock( ) ) {
+                auto &rq = running_queue[ i.first ];
+
                 auto p = i.second;
                 this->scheduler_queue[ i.first ].remove( p->schedule->virtual_deadline );
                 p->schedule->cpu = Interrupt::apic.apic_id( );
                 this->running_queue[ p->schedule->cpu ].running_task = p;
+                this->scheduler_queue[ sched->cpu ].insert( running_task, sched->virtual_deadline );
                 lock->release( );
+
                 break;
             }
-            lock = nullptr;
         }
 
         // 必然得到一个()
@@ -49,15 +54,6 @@ auto MuQss::schedule( void ) -> void {
         // 取头部
 
         // 必然有一个队列未上锁
-
-        while ( true );
-        auto &running_queue = this->running_queue[ sched->cpu ];
-
-        running_queue.lock->acquire( );
-
-        // this->scheduler_queue[ sched->cpu ].insert( running_task, sched->virtual_deadline );
-        while ( true );
-        running_queue.lock->release( );
     }
     else {
         Display::println( "??? {}", Interrupt::apic.apic_id( ) );

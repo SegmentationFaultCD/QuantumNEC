@@ -101,65 +101,9 @@ auto println_nolock( fmt::format_string< Args... > fmt, Args &&...args ) {
 }
 template < typename... Args >
 auto println( fmt::format_string< Args... > fmt, Args &&...args ) {
-    Task::auto_lock lock { display_lock };
-    Driver::SerialPort output;
-
-    auto fmt_str = Library::format( fmt, std::forward< Args >( args )... );
-    fmt_str += '\n';
-
-    for ( auto ch : fmt_str ) {
-        switch ( ch ) {
-        case '\a':
-            break;
-        case '\n':
-            position.YPosition++;
-            position.XPosition = position.column;     // 如果是，将光标行数加1, 列数设为BasePrint::Pos->column
-            output.write( '\n' );
-            break;
-        case '\t':
-            for ( auto i { 0 }; i < 4; ++i ) {
-                putc( position.FB_addr, position.XResolution,
-                      position.XPosition * position.XCharSize,
-                      position.YPosition * position.YCharSize, ' ' );
-                output.write( ' ' );
-                ++position.XPosition;
-            }
-            break;
-        case '\r':
-            position.XPosition = position.column + 1;
-            break;
-        case '\b':
-            position.XPosition--;
-            if ( position.XPosition < LINEEOF ) {
-                position.XPosition = ( position.XResolution / position.XCharSize - 1 )
-                                     * position.XCharSize;
-                position.YPosition--;
-                if ( position.YPosition < LINEEOF ) {
-                    position.YPosition = ( position.YResolution / position.YCharSize )
-                                         * position.YCharSize;
-                }
-            }
-            putc( position.FB_addr, position.XResolution,
-                  position.XPosition * position.XCharSize,
-                  position.YPosition * position.YCharSize, ' ' );
-            output.write( ' ' );
-            break;
-        default:
-            putc( position.FB_addr, position.XResolution,
-                  position.XPosition * position.XCharSize,
-                  position.YPosition * position.YCharSize, ch );
-            ++position.XPosition;
-            output.write( ch );
-        }
-        // 结尾部分
-        if ( position.XPosition >= ( position.XResolution / position.XCharSize ) ) {
-            ++( position.YPosition );
-            position.XPosition = LINEEOF;
-        }
-        if ( position.YPosition >= ( position.YResolution / position.YCharSize ) ) {
-            position.YPosition = LINEEOF;
-        }
-    }
+    display_lock.acquire( );
+    println_nolock( fmt, std::forward< Args >( args )... );
+    display_lock.release( );
 }
 
 }     // namespace Display

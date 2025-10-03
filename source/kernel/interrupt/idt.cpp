@@ -6,11 +6,11 @@
 #include <memory>
 #define SET_TRAP_HANDLER( index, ist )                                                        \
     __asm__ __volatile__( "LEAQ interrupt_handler" #index "(%%RIP), %0" : "=r"( function ) ); \
-    std::construct_at( &idt.interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, Descriptor::Attribute { Descriptor::Attribute::GateType::TRAP, 0, 1 } );
+    std::construct_at( &idt.interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, 0x8e );
 
 #define SET_INTERRUPT_HANDLER( index, ist )                                                   \
     __asm__ __volatile__( "LEAQ interrupt_handler" #index "(%%RIP), %0" : "=r"( function ) ); \
-    std::construct_at( &idt.interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, Descriptor::Attribute { Descriptor::Attribute::GateType::INTERRUPT, 0, 1 } );
+    std::construct_at( &idt.interrupt_descriptors[ index ], function, Memory::GDT::SELECTOR_CODE64_KERNEL, ist, 0x8f );
 #include <kernel/driver/serial_port/serial_port.hpp>
 #include <lib/string.hpp>
 namespace Interrupt {
@@ -34,38 +34,38 @@ auto IDT::initialize( std::uint64_t core ) -> IDT * {
         std::memset( idt.interrupt_descriptors, 0, idt.idtr.size( ) );
 
         uint64_t function { };
-        SET_TRAP_HANDLER( 0x00, 0 );
-        SET_TRAP_HANDLER( 0x01, 0 );
-        SET_INTERRUPT_HANDLER( 0x02, 0 );
-        SET_TRAP_HANDLER( 0x03, 0 );
-        SET_TRAP_HANDLER( 0x04, 0 );
-        SET_TRAP_HANDLER( 0x05, 0 );
-        SET_TRAP_HANDLER( 0x06, 0 );
-        SET_TRAP_HANDLER( 0x07, 0 );
-        SET_TRAP_HANDLER( 0x08, 0 );
-        SET_TRAP_HANDLER( 0x09, 0 );
-        SET_TRAP_HANDLER( 0x0a, 0 );
-        SET_TRAP_HANDLER( 0x0b, 0 );
-        SET_TRAP_HANDLER( 0x0c, 0 );
-        SET_TRAP_HANDLER( 0x0d, 0 );
-        SET_TRAP_HANDLER( 0x0e, 0 );
-        SET_TRAP_HANDLER( 0x0f, 0 );
-        SET_TRAP_HANDLER( 0x10, 0 );
-        SET_TRAP_HANDLER( 0x11, 0 );
-        SET_TRAP_HANDLER( 0x12, 0 );
-        SET_TRAP_HANDLER( 0x13, 0 );
-        SET_TRAP_HANDLER( 0x14, 0 );
-        SET_TRAP_HANDLER( 0x15, 0 );
-        SET_TRAP_HANDLER( 0x16, 0 );
-        SET_TRAP_HANDLER( 0x17, 0 );
-        SET_TRAP_HANDLER( 0x18, 0 );
-        SET_TRAP_HANDLER( 0x19, 0 );
-        SET_TRAP_HANDLER( 0x1a, 0 );
-        SET_TRAP_HANDLER( 0x1b, 0 );
-        SET_TRAP_HANDLER( 0x1c, 0 );
-        SET_TRAP_HANDLER( 0x1d, 0 );
-        SET_TRAP_HANDLER( 0x1e, 0 );
-        SET_TRAP_HANDLER( 0x1f, 0 );
+        SET_TRAP_HANDLER( 0x00, 1 );
+        SET_TRAP_HANDLER( 0x01, 1 );
+        SET_INTERRUPT_HANDLER( 0x02, 1 );
+        SET_TRAP_HANDLER( 0x03, 1 );
+        SET_TRAP_HANDLER( 0x04, 1 );
+        SET_TRAP_HANDLER( 0x05, 1 );
+        SET_TRAP_HANDLER( 0x06, 1 );
+        SET_TRAP_HANDLER( 0x07, 1 );
+        SET_TRAP_HANDLER( 0x08, 1 );
+        SET_TRAP_HANDLER( 0x09, 1 );
+        SET_TRAP_HANDLER( 0x0a, 1 );
+        SET_TRAP_HANDLER( 0x0b, 1 );
+        SET_TRAP_HANDLER( 0x0c, 1 );
+        SET_TRAP_HANDLER( 0x0d, 1 );
+        SET_TRAP_HANDLER( 0x0e, 1 );
+        SET_TRAP_HANDLER( 0x0f, 1 );
+        SET_TRAP_HANDLER( 0x10, 1 );
+        SET_TRAP_HANDLER( 0x11, 1 );
+        SET_TRAP_HANDLER( 0x12, 1 );
+        SET_TRAP_HANDLER( 0x13, 1 );
+        SET_TRAP_HANDLER( 0x14, 1 );
+        SET_TRAP_HANDLER( 0x15, 1 );
+        SET_TRAP_HANDLER( 0x16, 1 );
+        SET_TRAP_HANDLER( 0x17, 1 );
+        SET_TRAP_HANDLER( 0x18, 1 );
+        SET_TRAP_HANDLER( 0x19, 1 );
+        SET_TRAP_HANDLER( 0x1a, 1 );
+        SET_TRAP_HANDLER( 0x1b, 1 );
+        SET_TRAP_HANDLER( 0x1c, 1 );
+        SET_TRAP_HANDLER( 0x1d, 1 );
+        SET_TRAP_HANDLER( 0x1e, 1 );
+        SET_TRAP_HANDLER( 0x1f, 1 );
         SET_INTERRUPT_HANDLER( 0x20, 0 );
         SET_INTERRUPT_HANDLER( 0x21, 0 );
         SET_INTERRUPT_HANDLER( 0x22, 0 );

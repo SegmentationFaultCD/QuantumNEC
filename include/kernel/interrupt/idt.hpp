@@ -54,35 +54,36 @@ public:
 
 public:
     struct [[gnu::packed]] Descriptor {
-        std::uint16_t offset_low;
-        std::uint16_t segment_selector;
-        std::uint8_t ist : 3;
-        std::uint8_t : 5;
-        struct Attribute {
-            enum class GateType : std::uint8_t {
-                INTERRUPT = 0xE,
-                TRAP = 0xF
-            } gate_type : 4;
-            std::uint8_t : 1;
-            std::uint8_t DPL : 2;
-            std::uint8_t P : 1;
-            Attribute( ) = default;
-            Attribute( GateType type, std::uint8_t dpl, std::uint8_t p ) :
-                gate_type { type },
-                DPL { dpl }, P { p } {
-            }
-        } attribute;
-        std::uint16_t offset_middle;
-        std::uint32_t offset_high;
-        std::uint32_t : 32;
+        std::uint64_t offset_low : 16;
+        std::uint64_t segment_selector : 16;
+        std::uint64_t ist : 3;
+        std::uint64_t : 5;
+        std::uint64_t attribute : 8;
+        // struct Attribute {
+        //     enum class GateType : std::uint8_t {
+        //         INTERRUPT = 0xE,
+        //         TRAP = 0xF
+        //     } gate_type : 4;
+        //     std::uint8_t : 1;
+        //     std::uint8_t DPL : 2;
+        //     std::uint8_t P : 1;
+        //     Attribute( ) = default;
+        //     Attribute( GateType type, std::uint8_t dpl, std::uint8_t p ) :
+        //         gate_type { type },
+        //         DPL { dpl }, P { p } {
+        //     }
+        // } attribute;
+        std::uint64_t offset_middle : 16;
+        std::uint64_t offset_high : 32;
+        std::uint64_t : 32;
         Descriptor( ) = default;
-        Descriptor( uint64_t entry_point, uint16_t selector, uint8_t ist_, Attribute attributes ) :
-            offset_low { static_cast< std::uint16_t >( entry_point & 0xffff ) },
+        Descriptor( uint64_t entry_point, uint16_t selector, uint8_t ist_, uint8_t attributes ) :
+            offset_low { static_cast< std::uint16_t >( entry_point ) },
             segment_selector { selector },
             ist { static_cast< std::uint8_t >( ist_ & 0b00000111 ) },
             attribute { attributes },
-            offset_middle { static_cast< std::uint16_t >( ( entry_point >> 16 ) & 0xffff ) },
-            offset_high { static_cast< std::uint32_t >( ( entry_point >> 32 ) & 0xffffffff ) } {
+            offset_middle { static_cast< std::uint16_t >( ( entry_point >> 16 ) ) },
+            offset_high { static_cast< std::uint32_t >( ( entry_point >> 32 ) ) } {
         }
     };
     struct [[gnu::packed]] Frame {
@@ -94,7 +95,6 @@ public:
         Driver::RFlags rflags;
         uint64_t rsp;
         uint64_t ss;
-        explicit Frame( void ) noexcept = default;
     };
 
 private:

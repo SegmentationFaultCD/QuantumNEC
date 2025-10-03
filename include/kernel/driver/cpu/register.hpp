@@ -18,9 +18,8 @@ struct ControlRegisters {
         std::uint64_t NW : 1;     // 控制使用通写还是回写，用于维护内存数据一致性，NW=1关闭该功能，数据一致性即通过MESI协议
         std::uint64_t CD : 1;     // 控制Cache高速缓存功能，CD=1关闭该功能
         std::uint64_t PG : 1;     // 开启分页模式
-        explicit CR0( void ) noexcept = default;
         operator std::uint64_t( ) {
-            return *( (uint64_t *)this );
+            return std::bit_cast< uint64_t >( *this );
         }
     };
 
@@ -35,9 +34,8 @@ struct ControlRegisters {
          */
 
         std::uint64_t PFLA;
-        explicit CR2( void ) noexcept = default;
         operator std::uint64_t( ) {
-            return *( (uint64_t *)this );
+            return std::bit_cast< uint64_t >( *this );
         }
     };
     struct CR3 {
@@ -51,9 +49,8 @@ struct ControlRegisters {
         std::uint64_t PCD : 1;
         std::uint64_t : 7;
         std::uint64_t page_directory_base : 52;
-        explicit CR3( void ) noexcept = default;
         operator std::uint64_t( ) {
-            return *( (uint64_t *)this );
+            return std::bit_cast< uint64_t >( *this );
         }
     };
     struct CR4 {
@@ -112,9 +109,8 @@ struct ControlRegisters {
         std::uint64_t CET : 1;
         std::uint64_t PKS : 1;
         std::uint64_t : 39;
-        explicit CR4( void ) noexcept = default;
         operator std::uint64_t( ) {
-            return *( (uint64_t *)this );
+            return std::bit_cast< uint64_t >( *this );
         }
     };
     // CR5 ~ CR7 保留，如果使用结果和 CR1 一样.
@@ -122,9 +118,8 @@ struct ControlRegisters {
         // 任务优先级寄存器
         uint64_t TPL : 4;
         uint64_t : 60;
-        explicit CR8( void ) noexcept = default;
         operator std::uint64_t( ) {
-            return *( (uint64_t *)this );
+            return std::bit_cast< uint64_t >( *this );
         }
     };
     // CR9 ~ CR15 保留，如果使用结果和 CR1 一样.
@@ -153,9 +148,8 @@ struct [[gnu::packed]] RFlags {
     std::uint64_t VIP : 1;
     std::uint64_t ID : 1;
     std::uint64_t : 42;
-    explicit RFlags( void ) noexcept = default;
     operator uint64_t( ) {
-        return *reinterpret_cast< uint64_t * >( this );
+        return std::bit_cast< uint64_t >( *this );
     }
 };
 

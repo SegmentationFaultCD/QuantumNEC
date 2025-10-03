@@ -41,18 +41,4 @@ public:
 inline s_locks kernel_thread_lock { };     // be provided for kernel thread
 // user processes should create thier own locks.
 
-class auto_lock {
-public:
-    auto_lock( s_locks &l ) :
-        lock { l } {
-        lock.acquire( );
-    }
-    ~auto_lock( void ) {
-        lock.release( );
-    }
-
-private:
-    s_locks &lock;
-};
-
 }     // namespace Task
