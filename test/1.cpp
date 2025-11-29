@@ -58,7 +58,9 @@ struct IPC {
     auto send( std::uint64_t destination, auto &&...args ) {
     }
 };
+
 #include <concepts>
+#include <queue>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -96,7 +98,7 @@ private:
 } rmin;
 
 template < typename T, root_mode r = rmin >
-    requires std::swappable< T > && std::three_way_comparable< T > && std::movable< T >
+    requires std::totally_ordered< T > && std::movable< T >
 struct priority_queue {
     auto push( T &&x ) {
         heap.push_back( x );
@@ -133,35 +135,69 @@ public:
     std::vector< T > heap { T {} };     // 第一个留空
     std::uint64_t size = 0;
 };
+struct ScheduleData {
+    std::uint64_t time_slice;
+    std::uint64_t priority;
+    std::uint64_t nice;
+    std::uint64_t virtual_deadline;
+    std::uint64_t cpu;
+};
+struct Task {
+public:
+    std::thread self;
+    ScheduleData data;
+    Task( auto &&lambda, auto &&...args ) :
+        self { lambda, std::forward< decltype( auto { args } ) >( args )... } {
+    }
 
+    Task( Task && ) = default;
+
+    Task( ) = default;
+
+    auto operator<=>( const Task &oper ) const {
+        return this->data.virtual_deadline <=> oper.data.virtual_deadline;
+    }
+    auto operator==( const Task &oper ) const {
+        return this->data.virtual_deadline == oper.data.virtual_deadline;
+    }
+    template < typename U >
+        requires std::convertible_to< U, Task >
+    auto operator=( this auto &&self, U &&o ) -> Task & {
+        std::thread s { std::move( self.self ) };
+        self.self = std::move( o.self );
+        o.self = std::move( s );
+        std::swap( self.data, o.data );
+        return *self;
+    }
+} task[ 4 ];
+auto operator<=>( Task &A, Task &oper ) -> std::strong_ordering {
+    return A.data.virtual_deadline <=> oper.data.virtual_deadline;
+}
+// namespace std
 class Muqss {
-    struct ScheduleData {
-        std::uint64_t time_slice;
-        std::uint64_t priority;
-        std::uint64_t nice;
-        std::uint64_t virtual_deadline;
-        std::uint64_t cpu;
-        constexpr static double min_prio_ratio = 1.0;     // 静态优先级在时间片计算的权重
-        constexpr static auto rr_interval = 6ul;          // 6ms,这个一般作为时间片填充
-        // nice默认为0，如要更改使用系统调用, 更改优先级，重新计算VD
-        constexpr static auto default_nice = 0;
-        // nice有40个
-        constexpr static auto min_nice = -20;
-        constexpr static auto max_nice = 40;
-        auto get_prio_ratio( std::uint64_t nice ) {
-            auto prio_ratio = this->min_prio_ratio;
-            for ( auto i = 1; i <= nice - this->min_nice; ++i ) {
-                prio_ratio *= 1.1;
-            }
-            return prio_ratio;
+    constexpr static double min_prio_ratio = 1.0;     // 静态优先级在时间片计算的权重
+    constexpr static auto rr_interval = 6ul;          // 6ms,这个一般作为时间片填充
+    // nice默认为0，如要更改使用系统调用, 更改优先级，重新计算VD
+    constexpr static auto default_nice = 0;
+    // nice有40个
+    constexpr static auto min_nice = -20;
+    constexpr static auto max_nice = 40;
+    auto get_prio_ratio( std::uint64_t nice ) {
+        auto prio_ratio = this->min_prio_ratio;
+        for ( auto i = 1; i <= nice - this->min_nice; ++i ) {
+            prio_ratio *= 1.1;
         }
+        return prio_ratio;
+    }
 
-        // VD(Virtual Deadline) 计算公式为 niffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
+    // VD(Virtual Deadline) 计算公式为 niffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
 
-        auto get_virtual_deadline( std::uint64_t now_time, double prio_ratio ) {
-            return now_time + prio_ratio * this->rr_interval;
-        }
-    };
+    auto get_virtual_deadline( std::uint64_t now_time, double prio_ratio ) {
+        return now_time + prio_ratio * this->rr_interval;
+    }
+
+    std::queue< Task > RT_task;
+    std::priority_queue< int, std::vector< int >, std::greater< int > > queue;
 };
 
 auto main( void ) -> int {
@@ -169,6 +205,7 @@ auto main( void ) -> int {
     for ( auto thd : std::ranges::views::repeat( []( int id ) {
                          std::println( "{}", id );
                      } ) | std::ranges::views::take( 4 ) ) {
-        std::jthread( thd, i++ );
+        std::construct_at( &task[ i ], thd, i );
+        ++i;
     }
 }

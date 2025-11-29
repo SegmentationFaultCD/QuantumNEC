@@ -90,6 +90,7 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 
 #include <kernel/syscall/module_loader/loader.hpp>
 #include <os_terminal.h>
+#include <queue>
 #include <ranges>
 #include <span>
 #include <vector>
@@ -123,11 +124,11 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Task::scheduler->initialize( );
     Task::initialize_task( 0 );
     Kernel::syscall = Kernel::syscall->initialize( );
-    Driver::initialize_smp( smp_request.response );
+    // Driver::initialize_smp( smp_request.response );
     Kernel::module_loader = Kernel::module_loader->initialize( modules_request.response );
 
-    Interrupt::idt->enable_interrupt( );
-    while ( true );
+    // Interrupt::idt->enable_interrupt( );
+
     using namespace Memory::Page;
 
     Memory::Page::allocator< Type::P2Mib > a;
@@ -183,6 +184,14 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Display::println( "{}", s2.c_str( ) );
     void *s1111 = (void *)111212121l;
     Display::println( "{} {:x} {:x} {:x} {:x} {:x}", s1111, 114514, 1, 1, 1, 1 );
+
+    std::priority_queue< int, std::cxxvector< int >, std::greater< int > > aaaii;
+
+    aaaii.push_range( std::ranges::views::iota( 1, 14 ) );
+    for ( int i = 1; i <= 10; ++i ) {
+        Display::println( "{}", aaaii.top( ) );
+        aaaii.pop( );
+    }
 
     // TerminalDisplay td;
     // td.red_mask_size    = framebuffer_request.response->framebuffers[ 0 ]->red_mask_size;

@@ -1,7 +1,8 @@
 #pragma once
+#include <deque>
 #include <kernel/memory/allocator/kheap.hpp>
-#include <list>
+
 namespace std {
 template < typename T >
-using cxxlist = std::list< T, Memory::KernelHeap::allocator< T > >;
+using cxxdeque = std::deque< T, Memory::KernelHeap::allocator< T > >;
 }
