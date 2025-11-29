@@ -13,6 +13,9 @@ public:
     constexpr static auto SELECTOR_TSS = 0x28 | 0x0;
     constexpr static auto GDT_COUNT = 256;
 
+    constexpr static auto KERNEL_GS_BASE = 0xC0000102;
+    constexpr static auto GS_BASE = 0xC0000101;
+
 public:
     struct [[gnu::packed]] SegmentDescriptor {
         std::uint64_t limit_low : 16;
@@ -35,22 +38,21 @@ public:
     struct [[gnu::packed]] SystemSegmentDescriptor {
         std::uint64_t limit_low : 16;
         std::uint64_t base_low : 24;
-        std::uint64_t access_right : 8;
-        // struct [[gnu::packed]] Access {
-        //     enum class Type : std::uint8_t {
-        //         LDT = 0x2,
-        //         TSS64_AVAILABLE = 0x9,
-        //         TSS64_BUSY = 0xB
-        //     } type : 4;
-        //     std::uint8_t S : 1;
-        //     std::uint8_t DPL : 2;
-        //     std::uint8_t P : 1;
-        // } access_right;
+        struct [[gnu::packed]] Access {
+            enum class Type : std::uint8_t {
+                LDT = 0x2,
+                TSS64_AVAILABLE = 0x9,
+                TSS64_BUSY = 0xB
+            } type : 4;
+            std::uint8_t S : 1;
+            std::uint8_t DPL : 2;
+            std::uint8_t P : 1;
+        } access_right;
         std::uint64_t limit_high : 4;
         std::uint64_t flags : 4;
         std::uint64_t base_high : 40;
         std::uint64_t : 32;
-        SystemSegmentDescriptor( std::uint64_t base, std::uint32_t limit, std::uint8_t access, std::uint8_t flag ) :
+        SystemSegmentDescriptor( std::uint64_t base, std::uint32_t limit, Access access, std::uint8_t flag ) :
             limit_low { static_cast< std::uint16_t >( limit ) },
             base_low { static_cast< std::uint32_t >( base & 0xffffff ) },
             access_right { access },
@@ -59,24 +61,28 @@ public:
             base_high { static_cast< std::uint64_t >( ( base >> 24 ) & 0xffffffffff ) } {
         }
     };
-    struct [[gnu::packed]] TaskStateSegment {
+    class [[gnu::packed]] TaskStateSegment {
         // In Long Mode, the TSS does not store information on a task's execution state, instead it is used to store the Interrupt Stack Table.
+    private:
+        uint32_t reserved0;            // 4
+        mutable uint64_t rsp[ 3 ];     // 24
+        uint64_t reserved1;            // 4
+        mutable uint64_t ist[ 7 ];     // 56
+        uint64_t reserved2;            // 4
+        uint16_t reserved3;            // 2
 
-        uint32_t reserved0;               // 4
-        mutable uint64_t rsp[ 3 ];        // 24
-        uint64_t reserved1;               // 4
-        mutable uint64_t ist[ 7 ];        // 56
-        uint64_t reserved2;               // 4
-        uint16_t reserved3;               // 2
+    public:
         uint16_t io_map_base_address;     // 2
-
-        auto load_tr( ) const noexcept {
+        [[clang::always_inline]] auto load_tr( ) const noexcept {
             __asm__ __volatile__( "ltr %%ax" ::"a"( SELECTOR_TSS ) : "memory" );
         }
-        auto set_kstack( std::uint64_t kstack_top ) const {
+        [[clang::always_inline]] auto set_kstack( std::uint64_t kstack_top ) const {
             this->rsp[ 0 ] = kstack_top;
         }
-        auto set_ist( std::uint64_t ist_index, std::uint64_t stack_top ) const {
+        [[clang::always_inline]] const auto get_kstack( ) const {
+            return this->rsp[ 0 ];
+        }
+        [[clang::always_inline]] auto set_ist( std::uint64_t ist_index, std::uint64_t stack_top ) const {
             this->ist[ ist_index ] = stack_top;
         }
     };
@@ -124,8 +130,9 @@ private:
     TaskStateSegment tss[ GDT_COUNT ];
 
 public:
-    const auto &get_tss( std::uint64_t core ) const {
+    [[clang::always_inline]] const auto &get_tss( std::uint64_t core ) const {
         return tss[ core ];
     }
+
 } inline *gdt;
 }     // namespace Memory

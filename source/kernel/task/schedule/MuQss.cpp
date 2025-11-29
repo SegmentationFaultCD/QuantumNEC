@@ -16,9 +16,6 @@ auto MuQss::schedule( void ) -> void {
     if ( !sched->time_slice ) {
         // 时间片耗尽的情况
 
-        sched->time_slice = this->rr_interval;
-        sched->virtual_deadline = this->get_virtual_deadline( Interrupt::hpet->nano_time( ), this->get_prio_ratio( sched->nice ) );
-
         using T = std::pair< std::uint64_t, PCB * >;
         std::cxxvector< T > sq;
 
@@ -32,31 +29,30 @@ auto MuQss::schedule( void ) -> void {
 
         std::ranges::sort( sq, []( const T &a, const T &b ) { return a.second->schedule->virtual_deadline > b.second->schedule->virtual_deadline; } );
 
+        bool get_task = false;
         for ( auto &i : sq ) {
             if ( auto lock = running_queue[ i.first ].lock; lock->try_lock( ) ) {
                 auto &rq = running_queue[ i.first ];
+                auto *p = i.second;
 
-                auto p = i.second;
+                get_task = true;
                 this->scheduler_queue[ i.first ].remove( p->schedule->virtual_deadline );
                 p->schedule->cpu = Interrupt::apic.apic_id( );
                 this->running_queue[ p->schedule->cpu ].running_task = p;
-                this->scheduler_queue[ sched->cpu ].insert( running_task, sched->virtual_deadline );
-                lock->release( );
-
-                break;
+                this->scheduler_queue[ i.first ].insert( running_task, sched->virtual_deadline );
+                lock->unlock( );
+                return;
             }
         }
-
-        // 必然得到一个()
-
-        // 尝试给每个队列上锁
-
-        // 取头部
-
-        // 必然有一个队列未上锁
+        if ( !get_task ) {
+            // 到这里说明根本没找到任务,换句话说任务全用光了
+            // 其实根本没可能(划掉)
+            sched->time_slice = this->rr_interval;
+            sched->virtual_deadline = this->get_virtual_deadline( Interrupt::hpet->nano_time( ), this->get_prio_ratio( this->default_nice ) );
+            return;
+        }
     }
     else {
-        Display::println( "??? {}", Interrupt::apic.apic_id( ) );
         sched->time_slice--;
     }
 }
@@ -67,26 +63,31 @@ auto MuQss::wake_up( PCB * ) -> void {
 auto MuQss::insert( PCB *pcb ) -> void {
     this->initialize_normal( pcb );
     auto sched = pcb->schedule;
-
-    // this->running_queue[ sched->cpu ].lock->acquire( );
     this->scheduler_queue[ sched->cpu ].insert( pcb, sched->virtual_deadline );
-
-    // this->running_queue.find( sched->cpu )->lock->release( );
 }
 auto MuQss::initialize_normal( PCB *pcb ) -> void {
     auto sched = pcb->schedule;
-    // 时间片默认就是rr_interval值,但是可以改
-    sched->time_slice = this->rr_interval;
-    sched->cpu = Interrupt::apic.apic_id( );
-    // nice可以在系统调用里面改
-    sched->nice = this->default_nice;
-    // prio_ratio的计算要参考nice, nice有40个, nice每次增加1,
-    sched->virtual_deadline = this->get_virtual_deadline( Interrupt::hpet->nano_time( ), this->get_prio_ratio( this->default_nice ) );
+
     // 0 ~ 99 实时任务
     // 100 等时任务
     // 101 分时任务
     // 102 IDLE任务
-    sched->priority = 101;
+
+    sched->priority = 101;     // 临时顶替一下
+
+    // 时间片默认就是rr_interval值,但是可以改
+    sched->time_slice = this->rr_interval;
+    sched->cpu = Interrupt::apic.apic_id( );
+
+    if ( sched->priority <= 100 ) {
+        this->RT_task_queue.emplace_back( pcb );
+    }
+    else {
+        // prio_ratio的计算要参考nice, nice有40个, nice每次增加1,
+        // nice可以在系统调用里面改
+        sched->nice = this->default_nice;
+        sched->virtual_deadline = this->get_virtual_deadline( Interrupt::hpet->nano_time( ), this->get_prio_ratio( this->default_nice ) );
+    }
 }
 auto MuQss::remove( PCB * ) -> void {
 }

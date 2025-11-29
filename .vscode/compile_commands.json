@@ -1,11 +1,6 @@
 [
 {
   "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIE", "-o", "build/.objs/filesystem/linux/x86-64/release/source/module/filesystem/fs_servicer.cpp.o", "source/module/filesystem/fs_servicer.cpp"],
-  "file": "source/module/filesystem/fs_servicer.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/boot/kloader.cpp.o", "source/kernel/boot/kloader.cpp"],
   "file": "source/kernel/boot/kloader.cpp"
 },
@@ -148,4 +143,9 @@
   "directory": "/home/ld/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c23", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/entry.S.o", "source/kernel/interrupt/entry.S"],
   "file": "source/kernel/interrupt/entry.S"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIE", "-o", "build/.objs/filesystem/linux/x86-64/release/source/module/filesystem/fs_servicer.cpp.o", "source/module/filesystem/fs_servicer.cpp"],
+  "file": "source/module/filesystem/fs_servicer.cpp"
 }]

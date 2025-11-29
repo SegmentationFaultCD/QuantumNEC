@@ -107,7 +107,7 @@ private:
     // 任务调度队列
 
     Library::RBTree< std::uint64_t, Library::Skiplist< PCB *, 8ul > > scheduler_queue;
-
+    std::vector< PCB * > RT_task_queue;
     // CPU链表
     // 1                                                            2                       3                       4
     // [0 ,     1,  ···,  100,        101,       102]

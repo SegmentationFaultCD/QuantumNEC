@@ -1,4 +1,8 @@
+#include <atomic>
+#include <future>
+#include <mutex>
 #include <print>
+#include <thread>
 template < typename T >
 struct alignas( 32 ) Message {
     std::uint64_t node;
@@ -54,251 +58,117 @@ struct IPC {
     auto send( std::uint64_t destination, auto &&...args ) {
     }
 };
-template < typename T, std::uint64_t MAXLEVEL >
-    requires std::copyable< T >
-class Skiplist {
-public:
-    template < class _T, class Ref, class Ptr >
-    struct SkiplistIterator;
-    struct Node {
-        friend Skiplist;
+#include <concepts>
+#include <ranges>
+#include <utility>
+#include <vector>
+template < typename D >
+struct root_mode {
+    root_mode( ) = default;
 
-        template < class _T, class Ref, class Ptr >
-        friend struct SkiplistIterator;
-
-        int64_t key;
-        T data;
-
-    public:
-        Node *forwards[ MAXLEVEL ];
-        using self = Node;
-
-    public:
-        Node( ) noexcept :
-            data { }, key { }, forwards { } {
-        }
-        Node( const T &data, int64_t key ) noexcept :
-            data { data }, key { key }, forwards { } {
-        }
-        auto &operator=( const self &node ) {
-            this->data = node.data;
-            this->key = node.key;
-            for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
-                this->forwards[ i ] = node.forwards[ i ];
-            }
-            return *this;
-        }
-        auto *operator->( ) {
-            return &data;
-        }
-        auto &operator*( ) {
-            return this->data;
-        }
-        auto &set_key( int64_t _key ) {
-            this->key = _key;
-            return *this;
-        }
-        auto &operator=( const T &data ) {
-            this->data = data;
-            return *this;
-        }
-    };
-
-    template < class _T, class Ref, class Ptr >
-    struct SkiplistIterator {
-        using self = SkiplistIterator< _T, Ref, Ptr >;
-        SkiplistIterator( Node *node = nullptr ) :
-            _pnode { node } {
-        }
-        // 迭代器解引用：
-        Ref operator*( ) {
-            return _pnode->data;
-        }
-        Ptr operator->( ) {
-            return &_pnode->data;
-        }
-        // 迭代器加加:前置加加
-        self operator++( ) {
-            this->_pnode = this->_pnode->forwards[ 0 ];
-            return *this;
-        }
-        self operator++( int ) {
-            self temp = *this;
-            this->_pnode = this->_pnode->forwards[ 0 ];
-            return temp;
-        }
-        self operator--( ) {
-            return *this;
-        }
-        self operator--( int ) {
-            self temp = *this;
-
-            return temp;
-        }
-
-        bool operator==( const self &s ) const {
-            return _pnode == s._pnode;
-        }
-        bool operator!=( const self &s ) const {
-            return _pnode->forwards[ 0 ] != s._pnode;
-        }
-        auto is_empty( ) {
-            return !this->_pnode;
-        }
-        operator bool( ) {
-            return !this->_pnode;
-        }
-        Node *_pnode;
-    };
-    using iterator = SkiplistIterator< T, T &, T * >;
-    using const_iterator = const SkiplistIterator< T, T &, T * >;
-    auto begin( ) {
-        return iterator { head_.forwards[ 0 ]->forwards[ 0 ] };
-    }
-    auto end( ) {
-        return iterator { nullptr };
-    }
-    auto begin( ) const {
-        return const_iterator { head_.forwards[ 0 ]->forwards[ 0 ] };
-    }
-    auto end( ) const {
-        return const_iterator { nullptr };
-    }
-
-public:
-    auto insert( const T &data, std::int64_t key ) {
-        Node *node = new Node { data, key };
-        auto level_ = this->get_insert_level( );
-        Node *s[ MAXLEVEL ] { };
-        Node *current { }, *last { };
-        for ( auto i = 0; i < MAXLEVEL; ++i ) {
-            s[ i ] = head_.forwards[ i ];
-        }
-
-        current = last = &head_;
-
-        for ( auto i = this->level - 1; i >= 0; i-- ) {
-            while ( current->forwards[ i ]->key != std::numeric_limits< int64_t >::max( ) && node->key > current->forwards[ i ]->key ) {
-                current = current->forwards[ i ];
-            }
-            s[ i ] = current;
-        }
-
-        last = current->forwards[ 0 ];
-
-        if ( last && last->key == node->key ) {
-            return;
-        }
-        if ( level_ > this->level ) {
-            this->level = level_;
-        }
-        for ( auto i = 0l; i < this->level; i++ ) {
-            node->forwards[ i ] = s[ i ]->forwards[ i ];
-            s[ i ]->forwards[ i ] = node;
-        }
-        this->count++;
-    }
-    auto search( int64_t key ) {
-        auto current = &head_;
-
-        for ( auto i = level - 1; i >= 0; i-- ) {
-            while ( current->forwards[ i ]->key != std::numeric_limits< int64_t >::max( ) && key > current->forwards[ i ]->key ) {
-                current = current->forwards[ i ];
-            }
-        }
-
-        current = current->forwards[ 0 ];
-        if ( current && current->key == key ) {
-            return iterator { current };
-        }
-        return iterator { nullptr };
-    }
-    template < typename OP >
-        requires std::invocable< OP, const T & > && std::same_as< std::invoke_result_t< OP, const T & >, bool >
-    auto traverse( OP &&operation ) {
-        for ( auto i = this->level - 1; i >= 0; --i ) {
-            auto q = this->head_.forwards[ i ];
-            while ( q ) {
-                if ( q->data && operation( *q->data ) ) {
-                    return iterator { q };
-                }
-                q = q->forwards[ i ];
-            }
-        }
-        return iterator { nullptr };
-    }
-
-    auto remove( int64_t key ) {
-        Node *s[ MAXLEVEL ] { };
-        Node *current { }, *last { };
-        for ( auto i = 0; i < MAXLEVEL; ++i ) {
-            s[ i ] = head_.forwards[ i ];
-        }
-        current = last = &head_;
-
-        for ( auto i = this->level - 1; i >= 0; i-- ) {
-            while ( current->forwards[ i ]->key != std::numeric_limits< int64_t >::max( ) && key > current->forwards[ i ]->key ) {
-                current = current->forwards[ i ];
-            }
-            s[ i ] = current;
-        }
-        last = current->forwards[ 0 ];
-        if ( last->key != key ) {
-            return;
-        }
-        for ( auto i = 0l; i < this->level; i++ ) {
-            s[ i ]->forwards[ i ] = s[ i ]->forwards[ i ]->forwards[ i ];
-        }
-        this->count--;
-    }
-
-    Skiplist( ) noexcept :
-        head_ { { }, std::numeric_limits< int64_t >::min( ) },
-        first_ { { }, std::numeric_limits< int64_t >::min( ) },
-        end_ { { }, std::numeric_limits< int64_t >::max( ) }, level { }, count { } {
-        for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
-            head_.forwards[ i ] = &first_;
-            head_.forwards[ i ]->forwards[ i ] = &end_;
-        }
-    }
-    ~Skiplist( ) {
-    }
-
-    auto is_empty( ) {
-        return !this->count;
-    }
-    auto length( ) {
-        return this->count;
-    }
-
-private:
-    Node head_, first_, end_;
-    uint64_t count;
-    int64_t level;
-    auto get_insert_level( ) {
-        auto upcount = 0l;
-        static auto _random = 1145ul;
-        for ( auto i = 0ul; i < MAXLEVEL; ++i ) {
-            auto num = ( _random * ( _random - 1 ) ) % MAXLEVEL;
-            if ( num < 5 ) {
-                upcount++;
-            }
-        }
-        _random++;
-        return upcount;
+    auto operator( )( std::strong_ordering ord ) const {
+        return D { }.compare( ord );
     }
 };
-#include <ranges>
-auto main( void ) -> int {
-    Skiplist< int *, 8 > sp;
-    for ( auto i : std::ranges::views::iota( 1, 10 ) ) {
-        sp.insert( new int { i }, i );
-    }
-    for ( auto j : sp ) {
-        std::println( "{}", *j );
-    }
-    sp.insert( new int { 1145 }, 114 );
-    std::println( "{}", **sp.search( 114 ) );
 
-    std::println( "{:x}", 18446744073709551615ull );
+class Rmax : public root_mode< Rmax > {
+    friend root_mode;
+
+public:
+    Rmax( ) = default;
+
+private:
+    auto compare( std::strong_ordering ord ) {
+        return ord == std::strong_ordering::greater;
+    }
+
+} rmax;
+class Rmin : public root_mode< Rmin > {
+    friend root_mode;
+
+public:
+    Rmin( ) = default;
+
+private:
+    auto compare( std::strong_ordering ord ) {
+        return ord == std::strong_ordering::less;
+    }
+} rmin;
+
+template < typename T, root_mode r = rmin >
+    requires std::swappable< T > && std::three_way_comparable< T > && std::movable< T >
+struct priority_queue {
+    auto push( T &&x ) {
+        heap.push_back( x );
+        size++;
+        up( size );
+    }
+    auto pop( void ) -> T {
+        down( 1 );
+        auto element = *heap.end( );
+        heap.pop_back( );
+        return element;
+    }
+
+    auto up( std::uint64_t x ) {
+        while ( x > 1 && r( heap[ x ] <=> heap[ x / 2 ] ) ) {
+            std::swap( heap[ x ], heap[ x / 2 ] );
+            x /= 2;
+        }
+    }
+    auto down( std::uint64_t x ) {
+        std::uint64_t t;
+        while ( x * 2 <= size ) {
+            t = x * 2;
+            if ( t + 1 <= size && !r( heap[ t + 1 ] <=> heap[ t ] ) )
+                t++;
+            if ( heap[ t ] <= heap[ x ] )
+                break;
+            std::swap( heap[ x ], heap[ t ] );
+            x = t;
+        }
+    }
+
+public:
+    std::vector< T > heap { T {} };     // 第一个留空
+    std::uint64_t size = 0;
+};
+
+class Muqss {
+    struct ScheduleData {
+        std::uint64_t time_slice;
+        std::uint64_t priority;
+        std::uint64_t nice;
+        std::uint64_t virtual_deadline;
+        std::uint64_t cpu;
+        constexpr static double min_prio_ratio = 1.0;     // 静态优先级在时间片计算的权重
+        constexpr static auto rr_interval = 6ul;          // 6ms,这个一般作为时间片填充
+        // nice默认为0，如要更改使用系统调用, 更改优先级，重新计算VD
+        constexpr static auto default_nice = 0;
+        // nice有40个
+        constexpr static auto min_nice = -20;
+        constexpr static auto max_nice = 40;
+        auto get_prio_ratio( std::uint64_t nice ) {
+            auto prio_ratio = this->min_prio_ratio;
+            for ( auto i = 1; i <= nice - this->min_nice; ++i ) {
+                prio_ratio *= 1.1;
+            }
+            return prio_ratio;
+        }
+
+        // VD(Virtual Deadline) 计算公式为 niffies(纳秒级最小时间间隔计数) + (prio_ratio * rr_interval)
+
+        auto get_virtual_deadline( std::uint64_t now_time, double prio_ratio ) {
+            return now_time + prio_ratio * this->rr_interval;
+        }
+    };
+};
+
+auto main( void ) -> int {
+    int i = 0;
+    for ( auto thd : std::ranges::views::repeat( []( int id ) {
+                         std::println( "{}", id );
+                     } ) | std::ranges::views::take( 4 ) ) {
+        std::jthread( thd, i++ );
+    }
 }

@@ -9,9 +9,13 @@ class PCB;
 
 struct Scheduler {
     struct CPU {
+        std::uint64_t kgsbase;
+        std::uint64_t gsbase;
+
         PCB *running_task;
         s_locks *lock;
         std::uint64_t cpu_id;
+
         CPU( ) :
             running_task { }, lock { new s_locks {} } {}
         CPU( PCB *task ) :

@@ -26,7 +26,8 @@ auto GeneralInterruptHandle::registers( IDT::Frame *frame ) noexcept -> void {
                       "R8:{:x} R9:{:x} R10:{:x} R11:{:x} R12:{:x} R13:{:x} R14:{:x} R15:{:x}\n"
                       "RAX:{:x} RBX:{:x} RCX:{:x} RDX:{:x}\n"
                       "RBP:{:x} RSI:{:x} RDI:{:x}\n"
-                      "CR0:{:x} CR2:{:x} CR3:{:x} CR4:{:x} CR8:{:x}",
+                      "CR0:{:x} CR2:{:x} CR3:{:x} CR4:{:x} CR8:{:x}\n"
+                      "CPU:{}",
                       frame->rsp, frame->ss, frame->cs, (uint64_t)frame->rflags, frame->regs.ds, frame->regs.es, frame->regs.fs, frame->regs.gs,
                       frame->regs.r8, frame->regs.r9, frame->regs.r10, frame->regs.r11, frame->regs.r12, frame->regs.r13, frame->regs.r14, frame->regs.r15,
                       frame->regs.rax, frame->regs.rbx, frame->regs.rcx, frame->regs.rdx,
@@ -35,7 +36,7 @@ auto GeneralInterruptHandle::registers( IDT::Frame *frame ) noexcept -> void {
                       (uint64_t)Driver::IO::read_cr2( ),
                       (uint64_t)Driver::IO::read_cr3( ),
                       (uint64_t)Driver::IO::read_cr4( ),
-                      (uint64_t)Driver::IO::read_cr8( ) );
+                      (uint64_t)Driver::IO::read_cr8( ), apic.apic_id( ) );
 }
 auto GeneralInterruptHandle::error_code( std::uint64_t code ) noexcept -> void {
 }

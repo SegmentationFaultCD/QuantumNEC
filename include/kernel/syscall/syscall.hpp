@@ -24,9 +24,8 @@ public:
         }
     }
 
-    // 调用约定：RAX->返回值，RAX->功能号，RDI、RSI、RDX、RCX、R8、R9（和linux差不多）
-
-    auto call( std::uint64_t index, Interrupt::IDT::Frame *frame ) -> Interrupt::IDT::Frame *;
+    // 调用约定：RAX->返回值 & 功能号，RDI、RSI、RDX、R10、R8、R9依次传入(遵循POSIX)
+    auto call( Interrupt::IDT::Frame *frame ) -> Interrupt::IDT::Frame *;
 
 private:
     std::array< Interface *, NUMBER_OF_SYSCALL > table;

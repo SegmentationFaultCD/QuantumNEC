@@ -61,7 +61,7 @@ target("micro_kernel.elf")
             "-Wextra", 
             "-static",
             "-fPIC",
-            "-g3",
+             "-g3",
             "-Wpointer-arith",
             "-Wno-missing-field-initializers",
             "-Wwrite-strings",
@@ -113,7 +113,7 @@ target("run")
                              -name QuantumNEC \
                              -boot order=dc \
                              -net none \
-                             -rtc base=localtime -no-reboot -D qemu.log -d int " --  -no-reboot -D qemu.log -d in_asm  -S -s
+                             -rtc base=localtime -no-reboot -D qemu.log -d int" --  -no-reboot -D qemu.log -d in_asm  -S -s
         os.exec("qemu-system-x86_64 "..qemu_flags)
     end)
 

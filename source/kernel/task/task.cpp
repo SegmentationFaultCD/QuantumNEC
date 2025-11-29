@@ -1,4 +1,5 @@
 #include <kernel/display/print.hpp>
+#include <kernel/driver/cpu/io.hpp>
 #include <kernel/task/schedule/MuQss.hpp>
 #include <kernel/task/schedule/scheduler.hpp>
 #include <kernel/task/task.hpp>
@@ -16,19 +17,19 @@ auto initialize_task( std::uint64_t core ) -> void {
     mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > { }.allocate( main->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
     mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > { }.allocate( main->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
 
-    mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack );
+    mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack + PCB::kernel_stack_size - sizeof( Interrupt::IDT::Frame ) );
 
     std::construct_at( mthread.frame );
+
     main->running_thread = &mthread;
     main->page_table = nullptr;     // 为空说明默认使用内核页表
     main->schedule = new Schedule { main, scheduler };
     main->schedule->hw_scheduler->initialize_normal( main );
 
-    kernel_thread_lock.acquire( );
+    std::lock_guard guard { kernel_thread_lock };
     auto &cpu = main->schedule->hw_scheduler->running_queue[ Interrupt::apic.apic_id( ) ];
     cpu = Scheduler::CPU { main };
     cpu.cpu_id = Interrupt::apic.apic_id( );
-    kernel_thread_lock.release( );
 }
 PCB::PCB( std::string_view _name, std::uint64_t entry_offset, std::uint64_t text_physical, std::uint64_t text_segment_length ) :
     name { _name },
@@ -77,6 +78,14 @@ auto PCB::save_context( Interrupt::IDT::Frame *frame ) -> PCB & {
 }
 auto PCB::activate( void ) -> void {
     Memory::gdt->get_tss( this->schedule->cpu ).set_kstack( (std::uint64_t)Memory::physical_to_virtual( this->running_thread->kernel_stack + this->kernel_stack_size ) );
-    this->page_table->activate( );
+    this->schedule->hw_scheduler->running_queue[ this->schedule->cpu ].kgsbase = Memory::gdt->get_tss( this->schedule->cpu ).get_kstack( );
+    Driver::IO::wrmsr( Memory::gdt->KERNEL_GS_BASE, (std::uint64_t)&this->schedule->hw_scheduler->running_queue[ this->schedule->cpu ].kgsbase );
+    if ( ( (bool)this->page_table ) ) {
+        this->page_table->activate( );
+    }
+    else {
+        Memory::paging->kernel_page_table->activate( );
+    }
 }
+
 }     // namespace Task

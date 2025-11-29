@@ -8,7 +8,7 @@
 #include <kernel/memory/segment/gdt.hpp>
 #include <kernel/task/schedule/scheduler.hpp>
 #include <lib/format.hpp>
-#include <vector>
+#include <lib/vector>
 namespace Task {
 
 struct PidPool {
@@ -42,7 +42,7 @@ struct PCB {
     std::unique_ptr< Memory::Paging::pmlxt > page_table;
 
     // 多线程必备(用户线程)
-    std::vector< Thread, Memory::KernelHeap::allocator< Thread > > thread_group;
+    std::cxxvector< Thread > thread_group;
 
     Schedule *schedule;
 

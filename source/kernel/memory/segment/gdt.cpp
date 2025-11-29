@@ -26,12 +26,12 @@ auto GDT::initialize( std::uint64_t core ) -> GDT * {
     std::construct_at( reinterpret_cast< SystemSegmentDescriptor * >( &desrciptor[ 5 ] ),
                        reinterpret_cast< std::uint64_t >( &gdt.tss[ core ] ),
                        sizeof( TaskStateSegment ) - 1,
-                       0x89,
-                       // SystemSegmentDescriptor::Access { TSS64_AVAILABLE, 0, 0, 1 },
+                       //    0x89,
+                       SystemSegmentDescriptor::Access { SystemSegmentDescriptor::Access::Type::TSS64_AVAILABLE, 0, 0, 1 },
                        0 );
 
     gdt.tss[ core ].io_map_base_address = static_cast< std::uint16_t >( sizeof( TaskStateSegment ) << 16 );
-    gdt.tss[ core ].ist[ 0 ] = (uint64_t)ist[ core ] + sizeof( std::uint8_t ) * 4096;
+    gdt.tss[ core ].set_ist( 0, (uint64_t)ist[ core ] + sizeof( std::uint8_t ) * 4096 );
 
     gdt.gdtrs[ core ].write( );
     gdt.tss[ core ].load_tr( );

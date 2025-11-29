@@ -134,7 +134,7 @@ public:
 
                 // 并且对于超大的申请，将它划分为 头 躯干 尾
                 // 巧妙地将躯干转化为n个zone的办法来分配
-                for ( auto i = 0; i < head->zone_count; ++i ) {
+                for ( auto i = 0ul; i < head->zone_count; ++i ) {
                     auto head_size = head[ i ].pages.template count_from_high< false >( );
                     if ( head_size == 0 ) {
                         continue;
@@ -221,9 +221,9 @@ public:
         return reinterpret_cast< pointer >( new_zones[ 0 ].base );
     }
     virtual auto allocate( std::size_t page_count ) -> pointer override {
-        this->page_lock.acquire( );
+        std::lock_guard guard { this->page_lock };
         auto addr = this->_allocate( page_count );
-        this->page_lock.release( );
+
         return addr;
     }
     virtual auto _deallocate( const_pointer address, std::size_t page_count ) -> void {
@@ -257,9 +257,8 @@ public:
         return;
     }
     virtual auto deallocate( const_pointer address, std::size_t page_count ) -> void override {
-        this->page_lock.acquire( );
+        std::lock_guard guard { this->page_lock };
         this->_deallocate( address, page_count );
-        this->page_lock.release( );
     }
 
 private:

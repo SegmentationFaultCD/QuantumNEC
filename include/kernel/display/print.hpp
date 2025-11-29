@@ -101,9 +101,8 @@ auto println_nolock( fmt::format_string< Args... > fmt, Args &&...args ) {
 }
 template < typename... Args >
 auto println( fmt::format_string< Args... > fmt, Args &&...args ) {
-    display_lock.acquire( );
+    std::lock_guard guard { display_lock };
     println_nolock( fmt, std::forward< Args >( args )... );
-    display_lock.release( );
 }
 
 }     // namespace Display
