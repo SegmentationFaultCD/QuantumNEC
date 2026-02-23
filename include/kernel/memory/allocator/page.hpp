@@ -2,7 +2,7 @@
 #include <kernel/driver/serial_port/serial_port.hpp>
 #include <kernel/memory/allocator/interface.hpp>
 #include <kernel/task/lock/spinlock.hpp>
-#include <lib/bitset.hpp>
+#include <lib/bitset>
 #include <lib/rbtree.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
@@ -88,7 +88,7 @@ public:
         // 总空闲页数量（头专用）
         std::uint64_t free_page;
         // 位图
-        Library::bitset< page_descriptor_count > pages;
+        std::bitset< page_descriptor_count > pages;
 
         zone( ) = default;
         zone( std::uint64_t base_, Library::RBTree< std::uint64_t, zone * >::Node &&node_ ) :
@@ -222,9 +222,7 @@ public:
     }
     virtual auto allocate( std::size_t page_count ) -> pointer override {
         std::lock_guard guard { this->page_lock };
-        auto addr = this->_allocate( page_count );
-
-        return addr;
+        return this->_allocate( page_count );
     }
     virtual auto _deallocate( const_pointer address, std::size_t page_count ) -> void {
         auto base = reinterpret_cast< std::uint64_t >( address ) & __zone_memory_mask__( );

@@ -22,7 +22,8 @@ auto initialize_smp( limine_smp_response *smp ) -> void {
     Task::initialize_task( info->processor_id );
     Kernel::syscall->initialize( );
     Interrupt::idt->enable_interrupt( );
-
-    while ( true );
+    while ( true ) {
+        // Display::println( "Main{}", info->lapic_id );
+    }
 }
 }     // namespace Driver

@@ -1,6 +1,5 @@
 #include <kernel/display/print.hpp>
 #include <kernel/driver/cpu/io.hpp>
-#include <kernel/task/schedule/MuQss.hpp>
 #include <kernel/task/schedule/scheduler.hpp>
 #include <kernel/task/task.hpp>
 namespace Task {
@@ -23,17 +22,15 @@ auto initialize_task( std::uint64_t core ) -> void {
 
     main->running_thread = &mthread;
     main->page_table = nullptr;     // 为空说明默认使用内核页表
-    main->schedule = new Schedule { main, scheduler };
-    main->schedule->hw_scheduler->initialize_normal( main );
 
-    std::lock_guard guard { kernel_thread_lock };
-    auto &cpu = main->schedule->hw_scheduler->running_queue[ Interrupt::apic.apic_id( ) ];
-    cpu = Scheduler::CPU { main };
-    cpu.cpu_id = Interrupt::apic.apic_id( );
+    main->schedule.reset( new Schedule );
+    scheduler->first_initialize( *main );
+
+    scheduler->get_current( ).core.running_task = std::move( *main );
 }
 PCB::PCB( std::string_view _name, std::uint64_t entry_offset, std::uint64_t text_physical, std::uint64_t text_segment_length ) :
     name { _name },
-    page_table { new Memory::Paging::pml4t {} }, thread_group { }, PID { id_pool.get( ) } {
+    page_table { new Memory::Paging::pml4t {} }, thread_group { }, PID { id_pool.get( ) }, schedule { new Schedule {} }, is_empty { false } {
     using namespace Memory;
     this->page_table->copy( *paging->kernel_page_table );
     using enum Memory::Page::Type;
@@ -70,7 +67,6 @@ PCB::PCB( std::string_view _name, std::uint64_t entry_offset, std::uint64_t text
     mthread.frame->rflags.IF = 1;
 
     this->running_thread = &mthread;
-    this->schedule = new Schedule { this, scheduler };
 }
 auto PCB::save_context( Interrupt::IDT::Frame *frame ) -> PCB & {
     *this->running_thread->frame = *frame;
@@ -78,14 +74,37 @@ auto PCB::save_context( Interrupt::IDT::Frame *frame ) -> PCB & {
 }
 auto PCB::activate( void ) -> void {
     Memory::gdt->get_tss( this->schedule->cpu ).set_kstack( (std::uint64_t)Memory::physical_to_virtual( this->running_thread->kernel_stack + this->kernel_stack_size ) );
-    this->schedule->hw_scheduler->running_queue[ this->schedule->cpu ].kgsbase = Memory::gdt->get_tss( this->schedule->cpu ).get_kstack( );
-    Driver::IO::wrmsr( Memory::gdt->KERNEL_GS_BASE, (std::uint64_t)&this->schedule->hw_scheduler->running_queue[ this->schedule->cpu ].kgsbase );
+
+    scheduler->get_current( ).kgsbase = Memory::gdt->get_tss( this->schedule->cpu ).get_kstack( );
+    Driver::IO::wrmsr( Memory::gdt->KERNEL_GS_BASE, (std::uint64_t)&scheduler->get_current( ).kgsbase );
     if ( ( (bool)this->page_table ) ) {
         this->page_table->activate( );
     }
     else {
         Memory::paging->kernel_page_table->activate( );
     }
+}
+PCB::PCB( PCB &&p ) :
+    name { std::move( p.name ) }, PID { p.PID }, page_table { std::move( p.page_table ) }, running_thread { p.running_thread }, thread_group { std::move( p.thread_group ) }, schedule { std::move( p.schedule ) }, is_empty { false } {
+    p.PID = -1;
+    p.running_thread = nullptr;
+    p.is_empty = true;
+}
+auto PCB::operator=( PCB &&p ) -> PCB & {
+    this->name.clear( );
+    this->name.append( p.name );
+    this->PID = p.PID;
+    this->page_table = std::move( p.page_table );
+    this->running_thread = p.running_thread;
+    this->thread_group = std::move( p.thread_group );
+    this->schedule = std::move( p.schedule );
+    this->is_empty = false;
+
+    p.name.clear( );
+    p.PID = -1;
+    p.running_thread = nullptr;
+    p.is_empty = true;
+    return *this;
 }
 
 }     // namespace Task

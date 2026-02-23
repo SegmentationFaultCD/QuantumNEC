@@ -1,0 +1,12 @@
+#pragma once
+#include "./deque"
+#include "./vector"
+#include <kernel/memory/allocator/kheap.hpp>
+#include <queue>
+namespace std {
+template < typename T >
+using cxxqueue = std::queue< T, cxxdeque< T > >;
+template < typename T, typename Sequence = std::cxxvector< T >,
+           typename Compare = less< typename Sequence::value_type > >
+using cxxpriority_queue = std::priority_queue< T, Sequence, Compare >;
+}     // namespace std

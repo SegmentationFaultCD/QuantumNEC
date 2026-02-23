@@ -4,7 +4,6 @@
 #include <kernel/interrupt/apic.hpp>
 #include <kernel/interrupt/entry.hpp>
 #include <kernel/interrupt/hpet.hpp>
-#include <kernel/task/schedule/MuQss.hpp>
 #include <kernel/task/schedule/scheduler.hpp>
 #include <kernel/task/task.hpp>
 namespace Interrupt {
@@ -109,18 +108,14 @@ class Clock : public GeneralInterruptHandle {
     }
     virtual auto handler( IDT::Frame *frame ) noexcept -> IDT::Frame * override {
         apic.eoi( );
+        auto &queue = Task::scheduler->get_current( );
+        queue.core.lock->lock( );
+        queue.core.running_task.save_context( frame ).schedule_thread( );
+        queue.core.lock->unlock( );
 
-        auto &queue = Task::scheduler->running_queue[ Interrupt::apic.apic_id( ) ];
-        auto old = queue.running_task;
+        Task::scheduler->schedule( );
 
-        old->save_context( frame ).schedule_thread( ).schedule->hw_scheduler->schedule( );
-        // 前后两次可能发生改变
-        auto the_new = queue.running_task;
-        if ( the_new != old ) {
-            the_new->activate( );
-        }
-
-        return the_new->get_context( );
+        return queue.core.running_task.get_context( );
     }
 } clock;
 class ApicError : public GeneralInterruptHandle {

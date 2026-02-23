@@ -54,6 +54,8 @@ auto initialize( limine_memmap_response *map ) -> void {
 
             // mark这部分
             zones[ base_index ].pages.set( index, end_index - start_index );
+
+#ifdef DEBUG
             char buf[ 114 ];
             Library::utoa( ( base_index ), buf, 10 );
             Driver::SerialPort { }.print( buf );
@@ -70,7 +72,7 @@ auto initialize( limine_memmap_response *map ) -> void {
             Library::utoa( ( entry->base + entry->length ), buf, 16 );
             Driver::SerialPort { }.print( buf );
             Driver::SerialPort { }.print( "\n" );
-
+#endif
             break;
         }
     }

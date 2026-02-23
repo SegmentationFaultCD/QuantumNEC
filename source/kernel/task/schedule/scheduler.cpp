@@ -1,7 +1,12 @@
-#include <kernel/task/schedule/MuQss.hpp>
 #include <kernel/task/schedule/scheduler.hpp>
 namespace Task {
-auto Scheduler::initialize( void ) -> void {
-    scheduler = new MuQss;
+template <>
+auto Scheduler< Muqss >::initialize( void ) -> void {
+    scheduler = new Scheduler;
 }
+template <>
+auto Scheduler< Muqss >::get_current( ) -> Core & {
+    return scheduler->running_queue[ Interrupt::apic.apic_id( ) ];
+}
+
 }     // namespace Task

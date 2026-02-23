@@ -141,13 +141,17 @@ auto Paging::pmlxt::find_physcial_address( std::uint64_t virtual_address, Page::
             return nullptr;
         }
         if ( !level ) {
+#ifdef DEBUG
             Display::println( "{:x} end", table.get( )[ index ] );
+#endif
             return (void *)table.flags_base( index );
         }
         else {
             auto &next_table = *page_table[ level + std::to_underlying( mode ) - 2 ];
             next_table = (uint64_t *)physical_to_virtual( table.flags_base( index ) );
+#ifdef DEBUG
             Display::println( "{:x}", table.get( )[ index ] );
+#endif
             return self( level - 1, next_table );
         }
     }( paging->support_5level_paging ? 5 : 4 - std::to_underlying( mode ), *this );

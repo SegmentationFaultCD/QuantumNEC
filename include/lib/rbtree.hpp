@@ -1,13 +1,13 @@
 #pragma once
 #include <compare>
 #include <concepts>
-#include <memory>
+#include <cstdint>
 #include <utility>
 namespace Library {
 template < typename K, typename T >
-    requires std::totally_ordered< K > && std::copyable< T >
+    requires std::totally_ordered< K >
 class RBTree {
-    enum Color : uint64_t {
+    enum Color : std::uint64_t {
         RED,
         BLACK
     };
@@ -16,7 +16,7 @@ public:
     class RBTreeNode {
     public:
         template < typename _K, typename _T >
-            requires std::totally_ordered< _K > && std::copyable< _T >
+            requires std::totally_ordered< _K >
         friend class RBTree;
         template < typename, typename, typename >
         friend class _RBTree_Iterator;

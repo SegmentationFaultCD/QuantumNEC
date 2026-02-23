@@ -39,7 +39,7 @@ struct formatter {
     constexpr auto parse( std::string_view fmt ) { return fmt; }
     auto format( const T &, std::string_view fmt ) -> std::cxxstring { return { }; }
 };
-auto parse_sign( auto &&arg, Sign sign, std::cxxstring &ctx )
+inline auto parse_sign( auto &&arg, Sign sign, std::cxxstring &ctx )
     requires std::three_way_comparable< decltype( arg ) >
 {
     if ( auto result = arg <=> 0; result == std::strong_ordering::equal || result == std::strong_ordering::greater ) {
@@ -59,9 +59,11 @@ inline auto parse_align( Align align, std::string_view data, std::cxxstring &ctx
     using enum Align;
     switch ( align ) {
     case left:
+        //  ctx.replace( ctx.begin( ), ctx.begin( ) + data.size( ) - 1, data );
         ctx.replace_with_range( ctx.begin( ), ctx.begin( ) + data.size( ) - 1, data );
         break;
     case right:
+        // ctx.replace( ctx.end( ) - data.size( ), ctx.end( ), data );
         ctx.replace_with_range( ctx.end( ) - data.size( ), ctx.end( ), data );
         break;
     case center:
@@ -69,7 +71,7 @@ inline auto parse_align( Align align, std::string_view data, std::cxxstring &ctx
         break;
     }
 }
-auto parse_base( bool caps, std::int32_t base, auto &&arg ) {
+inline auto parse_base( bool caps, std::int32_t base, auto &&arg ) {
     std::cxxstring data;
 
     const char *digits;
@@ -93,7 +95,7 @@ inline auto parse_leading_zeros( std::cxxstring &ctx ) {
     // TODO 先导0，align存在时忽略此处理
 }
 
-auto parse_format_spac( auto &&arg, std::string_view fmt ) -> std::cxxstring {
+inline auto parse_format_spac( auto &&arg, std::string_view fmt ) -> std::cxxstring {
     auto i = 0;
 
     std::cxxstring weigh { };
@@ -297,6 +299,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> std::cxxst
             args.get( stol( arg_id.c_str( ) ) ).visit( [ & ]( auto data ) {
                 formatter< decltype( auto { data } ) > fmt;
                 formatted_string.append_range( fmt.format( data, fmt.parse( format_spec ) ) );
+                // formatted_string.append( fmt.format( data, fmt.parse( format_spec ) ) );
             } );
 
             index++;
@@ -317,7 +320,7 @@ inline auto vformat( std::string_view fmt, fmt::format_args args ) -> std::cxxst
 }
 
 template < typename... Args >
-auto format( fmt::format_string< Args... > fmt, Args &&...args ) -> std::cxxstring {
+inline auto format( fmt::format_string< Args... > fmt, Args &&...args ) -> std::cxxstring {
     return Library::vformat( fmt.get( ).data( ), fmt::make_format_args( ( args )... ) );
 }
 }     // namespace Library

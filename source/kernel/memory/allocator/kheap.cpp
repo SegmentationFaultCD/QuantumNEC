@@ -8,8 +8,6 @@ auto initialize( void ) -> void {
     Page::allocator< Type::P2Mib > page_allocator;
     auto zone = (uint64_t)physical_to_virtual( page_allocator.allocate( allocator< void >::cache_size_count ) );
 
-    char buf[ 114 ];
-
     for ( auto i = 0ul; i < allocator< void >::cache_size_count; ++i ) {
         auto &slab_cache = allocator_manager::slab_caches[ i ];
         std::construct_at( &slab_cache.pool_list );

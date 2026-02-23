@@ -5,6 +5,8 @@
 #include <kernel/interrupt/idt.hpp>
 #include <kernel/memory/segment/gdt.hpp>
 #include <kernel/syscall/syscall.hpp>
+#include <kernel/task/schedule/scheduler.hpp>
+#include <kernel/task/task.hpp>
 namespace Kernel {
 extern "C" auto system_call_entry( void ) -> void;
 
@@ -34,7 +36,10 @@ auto Syscall::call( Interrupt::IDT::Frame *frame ) -> Interrupt::IDT::Frame * {
         return frame;
     }
 }
+
 extern "C" auto system_call( Interrupt::IDT::Frame *frame ) -> Interrupt::IDT::Frame * {
+    Display::println( "Syscall" );
+    // Task::scheduler->yield( );
     return frame;
 }
 auto Syscall::initialize( void ) -> Syscall * {
