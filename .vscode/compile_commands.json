@@ -1,146 +1,6 @@
 [
 {
   "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIE", "-o", "build/.objs/filesystem/linux/x86-64/release/source/module/filesystem/fs_servicer.cpp.o", "source/module/filesystem/fs_servicer.cpp"],
-  "file": "source/module/filesystem/fs_servicer.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/boot/kloader.cpp.o", "source/kernel/boot/kloader.cpp"],
-  "file": "source/kernel/boot/kloader.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/syscall.cpp.o", "source/kernel/syscall/syscall.cpp"],
-  "file": "source/kernel/syscall/syscall.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/display/print.cpp.o", "source/kernel/display/print.cpp"],
-  "file": "source/kernel/display/print.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/hpet.cpp.o", "source/kernel/interrupt/hpet.cpp"],
-  "file": "source/kernel/interrupt/hpet.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/apic.cpp.o", "source/kernel/interrupt/apic.cpp"],
-  "file": "source/kernel/interrupt/apic.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/idt.cpp.o", "source/kernel/interrupt/idt.cpp"],
-  "file": "source/kernel/interrupt/idt.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/entry.cpp.o", "source/kernel/interrupt/entry.cpp"],
-  "file": "source/kernel/interrupt/entry.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/task.cpp.o", "source/kernel/task/task.cpp"],
-  "file": "source/kernel/task/task.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/segment/gdt.cpp.o", "source/kernel/memory/segment/gdt.cpp"],
-  "file": "source/kernel/memory/segment/gdt.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/allocator/kheap.cpp.o", "source/kernel/memory/allocator/kheap.cpp"],
-  "file": "source/kernel/memory/allocator/kheap.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/allocator/page.cpp.o", "source/kernel/memory/allocator/page.cpp"],
-  "file": "source/kernel/memory/allocator/page.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/paging/page_table.cpp.o", "source/kernel/memory/paging/page_table.cpp"],
-  "file": "source/kernel/memory/paging/page_table.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/cpu/io.cpp.o", "source/kernel/driver/cpu/io.cpp"],
-  "file": "source/kernel/driver/cpu/io.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/cpu/sse.cpp.o", "source/kernel/driver/cpu/sse.cpp"],
-  "file": "source/kernel/driver/cpu/sse.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/cpu/smp.cpp.o", "source/kernel/driver/cpu/smp.cpp"],
-  "file": "source/kernel/driver/cpu/smp.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/acpi/hpet_t.cpp.o", "source/kernel/driver/acpi/hpet_t.cpp"],
-  "file": "source/kernel/driver/acpi/hpet_t.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/acpi/madt.cpp.o", "source/kernel/driver/acpi/madt.cpp"],
-  "file": "source/kernel/driver/acpi/madt.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/acpi/table.cpp.o", "source/kernel/driver/acpi/table.cpp"],
-  "file": "source/kernel/driver/acpi/table.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/serial_port/serial_port.cpp.o", "source/kernel/driver/serial_port/serial_port.cpp"],
-  "file": "source/kernel/driver/serial_port/serial_port.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/services/interface.cpp.o", "source/kernel/syscall/services/interface.cpp"],
-  "file": "source/kernel/syscall/services/interface.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/services/filesystem.cpp.o", "source/kernel/syscall/services/filesystem.cpp"],
-  "file": "source/kernel/syscall/services/filesystem.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/loader/loader.cpp.o", "source/kernel/syscall/loader/loader.cpp"],
-  "file": "source/kernel/syscall/loader/loader.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/loader/elf.cpp.o", "source/kernel/syscall/loader/elf.cpp"],
-  "file": "source/kernel/syscall/loader/elf.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/schedule/Muqss.cpp.o", "source/kernel/task/schedule/Muqss.cpp"],
-  "file": "source/kernel/task/schedule/Muqss.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/schedule/scheduler.cpp.o", "source/kernel/task/schedule/scheduler.cpp"],
-  "file": "source/kernel/task/schedule/scheduler.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/lib/abi.cpp.o", "source/lib/abi.cpp"],
-  "file": "source/lib/abi.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
-  "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/lib/string.cpp.o", "source/lib/string.cpp"],
-  "file": "source/lib/string.cpp"
-},
-{
-  "directory": "/home/ld/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c23", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/syscall.S.o", "source/kernel/syscall/syscall.S"],
   "file": "source/kernel/syscall/syscall.S"
 },
@@ -148,4 +8,144 @@
   "directory": "/home/ld/QuantumNEC",
   "arguments": ["/usr/bin/clang", "-c", "-Qunused-arguments", "-O0", "-std=c23", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/entry.S.o", "source/kernel/interrupt/entry.S"],
   "file": "source/kernel/interrupt/entry.S"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/boot/kloader.cpp.o", "source/kernel/boot/kloader.cpp"],
+  "file": "source/kernel/boot/kloader.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/syscall.cpp.o", "source/kernel/syscall/syscall.cpp"],
+  "file": "source/kernel/syscall/syscall.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/display/print.cpp.o", "source/kernel/display/print.cpp"],
+  "file": "source/kernel/display/print.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/hpet.cpp.o", "source/kernel/interrupt/hpet.cpp"],
+  "file": "source/kernel/interrupt/hpet.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/apic.cpp.o", "source/kernel/interrupt/apic.cpp"],
+  "file": "source/kernel/interrupt/apic.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/idt.cpp.o", "source/kernel/interrupt/idt.cpp"],
+  "file": "source/kernel/interrupt/idt.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/interrupt/entry.cpp.o", "source/kernel/interrupt/entry.cpp"],
+  "file": "source/kernel/interrupt/entry.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/task.cpp.o", "source/kernel/task/task.cpp"],
+  "file": "source/kernel/task/task.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/segment/gdt.cpp.o", "source/kernel/memory/segment/gdt.cpp"],
+  "file": "source/kernel/memory/segment/gdt.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/allocator/kheap.cpp.o", "source/kernel/memory/allocator/kheap.cpp"],
+  "file": "source/kernel/memory/allocator/kheap.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/allocator/page.cpp.o", "source/kernel/memory/allocator/page.cpp"],
+  "file": "source/kernel/memory/allocator/page.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/memory/paging/page_table.cpp.o", "source/kernel/memory/paging/page_table.cpp"],
+  "file": "source/kernel/memory/paging/page_table.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/cpu/io.cpp.o", "source/kernel/driver/cpu/io.cpp"],
+  "file": "source/kernel/driver/cpu/io.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/cpu/sse.cpp.o", "source/kernel/driver/cpu/sse.cpp"],
+  "file": "source/kernel/driver/cpu/sse.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/cpu/smp.cpp.o", "source/kernel/driver/cpu/smp.cpp"],
+  "file": "source/kernel/driver/cpu/smp.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/acpi/hpet_t.cpp.o", "source/kernel/driver/acpi/hpet_t.cpp"],
+  "file": "source/kernel/driver/acpi/hpet_t.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/acpi/madt.cpp.o", "source/kernel/driver/acpi/madt.cpp"],
+  "file": "source/kernel/driver/acpi/madt.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/acpi/table.cpp.o", "source/kernel/driver/acpi/table.cpp"],
+  "file": "source/kernel/driver/acpi/table.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/driver/serial_port/serial_port.cpp.o", "source/kernel/driver/serial_port/serial_port.cpp"],
+  "file": "source/kernel/driver/serial_port/serial_port.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/services/interface.cpp.o", "source/kernel/syscall/services/interface.cpp"],
+  "file": "source/kernel/syscall/services/interface.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/services/filesystem.cpp.o", "source/kernel/syscall/services/filesystem.cpp"],
+  "file": "source/kernel/syscall/services/filesystem.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/loader/loader.cpp.o", "source/kernel/syscall/loader/loader.cpp"],
+  "file": "source/kernel/syscall/loader/loader.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/syscall/loader/elf.cpp.o", "source/kernel/syscall/loader/elf.cpp"],
+  "file": "source/kernel/syscall/loader/elf.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/schedule/Muqss.cpp.o", "source/kernel/task/schedule/Muqss.cpp"],
+  "file": "source/kernel/task/schedule/Muqss.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/kernel/task/schedule/scheduler.cpp.o", "source/kernel/task/schedule/scheduler.cpp"],
+  "file": "source/kernel/task/schedule/scheduler.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/lib/abi.cpp.o", "source/lib/abi.cpp"],
+  "file": "source/lib/abi.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=kernel", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIC", "-g3", "-Wpointer-arith", "-Wno-missing-field-initializers", "-Wwrite-strings", "-fno-threadsafe-statics", "-Wno-reorder", "-o", "build/.objs/micro_kernel.elf/linux/x86-64/release/source/lib/string.cpp.o", "source/lib/string.cpp"],
+  "file": "source/lib/string.cpp"
+},
+{
+  "directory": "/home/ld/QuantumNEC",
+  "arguments": ["/usr/bin/clang++", "-c", "-Qunused-arguments", "-O0", "-std=c++26", "-Iinclude", "-Isource/kernel/boot/limine", "-Isource/lib/libfmt/include", "-Isource/lib/libos-terminal", "-fno-builtin", "-mcmodel=large", "-ffreestanding", "-fno-stack-protector", "-nostdlib", "-nostartfiles", "-fno-strict-aliasing", "-fno-common", "-fno-rtti", "-fno-exceptions", "-mno-red-zone", "-fno-stack-check", "-Wall", "-Wextra", "-static", "-fPIE", "-o", "build/.objs/filesystem/linux/x86-64/release/source/module/filesystem/fs_servicer.cpp.o", "source/module/filesystem/fs_servicer.cpp"],
+  "file": "source/module/filesystem/fs_servicer.cpp"
 }]

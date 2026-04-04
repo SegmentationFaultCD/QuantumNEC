@@ -37,9 +37,9 @@ struct Muqss {
             auto operator( )( const PCB *x, const PCB *y ) const -> bool;
         };
 
-        explicit mCore( ) :
+        mCore( ) :
             lock { new s_locks {} }, cpu_id { Interrupt::apic.apic_id( ) } {}
-        explicit mCore( mCore &&c ) :
+        mCore( mCore &&c ) :
             running_task { std::move( c.running_task ) }, next { std::move( c.next ) }, lock { new s_locks {} }, cpu_id { Interrupt::apic.apic_id( ) } {}
         auto operator=( mCore &&c ) -> mCore & {
             running_task = std::move( c.running_task );
@@ -55,7 +55,7 @@ struct Muqss {
             }
         }
         std::priority_queue< PCB, std::cxxvector< PCB >, compare > scheduler_queue;
-        std::vector< PCB > RT_task_queue;
+        std::cxxqueue< PCB > RT_task_queue;
     };
 
     friend auto initialize_task( std::uint64_t core ) -> void;

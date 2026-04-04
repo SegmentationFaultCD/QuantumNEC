@@ -22,7 +22,7 @@ auto Muqss::schedule( void ) -> void {
     ( [ & ] {
         auto pop_running_tasks = [ & ] {
             if ( current.core.running_task.schedule->priority <= std::to_underlying( Schedule::Priority::ISO ) ) {
-                current.core.RT_task_queue.push_back( std::move( current.core.running_task ) );
+                current.core.RT_task_queue.push( std::move( current.core.running_task ) );
             }
             else {
                 current.core.scheduler_queue.push( std::move( current.core.running_task ) );
@@ -41,7 +41,8 @@ auto Muqss::schedule( void ) -> void {
 
             current.core.lock->lock( );
             if ( !current.core.RT_task_queue.empty( ) ) {
-                current.core.next = std::move( *current.core.RT_task_queue.erase( current.core.RT_task_queue.begin( ) ) );
+                current.core.next = std::move( current.core.RT_task_queue.front( ) );
+                current.core.RT_task_queue.pop( );
                 current.core.next.schedule->cpu = current.core.cpu_id;
                 pop_running_tasks( );
                 current.core.lock->unlock( );
@@ -70,12 +71,6 @@ auto Muqss::schedule( void ) -> void {
                         current.core.next.schedule->cpu = current.core.cpu_id;
                         pop_running_tasks( );
 
-                        Display::println( "--------------------\n{}", rq.core.running_task.name.c_str( ) );
-                        Display::println( "{}", rq.core.scheduler_queue.top( ).name.c_str( ) );
-                        Display::println( "{}", current.core.running_task.name.c_str( ) );
-                        Display::println( "{}", current.core.scheduler_queue.top( ).name.c_str( ) );
-                        Display::println( "{}\n--------------------", current.core.next.name.c_str( ) );
-
                         rq.core.lock->unlock( );
                         current.core.lock->unlock( );
                         return;
@@ -102,7 +97,7 @@ auto Muqss::schedule( void ) -> void {
     } )( );
 
     current.core.lock->lock( );
-    if ( current.core.next.has_task( ) && !current.core.running_task.has_task( ) ) {
+    if ( current.core.next.has_task( ) ) {
         current.core.next.activate( );
         current.core.running_task = std::move( current.core.next );
     }
@@ -133,7 +128,8 @@ auto Muqss::yield( ) -> void {
     current.core.lock->lock( );
 
     if ( !current.core.RT_task_queue.empty( ) ) {
-        current.core.next = std::move( *current.core.RT_task_queue.erase( current.core.RT_task_queue.begin( ) ) );
+        current.core.next = std::move( current.core.RT_task_queue.front( ) );
+        current.core.RT_task_queue.pop( );
         current.core.next.schedule->cpu = current.core.cpu_id;
     }
     else if ( !current.core.scheduler_queue.empty( ) ) {
@@ -143,7 +139,7 @@ auto Muqss::yield( ) -> void {
     }
 
     if ( current.core.running_task.schedule->priority <= std::to_underlying( Schedule::Priority::ISO ) ) {
-        current.core.RT_task_queue.push_back( std::move( current.core.running_task ) );
+        current.core.RT_task_queue.push( std::move( current.core.running_task ) );
     }
     else {
         current.core.scheduler_queue.push( std::move( current.core.running_task ) );
@@ -179,7 +175,7 @@ auto Muqss::wake_up( PCB &&pcb ) -> void {
     auto &current = scheduler->get_current( );
     current.core.lock->lock( );
     if ( pcb.schedule->priority <= std::to_underlying( Schedule::Priority::ISO ) ) {
-        current.core.RT_task_queue.push_back( std::move( pcb ) );
+        current.core.RT_task_queue.push( std::move( pcb ) );
     }
     else {
         current.core.scheduler_queue.push( std::move( pcb ) );
