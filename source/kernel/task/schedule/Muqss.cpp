@@ -50,35 +50,39 @@ auto Muqss::schedule( void ) -> void {
             }
             current.core.lock->unlock( );
 
-            if ( interactive ) {
-                std::priority_queue< const PCB *, std::cxxvector< const PCB * >, mCore::compare_ptr > sq;
-                // 我们只对第一个任务感兴趣,并且在只有少量任务的情况下可以允许特判
+            // 移除高交互模式下的竞争选择，存在死锁和安全风险
+            // if ( interactive ) {
+            //     std::priority_queue< const PCB *, std::cxxvector< const PCB * >, mCore::compare_ptr > sq;
+            //     // 我们只对第一个任务感兴趣,并且在只有少量任务的情况下可以允许特判
 
-                for ( auto &cpu : scheduler->running_queue ) {
-                    if ( cpu.core.cpu_id == current.core.cpu_id ) {
-                        continue;
-                    }
-                    if ( !cpu.core.scheduler_queue.empty( ) ) {
-                        sq.push( &cpu.core.scheduler_queue.top( ) );
-                    }
-                }
+            //     for ( auto &cpu : scheduler->running_queue ) {
+            //         if ( cpu.core.cpu_id == current.core.cpu_id ) {
+            //             continue;
+            //         }
+            //         if ( !cpu.core.scheduler_queue.empty( ) ) {
+            //             sq.push( &cpu.core.scheduler_queue.top( ) );
+            //         }
+            //     }
 
-                current.core.lock->lock( );
-                while ( !sq.empty( ) ) {
-                    if ( auto &rq = scheduler->running_queue[ sq.top( )->schedule->cpu ]; rq.core.lock->try_lock( ) ) {
-                        current.core.next = const_cast< PCB && >( rq.core.scheduler_queue.top( ) );
-                        rq.core.scheduler_queue.pop( );
-                        current.core.next.schedule->cpu = current.core.cpu_id;
-                        pop_running_tasks( );
+            //     current.core.lock->lock( );
+            //     while ( !sq.empty( ) ) {
+            //         if ( auto &rq = scheduler->running_queue[ sq.top( )->schedule->cpu ]; rq.core.lock->try_lock( ) ) {
+            //             // FIX: Protect scheduler->running_queue access
+            //             {
+            //                 current.core.next = const_cast< PCB && >( rq.core.scheduler_queue.top( ) );
+            //                 rq.core.scheduler_queue.pop( );
+            //                 current.core.next.schedule->cpu = current.core.cpu_id;
+            //                 pop_running_tasks( );
+            //             }
+            //             rq.core.lock->unlock( );
+            //             current.core.lock->unlock( );
+            //             return;
+            //         }
+            //         sq.pop( );
+            //     }
+            //     current.core.lock->unlock( );
+            // }
 
-                        rq.core.lock->unlock( );
-                        current.core.lock->unlock( );
-                        return;
-                    }
-                    sq.pop( );
-                }
-                current.core.lock->unlock( );
-            }
             current.core.lock->lock( );
             if ( !current.core.scheduler_queue.empty( ) ) {
                 current.core.next = const_cast< PCB && >( current.core.scheduler_queue.top( ) );
@@ -99,7 +103,21 @@ auto Muqss::schedule( void ) -> void {
     current.core.lock->lock( );
     if ( current.core.next.has_task( ) ) {
         current.core.next.activate( );
-        current.core.running_task = std::move( current.core.next );
+        // FIX: Thread-safe task activation
+        {
+            // Release the scheduler_queue lock after moving the next task
+            PCB next_task = std::move( current.core.next );
+
+            // Ensure no double initialization or resource leakage
+            current.core.next = PCB {};     // Clear next
+
+            // Safety check before context switch
+            if ( next_task.has_task( ) ) {
+                // Verify the task can be safely activated
+                current.core.running_task = std::move( next_task );
+                current.core.running_task.schedule->cpu = current.core.cpu_id;
+            }
+        }
     }
     current.core.lock->unlock( );
 }

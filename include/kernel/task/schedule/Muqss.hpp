@@ -40,11 +40,14 @@ struct Muqss {
         mCore( ) :
             lock { new s_locks {} }, cpu_id { Interrupt::apic.apic_id( ) } {}
         mCore( mCore &&c ) :
-            running_task { std::move( c.running_task ) }, next { std::move( c.next ) }, lock { new s_locks {} }, cpu_id { Interrupt::apic.apic_id( ) } {}
+            running_task { std::move( c.running_task ) },
+            next { std::move( c.next ) },
+            lock { new s_locks {} },
+            cpu_id { Interrupt::apic.apic_id( ) } {}
         auto operator=( mCore &&c ) -> mCore & {
             running_task = std::move( c.running_task );
             next = std::move( c.next );
-            lock = new s_locks { };
+            lock = new s_locks {};
             cpu_id = c.cpu_id;
             return *this;
         }

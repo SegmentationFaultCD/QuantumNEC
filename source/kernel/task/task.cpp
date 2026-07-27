@@ -4,17 +4,17 @@
 #include <kernel/task/task.hpp>
 namespace Task {
 auto initialize_task( std::uint64_t core ) -> void {
-    auto main = new PCB { };
-    main->name.append( Library::format( "init{}", core ) );
+    auto main = new PCB {};
 
+    main->name.append( Library::format( "init{}", core ) );
     main->PID = id_pool.get( );
-    main->thread_group.push_back( PCB::Thread { } );
+    main->thread_group.push_back( PCB::Thread {} );
     auto &mthread = main->thread_group[ 0 ];
     using namespace Memory;
     using enum Memory::Page::Type;
 
-    mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > { }.allocate( main->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
-    mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > { }.allocate( main->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
+    mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > {}.allocate( main->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
+    mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > {}.allocate( main->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
 
     mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack + PCB::kernel_stack_size - sizeof( Interrupt::IDT::Frame ) );
 
@@ -24,20 +24,22 @@ auto initialize_task( std::uint64_t core ) -> void {
     main->page_table = nullptr;     // 为空说明默认使用内核页表
 
     main->schedule.reset( new Schedule );
+
     scheduler->first_initialize( *main );
 
     scheduler->get_current( ).core.running_task = std::move( *main );
+    
 }
 PCB::PCB( std::string_view _name, std::uint64_t entry_offset, std::uint64_t text_physical, std::uint64_t text_segment_length ) :
     name { _name },
-    page_table { new Memory::Paging::pml4t {} }, thread_group { }, PID { id_pool.get( ) }, schedule { new Schedule {} }, is_empty { false } {
+    page_table { new Memory::Paging::pml4t {} }, thread_group {}, PID { id_pool.get( ) }, schedule { new Schedule {} }, is_empty { false } {
     using namespace Memory;
     this->page_table->copy( *paging->kernel_page_table );
     using enum Memory::Page::Type;
-    thread_group.push_back( Thread { } );
+    thread_group.push_back( Thread {} );
     auto &mthread = thread_group[ 0 ];
-    mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > { }.allocate( this->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
-    mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > { }.allocate( this->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
+    mthread.kernel_stack = (std::uint64_t)Page::allocator< P4Kib > {}.allocate( this->kernel_stack_size / Page::allocator< P4Kib >::__page_size__ );
+    mthread.user_stack = (std::uint64_t)Page::allocator< P2Mib > {}.allocate( this->user_stack_size / Page::allocator< P2Mib >::__page_size__ );
     mthread.frame = (Interrupt::IDT::Frame *)physical_to_virtual( mthread.kernel_stack + this->kernel_stack_size - sizeof( Interrupt::IDT::Frame ) );     // 内核栈栈底
     std::construct_at( mthread.frame );
     mthread.frame->cs = GDT::SELECTOR_CODE64_USER;

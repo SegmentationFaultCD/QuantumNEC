@@ -1,0 +1,7 @@
+CompileFlags:
+  Add:
+    - -I/home/ld/QuantumNEC/include
+    - -I/home/ld/QuantumNEC/source/kernel/boot/limine
+    - -I/home/ld/QuantumNEC/source/lib/libfmt/include
+    - -I/home/ld/QuantumNEC/source/lib/libos-terminal
+    - -std=c++26

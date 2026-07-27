@@ -5,6 +5,8 @@
 #include <kernel/task/lock/spinlock.hpp>
 #include <lib/format.hpp>
 #include <limine.h>
+#include <mutex>
+
 namespace Display {
 
 constexpr auto LINEEOF = 0;

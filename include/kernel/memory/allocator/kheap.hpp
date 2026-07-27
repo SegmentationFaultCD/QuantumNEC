@@ -72,11 +72,16 @@ private:
 
 public:
     constexpr static auto cache_size_count = sizeof( cache_size ) / sizeof( uint64_t );
-    inline static Task::s_locks kheap_lock { };
+    inline static Task::s_locks kheap_lock {};
 
 public:
     allocator( void ) noexcept {}
     virtual ~allocator( void ) noexcept {}
+
+    template < class U >
+    constexpr allocator( const allocator< U > &other ) noexcept {
+        
+    }
 
     static auto traversal_to_get_slab( uint64_t size ) -> SlabCache * {
         for ( auto i = 0ul; i < cache_size_count; ++i ) {
@@ -95,7 +100,7 @@ public:
                 }
             }
         }
-        return { };
+        return {};
     }
 
 public:
@@ -116,7 +121,7 @@ public:
 
         auto slab_cache = traversal_to_get_slab( size );
 
-        Page::allocator< Type::P2Mib > page_allocator { };
+        Page::allocator< Type::P2Mib > page_allocator {};
 
         if ( slab_cache != nullptr ) {
             auto slab = slab_cache->cache_pool;
@@ -136,7 +141,7 @@ public:
                          if ( !page ) {
                              return nullptr;
                          }
-                         Slab *slab { };
+                         Slab *slab {};
                          switch ( slab_cache->size ) {
                          case 32:
                          case 64:
@@ -228,7 +233,7 @@ public:
         using namespace Memory::Page;
         auto page_base_address = Page::allocator< Type::P2Mib >::__page_base__( address );
 
-        Page::allocator< Type::P2Mib > page_allocator { };
+        Page::allocator< Type::P2Mib > page_allocator {};
         if ( auto [ slab, slab_cache ] = this->traversal_to_find_page_base( page_base_address ); slab != nullptr && slab_cache != nullptr ) {
             if ( !slab ) {
                 return;
@@ -253,9 +258,9 @@ public:
                 default:
                     slab_cache->pool_list.remove( slab->list );
                     slab_cache->total_free -= slab->color_count;
-                    allocator< uint64_t > { }._deallocate( slab->color_map, slab->color_count );
+                    allocator< uint64_t > {}._deallocate( slab->color_map, slab->color_count );
                     page_allocator._deallocate( slab->page, 1 );
-                    allocator< Slab > { }._deallocate( slab, slab->color_count );
+                    allocator< Slab > {}._deallocate( slab, slab->color_count );
                     break;
                 }
             }
@@ -264,10 +269,10 @@ public:
 };
 
 inline auto _kheap_allocator_nolock( std::size_t size ) -> void * {
-    return allocator< char > { }._allocate( size );
+    return allocator< char > {}._allocate( size );
 }
 
 inline auto _kheap_deallocator_nolock( const void *address, [[maybe_unused]] std::size_t size ) -> void {
-    return allocator< char > { }._deallocate( (char *)address, size );
+    return allocator< char > {}._deallocate( (char *)address, size );
 }
 }     // namespace Memory::KernelHeap

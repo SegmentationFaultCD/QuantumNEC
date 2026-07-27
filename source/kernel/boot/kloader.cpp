@@ -96,8 +96,8 @@ __attribute__( ( used, section( ".requests_end_marker" ) ) ) volatile LIMINE_REQ
 auto ff( std::span< int > f ) {
     char buf[ 114 ];
     Library::utoa( std::uint64_t( f[ 0 ] ), buf, 16 );
-    Driver::SerialPort { }.print( buf );
-    Driver::SerialPort { }.print( "\n" );
+    Driver::SerialPort {}.print( buf );
+    Driver::SerialPort {}.print( "\n" );
 }
 
 auto alloc( std::size_t size ) -> void * {
@@ -120,12 +120,13 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     Display::initialize( framebuffer_request.response->framebuffers[ 0 ] );
     Driver::initialize_acpi( acpi_request.response );
     Interrupt::apic.initialize( true );
+
     Task::scheduler->initialize( );
     Task::initialize_task( 0 );
-    Kernel::syscall = Kernel::syscall->initialize( );
-    Driver::initialize_smp( smp_request.response );
-    Kernel::module_loader = Kernel::module_loader->initialize( modules_request.response );
-    Interrupt::idt->enable_interrupt( );
+    // Kernel::syscall = Kernel::syscall->initialize( );
+    // Driver::initialize_smp( smp_request.response );
+    // Kernel::module_loader = Kernel::module_loader->initialize( modules_request.response );
+    // Interrupt::idt->enable_interrupt( );
 
     using namespace Memory::Page;
 
@@ -174,9 +175,9 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
     ff( s );
 
     std::vector< int, Memory::KernelHeap::allocator< int > > vec { 3 };
-    vec.clear( );
 
     Display::println( "{}", vec[ 0 ] );
+    vec.clear( );
 
     auto s2 = string | std::ranges::views::filter( []( const char c ) -> bool { return c != ' '; } ) | std::ranges::to< std::basic_string< char, std::char_traits< char >, Memory::KernelHeap::allocator< char > > >( );
     Display::println( "{}", s2.c_str( ) );
@@ -205,7 +206,7 @@ extern "C" [[noreturn]] auto loader_entry( void ) -> void {
 
     // terminal_init( &td, 15.0f, alloc, free );
     while ( true ) {
-        //  Display::println( "Main0 in core :{}", Task::scheduler->get_current( ).core.cpu_id );
+        // Display::println( "Main0 in core :{}", Task::scheduler->get_current( ).core.cpu_id );
     }
     // terminal_process( "Hello world" );
 }

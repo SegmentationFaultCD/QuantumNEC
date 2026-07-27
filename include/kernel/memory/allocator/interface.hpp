@@ -24,7 +24,7 @@ public:     // allocate, collect interface
 
 template < typename T, typename SizeType = std::size_t >
 struct allocation_result {
-    T       *ptr;
+    T *ptr;
     SizeType count;
 };
 
@@ -36,10 +36,10 @@ template < class Alloc >
     }
 class allocator_traits {
 public:
-    using allocator_type  = Alloc;
-    using type            = Alloc::type;
+    using allocator_type = Alloc;
+    using type = Alloc::type;
     using difference_type = Alloc::difference_type;
-    using size_type       = Alloc::size_type;
+    using size_type = Alloc::size_type;
 
 public:
     static auto allocate( Alloc &a, size_type n ) {
@@ -50,7 +50,7 @@ public:
     }
     static auto construct( [[maybe_unused]] Alloc &a, type *p, auto &&...args ) {
         if constexpr ( std::is_array_v< type > ) {
-            new ( reinterpret_cast< void * >( p ) ) type[ 1 ] { };
+            new ( reinterpret_cast< void * >( p ) ) type[ 1 ] {};
         }
         else {
             new ( reinterpret_cast< void * >( p ) ) type { args... };

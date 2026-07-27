@@ -14,7 +14,7 @@ struct Scheduler : T {
         std::uint64_t kgsbase;
         std::uint64_t gsbase;
         explicit Core( ) :
-            core { } {}
+            core {} {}
         explicit Core( Core &&c ) :
             kgsbase { c.kgsbase }, gsbase { c.gsbase },
             core { std::move( c.core ) } {}

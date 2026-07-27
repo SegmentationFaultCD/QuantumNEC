@@ -143,22 +143,4 @@
     "clangd.detectExtensionConflicts": true,
     "cmake.ignoreCMakeListsMissing": true,
     "background.enabled": true,
-    "background.editor": {
-        "useFront": true,
-        "style": {
-            "background-position": "100% 100%",
-            "background-size": "auto",
-            "opacity": 0.4
-        },
-    },
-    "background.fullscreen": {
-        "images": [
-            "file:///home/ld/QuantumNEC/images/2025-04-05_22.37.40.png"
-        ],
-        "opacity": 0.1,
-        "size": "cover",
-        "position": "center",
-        "interval": 0,
-        "random": false
-    }
 }

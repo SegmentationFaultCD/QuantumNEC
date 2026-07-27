@@ -6,7 +6,7 @@
 #include <lib/rbtree.hpp>
 #include <lib/string.hpp>
 #include <limine.h>
-
+#include <mutex>
 namespace {
 consteval auto operator""_KB( unsigned long long size ) {
     return size * 1024ul;
@@ -92,7 +92,7 @@ public:
 
         zone( ) = default;
         zone( std::uint64_t base_, Library::RBTree< std::uint64_t, zone * >::Node &&node_ ) :
-            base { base_ }, zone_count { }, node { node_.key( ), node_.data( ) }, free_page { }, pages { } {
+            base { base_ }, zone_count {}, node { node_.key( ), node_.data( ) }, free_page {}, pages {} {
         }
     };
 
@@ -107,7 +107,7 @@ public:
 
 public:
     constexpr explicit allocator( void ) noexcept :
-        Memory::allocator< void > { } {}
+        Memory::allocator< void > {} {}
     virtual ~allocator( void ) {}
 
 public:
@@ -193,7 +193,7 @@ public:
         std::uint64_t bases = 0;
         if constexpr ( page_type != Type::P1Gib ) {
             using Above = allocator< Type( std::to_underlying( page_type ) + 1ul ) >;
-            bases = reinterpret_cast< std::uint64_t >( Above { }._allocate( number_of_zone * this->__page_size__ * page_descriptor_count / Above::__page_size__ ) );
+            bases = reinterpret_cast< std::uint64_t >( Above {}._allocate( number_of_zone * this->__page_size__ * page_descriptor_count / Above::__page_size__ ) );
         }
         else {
             bases = this->global_memory_mark;
@@ -260,7 +260,7 @@ public:
     }
 
 private:
-    inline static Library::RBTree< std::uint64_t, zone * > zone_trees[ 3 ] { };
+    inline static Library::RBTree< std::uint64_t, zone * > zone_trees[ 3 ] {};
 
     inline static auto zone_tree = zone_trees[ std::to_underlying( page_type ) - 1 ];
 
@@ -268,7 +268,7 @@ private:
     inline static auto all_memory_total = 0ul;
     inline static auto global_memory_mark = 0ul;
 
-    inline static Task::s_locks page_lock { };
+    inline static Task::s_locks page_lock {};
 };
 
 }     // namespace Memory::Page
